@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "dragonfruit",
+  "version": "${version}",
+  "name": "Dragonfruit Powers",
+  "description": "Eat a Dragonfruit, gain anime-style powers. Rubber, Flame, Ice, Light and Quake fruits with heavy visual effects, including a stretching rubber arm you can see in first person.",
+  "authors": ["Bradley (nothatcher-creator)"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/dragonfruit/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.nothatcher.dragonfruit.DragonfruitMod"],
+    "client": ["com.nothatcher.dragonfruit.client.DragonfruitClient"]
+  },
+  "mixins": ["dragonfruit.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}

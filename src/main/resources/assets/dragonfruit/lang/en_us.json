@@ -1,0 +1,58 @@
+{
+  "itemGroup.dragonfruit.fruits": "Dragonfruit Powers",
+
+  "item.dragonfruit.rubber_dragonfruit": "Rubber Dragonfruit",
+  "item.dragonfruit.flame_dragonfruit": "Flame Dragonfruit",
+  "item.dragonfruit.ice_dragonfruit": "Ice Dragonfruit",
+  "item.dragonfruit.light_dragonfruit": "Light Dragonfruit",
+  "item.dragonfruit.quake_dragonfruit": "Quake Dragonfruit",
+
+  "fruit.dragonfruit.none": "None",
+  "fruit.dragonfruit.rubber": "Rubber Power",
+  "fruit.dragonfruit.flame": "Flame Power",
+  "fruit.dragonfruit.ice": "Ice Power",
+  "fruit.dragonfruit.light": "Light Power",
+  "fruit.dragonfruit.quake": "Quake Power",
+
+  "tooltip.dragonfruit.rubber": "Your body turns to rubber. Stretch, bounce, punch from 30 blocks away.",
+  "tooltip.dragonfruit.flame": "Become living fire.",
+  "tooltip.dragonfruit.ice": "Freeze the sea and everything in it.",
+  "tooltip.dragonfruit.light": "Move and strike at the speed of light.",
+  "tooltip.dragonfruit.quake": "Crack the air itself.",
+  "tooltip.dragonfruit.warning": "Eating it means you can never swim again.",
+
+  "ability.dragonfruit.rubber.pistol": "Rubber Pistol",
+  "ability.dragonfruit.rubber.rocket": "Rubber Rocket",
+  "ability.dragonfruit.rubber.gatling": "Rubber Gatling",
+  "ability.dragonfruit.rubber.second_gear": "Second Gear",
+  "ability.dragonfruit.flame.fire_fist": "Fire Fist",
+  "ability.dragonfruit.flame.flame_pillar": "Flame Pillar",
+  "ability.dragonfruit.flame.firefly_swarm": "Firefly Swarm",
+  "ability.dragonfruit.flame.flame_body": "Flame Body",
+  "ability.dragonfruit.ice.ice_spears": "Ice Spears",
+  "ability.dragonfruit.ice.ice_age": "Ice Age",
+  "ability.dragonfruit.ice.ice_coffin": "Ice Coffin",
+  "ability.dragonfruit.light.light_flash": "Light Flash",
+  "ability.dragonfruit.light.light_barrage": "Light Barrage",
+  "ability.dragonfruit.light.light_cannon": "Light Cannon",
+  "ability.dragonfruit.quake.quake_punch": "Quake Punch",
+  "ability.dragonfruit.quake.ground_quake": "Ground Quake",
+  "ability.dragonfruit.quake.quake_bubble": "Quake Bubble",
+
+  "msg.dragonfruit.awaken": "You ate the %s!",
+  "msg.dragonfruit.replaced": "Your %s fades away...",
+  "msg.dragonfruit.controls": "R = use ability, C = next, X = previous (change in Controls > Dragonfruit Powers)",
+  "msg.dragonfruit.cooldown": "%s ready in %ss",
+  "msg.dragonfruit.water": "Water drains your power!",
+  "msg.dragonfruit.nothing_to_grab": "Nothing in range to grab",
+  "msg.dragonfruit.no_target": "No target in sight",
+  "msg.dragonfruit.blocked": "No room to land there",
+  "msg.dragonfruit.no_fruit": "You haven't eaten a Dragonfruit",
+
+  "hud.dragonfruit.water": "Water! Your powers are sealed",
+
+  "category.dragonfruit": "Dragonfruit Powers",
+  "key.dragonfruit.use": "Use Ability",
+  "key.dragonfruit.next": "Next Ability",
+  "key.dragonfruit.prev": "Previous Ability"
+}
