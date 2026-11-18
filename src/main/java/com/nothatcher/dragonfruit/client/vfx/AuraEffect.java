@@ -26,6 +26,10 @@ public class AuraEffect extends VfxEffect {
         this.kind = kind;
     }
 
+    boolean is(int id, int k) {
+        return entityId == id && kind == k;
+    }
+
     @Override
     protected void onTick(ClientWorld world) {
         Entity e = world.getEntityById(entityId);
@@ -48,6 +52,14 @@ public class AuraEffect extends VfxEffect {
                 }
                 case Vfx.A_FROST -> Particles.add(ParticleTypes.SNOWFLAKE, p, Vec3d.ZERO);
                 case Vfx.A_LIGHT -> Particles.add(ParticleTypes.END_ROD, p, Vec3d.ZERO);
+                case Vfx.A_SENSE -> {
+                    if (!fp && r.nextInt(3) == 0) Particles.add(ParticleTypes.ENCHANT, p.add(0, 0.6, 0), new Vec3d(0, 0.1, 0));
+                }
+                case Vfx.A_ARMOR -> {
+                    Vec3d hand = Poses.shoulder(e, 1f, r.nextBoolean() ? 1 : -1, 0, -0.5);
+                    Particles.add(ParticleTypes.SMOKE, hand.add(Particles.randDir(r).multiply(0.2)), new Vec3d(0, 0.02, 0));
+                    if (r.nextInt(5) == 0) Particles.add(ParticleTypes.SQUID_INK, hand, new Vec3d(0, 0.02, 0));
+                }
                 case Vfx.A_THUNDER -> {
                     Particles.add(ParticleTypes.ELECTRIC_SPARK, p, Particles.randDir(r).multiply(0.15));
                     if (r.nextInt(6) == 0) Particles.add(ParticleTypes.END_ROD, p, Vec3d.ZERO);

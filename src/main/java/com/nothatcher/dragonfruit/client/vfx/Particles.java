@@ -209,6 +209,35 @@ public final class Particles {
                 for (int i = 0; i < 20; i++) add(ParticleTypes.PORTAL, pos.add(0, 0.5, 0), randDir(r).multiply(0.8));
                 shockRing(pos.add(0, 0.3, 0), Gfx.UP, ParticleTypes.CLOUD, 30, 0.6);
             }
+            case Vfx.B_ARMOR -> {
+                for (int i = 0; i < 30; i++) add(ParticleTypes.SQUID_INK, pos.add(randDir(r).multiply(0.5)), randDir(r).multiply(0.1));
+                for (int i = 0; i < 20; i++) add(ParticleTypes.SMOKE, pos, randDir(r).multiply(0.15));
+                for (int i = 0; i < 10; i++) add(ParticleTypes.CRIT, pos, randDir(r).multiply(0.4));
+            }
+            case Vfx.B_KNOCKOUT -> {
+                for (int i = 0; i < 10; i++) {
+                    double a = Math.PI * 2 * i / 10;
+                    add(ParticleTypes.CRIT, pos.add(Math.cos(a) * 0.4, 0.2, Math.sin(a) * 0.4), new Vec3d(-Math.sin(a) * 0.1, 0, Math.cos(a) * 0.1));
+                }
+                add(ParticleTypes.ENCHANTED_HIT, pos, Vec3d.ZERO);
+            }
+            case Vfx.B_CANNON -> {
+                Vec3d d = dir.lengthSquared() < 1.0E-6 ? Gfx.UP : dir.normalize();
+                for (int i = 0; i < 18 * s; i++) add(ParticleTypes.LARGE_SMOKE, pos, d.multiply(0.15 + r.nextDouble() * 0.2).add(randDir(r).multiply(0.05)));
+                for (int i = 0; i < 12 * s; i++) add(ParticleTypes.FLAME, pos, d.multiply(0.3).add(randDir(r).multiply(0.08)));
+                add(ParticleTypes.EXPLOSION, pos, Vec3d.ZERO);
+                add(ParticleTypes.FLASH, pos, Vec3d.ZERO);
+            }
+            case Vfx.B_SPLASH -> {
+                for (int i = 0; i < 70 * s; i++) add(ParticleTypes.SPLASH, pos.add(randDir(r).multiply(1.5 * s)), new Vec3d(0, 0.2 + r.nextDouble() * 0.5, 0));
+                for (int i = 0; i < 30 * s; i++) add(ParticleTypes.CLOUD, pos.add(randDir(r).multiply(s)), randDir(r).multiply(0.15).add(0, 0.1, 0));
+                for (int i = 0; i < 20 * s; i++) add(ParticleTypes.BUBBLE, pos, randDir(r).multiply(0.4));
+            }
+            case Vfx.B_SLASH_HIT -> {
+                add(ParticleTypes.SWEEP_ATTACK, pos, Vec3d.ZERO);
+                for (int i = 0; i < 16; i++) add(ParticleTypes.CRIT, pos, randDir(r).multiply(0.6));
+                for (int i = 0; i < 10; i++) add(ParticleTypes.ENCHANTED_HIT, pos, randDir(r).multiply(0.5));
+            }
             default -> { }
         }
     }

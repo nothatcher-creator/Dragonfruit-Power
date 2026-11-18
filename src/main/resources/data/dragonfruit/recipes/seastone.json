@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PCP",
+    "CSC",
+    "PCP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:prismarine_shard"
+    },
+    "C": {
+      "item": "minecraft:prismarine_crystals"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone"
+    }
+  },
+  "result": {
+    "item": "dragonfruit:seastone",
+    "count": 4
+  }
+}

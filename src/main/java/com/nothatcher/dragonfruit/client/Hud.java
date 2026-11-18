@@ -49,10 +49,19 @@ public final class Hud {
             ctx.fill(cx, cy, cx + 1, cy + 1, 0xFFFFFFFF);
         }
 
-        if (fruit == FruitType.NONE) return;
         TextRenderer tr = mc.textRenderer;
 
-        if (mc.player.isTouchingWater() && !mc.player.isCreative()) {
+        if (com.nothatcher.dragonfruit.client.vfx.VfxManager.hasAura(mc.player.getId(), com.nothatcher.dragonfruit.net.Vfx.A_SENSE)) {
+            int edge = argb(0x9FD8FF, 0.22f);
+            ctx.fillGradient(0, 0, w, h / 6, edge, argb(0x9FD8FF, 0));
+            ctx.fillGradient(0, h - h / 6, w, h, argb(0x9FD8FF, 0), edge);
+        }
+        if (mc.player.getVehicle() instanceof com.nothatcher.dragonfruit.content.ShipEntity) {
+            Text hint = Text.translatable("hud.dragonfruit.ship", DragonfruitClient.cannonKey.getBoundKeyLocalizedText());
+            ctx.drawTextWithShadow(tr, hint, (w - tr.getWidth(hint)) / 2, 6, 0xFFE0B0);
+        }
+
+        if (fruit != FruitType.NONE && mc.player.isTouchingWater() && !mc.player.isCreative()) {
             Text warn = Text.translatable("hud.dragonfruit.water");
             int tw = tr.getWidth(warn);
             ctx.drawTextWithShadow(tr, warn, (w - tw) / 2, h / 2 + 18, 0x6FD6FF);
@@ -68,17 +77,21 @@ public final class Hud {
 
         // fruit icon
         ctx.fill(x0 - 1, y0 - 1, x0 + 18, y0 + CHIP_H + 1, 0xAA000000);
-        ItemStack icon = new ItemStack(ModItems.FRUITS.get(fruit));
-        ctx.drawItem(icon, x0 + 1, y0 + 1);
+        if (fruit != FruitType.NONE) {
+            ctx.drawItem(new ItemStack(ModItems.FRUITS.get(fruit)), x0 + 1, y0 + 1);
+        } else {
+            ctx.drawText(tr, "W", x0 + 6, y0 + 5, argb(com.nothatcher.dragonfruit.Willpower.COLOR, 1f), true);
+        }
 
         for (int i = 0; i < n; i++) {
             int x = x0 + 20 + i * (CHIP_W + GAP);
             boolean sel = i == ClientPowerData.selected;
+            int chipColor = fruit.isWillpower(i) ? com.nothatcher.dragonfruit.Willpower.COLOR : fruit.color;
             float cd = ClientPowerData.cooldownFraction(i, td);
-            int border = sel ? argb(fruit.color, 1f) : 0x88FFFFFF;
+            int border = sel ? argb(chipColor, 1f) : 0x88FFFFFF;
             ctx.fill(x - 1, y0 - 1, x + CHIP_W + 1, y0 + CHIP_H + 1, border);
             ctx.fill(x, y0, x + CHIP_W, y0 + CHIP_H, sel ? 0xE0101018 : 0xC0101018);
-            if (sel) ctx.fill(x, y0, x + CHIP_W, y0 + 2, argb(fruit.color, 0.9f));
+            if (sel) ctx.fill(x, y0, x + CHIP_W, y0 + 2, argb(chipColor, 0.9f));
             if (cd > 0) {
                 int cw = (int) (CHIP_W * cd);
                 ctx.fill(x, y0, x + cw, y0 + CHIP_H, 0xB0303040);
@@ -97,7 +110,7 @@ public final class Hud {
             String sub;
             if (cd > 0) sub = String.format("%.1fs", ClientPowerData.cooldownLeft(i) / 20f);
             else sub = sel ? "[" + DragonfruitClient.useKeyName() + "] READY" : "ready";
-            ctx.drawText(tr, sub, (int) ((x + 3) / scale), (int) ((y0 + 11) / scale), cd > 0 ? 0xFFFF7A7A : argb(fruit.color, 1f), true);
+            ctx.drawText(tr, sub, (int) ((x + 3) / scale), (int) ((y0 + 11) / scale), cd > 0 ? 0xFFFF7A7A : argb(chipColor, 1f), true);
             ctx.getMatrices().pop();
         }
 

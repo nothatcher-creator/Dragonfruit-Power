@@ -31,6 +31,7 @@ public class DragonfruitClient implements ClientModInitializer {
     public static KeyBinding nextKey;
     public static KeyBinding prevKey;
     public static KeyBinding camKey;
+    public static KeyBinding cannonKey;
 
     private static double lastVelY;
     private static boolean wasOnGround = true;
@@ -40,6 +41,7 @@ public class DragonfruitClient implements ClientModInitializer {
         useKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.use", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.dragonfruit"));
         nextKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.next", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, "category.dragonfruit"));
         prevKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.prev", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "category.dragonfruit"));
+        cannonKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.cannons", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.dragonfruit"));
         camKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.camera", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "category.dragonfruit"));
 
         ClientPlayNetworking.registerGlobalReceiver(Net.STATE, (client, handler, buf, responseSender) -> {
@@ -50,10 +52,33 @@ public class DragonfruitClient implements ClientModInitializer {
             int buff = buf.readVarInt();
             client.execute(() -> ClientPowerData.apply(fruit, cds, buff));
         });
+        ClientPlayNetworking.registerGlobalReceiver(Net.FRUITS, (client, handler, buf, responseSender) -> {
+            int n = buf.readVarInt();
+            java.util.UUID[] ids = new java.util.UUID[n];
+            int[] fruits = new int[n];
+            for (int i = 0; i < n; i++) {
+                ids[i] = buf.readUuid();
+                fruits[i] = buf.readVarInt();
+            }
+            client.execute(() -> {
+                for (int i = 0; i < n; i++) ClientPowerData.setOther(ids[i], FruitType.byOrdinal(fruits[i]));
+            });
+        });
         ClientPlayNetworking.registerGlobalReceiver(Net.VFX, (client, handler, buf, responseSender) -> {
             Runnable work = VfxDecoder.decode(buf);
             client.execute(work);
         });
+
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(
+                com.nothatcher.dragonfruit.content.ModContent.SHIP, com.nothatcher.dragonfruit.client.render.ShipRenderer::new);
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(
+                com.nothatcher.dragonfruit.content.ModContent.SEA_KING, com.nothatcher.dragonfruit.client.render.SeaKingRenderer::new);
+        net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback.EVENT.register(
+                (entityType, entityRenderer, helper, context) -> {
+                    if (entityRenderer instanceof net.minecraft.client.render.entity.PlayerEntityRenderer playerRenderer) {
+                        helper.register(new com.nothatcher.dragonfruit.client.render.FruitAuraFeature(playerRenderer));
+                    }
+                });
 
         ClientTickEvents.END_CLIENT_TICK.register(DragonfruitClient::tick);
         HudRenderCallback.EVENT.register(Hud::render);
@@ -80,11 +105,12 @@ public class DragonfruitClient implements ClientModInitializer {
         while (camKey.wasPressed()) PowerCam.cycle();
         while (nextKey.wasPressed()) ClientPowerData.cycle(1);
         while (prevKey.wasPressed()) ClientPowerData.cycle(-1);
-        while (useKey.wasPressed()) {
-            if (ClientPowerData.fruit == FruitType.NONE) {
-                player.sendMessage(Text.translatable("msg.dragonfruit.no_fruit").formatted(Formatting.GRAY), true);
-                continue;
+        while (cannonKey.wasPressed()) {
+            if (player.getVehicle() instanceof com.nothatcher.dragonfruit.content.ShipEntity) {
+                ClientPlayNetworking.send(Net.FIRE_CANNONS, PacketByteBufs.create());
             }
+        }
+        while (useKey.wasPressed()) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeVarInt(ClientPowerData.selected);
             ClientPlayNetworking.send(Net.USE_ABILITY, buf);

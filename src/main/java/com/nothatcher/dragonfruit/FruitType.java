@@ -58,12 +58,22 @@ public enum FruitType {
 
     public final String id;
     public final int color;
+    /** this fruit's own abilities */
     public final Ability[] abilities;
+    /** fruit abilities followed by the Willpower abilities everyone has (this is what the ability bar shows) */
+    public final Ability[] full;
 
     FruitType(String id, int color, Ability... abilities) {
         this.id = id;
         this.color = color;
         this.abilities = abilities;
+        this.full = new Ability[abilities.length + Willpower.ABILITIES.length];
+        System.arraycopy(abilities, 0, full, 0, abilities.length);
+        System.arraycopy(Willpower.ABILITIES, 0, full, abilities.length, Willpower.ABILITIES.length);
+    }
+
+    public boolean isWillpower(int index) {
+        return index >= abilities.length;
     }
 
     public Text displayName() {
@@ -71,7 +81,8 @@ public enum FruitType {
     }
 
     public Text abilityName(int index) {
-        if (index < 0 || index >= abilities.length) return Text.empty();
+        if (index < 0 || index >= full.length) return Text.empty();
+        if (isWillpower(index)) return Text.translatable("ability.dragonfruit.willpower." + full[index].id());
         return Text.translatable("ability.dragonfruit." + id + "." + abilities[index].id());
     }
 

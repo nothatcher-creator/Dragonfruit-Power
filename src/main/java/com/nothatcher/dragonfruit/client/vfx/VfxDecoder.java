@@ -175,6 +175,15 @@ public final class VfxDecoder {
                 int life = b.readVarInt();
                 return () -> VfxManager.add(new PressEffect(c, r, color, life));
             }
+            case Vfx.SLASH -> {
+                Vec3d start = vec(b), dir = vec(b);
+                float speed = b.readFloat();
+                int life = b.readVarInt();
+                float width = b.readFloat();
+                float roll = b.readFloat();
+                int color = b.readInt();
+                return () -> VfxManager.add(new SlashEffect(start, dir, speed, life, width, roll, color));
+            }
             case Vfx.SPEEDLINES -> {
                 float intensity = b.readFloat();
                 int duration = b.readVarInt();

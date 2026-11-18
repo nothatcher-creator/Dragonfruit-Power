@@ -15,6 +15,10 @@ public final class Net {
     public static final Identifier STATE = DragonfruitMod.id("state");
     /** S2C: one visual effect (see Vfx) */
     public static final Identifier VFX = DragonfruitMod.id("vfx");
+    /** S2C: list of (player uuid, fruit ordinal) so clients can draw everyone's fruit body glow */
+    public static final Identifier FRUITS = DragonfruitMod.id("fruits");
+    /** C2S: fire the ship's cannons (no payload) */
+    public static final Identifier FIRE_CANNONS = DragonfruitMod.id("fire_cannons");
 
     private Net() {}
 
@@ -23,6 +27,20 @@ public final class Net {
             int index = buf.readVarInt();
             server.execute(() -> PowerManager.useAbility(player, index));
         });
+        ServerPlayNetworking.registerGlobalReceiver(FIRE_CANNONS, (server, player, handler, buf, responseSender) ->
+                server.execute(() -> {
+                    if (player.getVehicle() instanceof com.nothatcher.dragonfruit.content.ShipEntity ship) ship.fireCannons(player);
+                }));
+    }
+
+    public static void sendFruits(ServerPlayerEntity player, java.util.List<java.util.UUID> ids, java.util.List<Integer> fruits) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeVarInt(ids.size());
+        for (int i = 0; i < ids.size(); i++) {
+            buf.writeUuid(ids.get(i));
+            buf.writeVarInt(fruits.get(i));
+        }
+        ServerPlayNetworking.send(player, FRUITS, buf);
     }
 
     public static void sendState(ServerPlayerEntity player, int fruitOrdinal, int[] cooldownRemaining, int buffRemaining) {

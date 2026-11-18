@@ -18,22 +18,23 @@ import java.util.function.Consumer;
 public final class Vfx {
     public static final int ARM = 1, GATLING = 2, BEAM = 3, RING = 4, ORB = 5, SPIKES = 6, ICE_COFFIN = 7,
             AIR_CRACK = 8, PROJECTILE = 9, FIREFLIES = 10, SHAKE = 11, FLASH = 12, AURA = 13, BURST = 14, FOV = 15,
-            BOLT = 16, METEOR = 17, IMPACT = 18, PRESS = 19, SPEEDLINES = 20;
+            BOLT = 16, METEOR = 17, IMPACT = 18, PRESS = 19, SPEEDLINES = 20, SLASH = 21;
 
     // burst kinds (one-shot particle explosions)
     public static final int B_RUBBER_HIT = 0, B_FIRE_BIG = 1, B_FIRE_SMALL = 2, B_FLAME_PILLAR = 3, B_FROST = 4,
             B_ICE_SHATTER = 5, B_LIGHT = 6, B_LIGHT_SMALL = 7, B_QUAKE_LINE = 8, B_GROUND_QUAKE = 9, B_STEAM = 10,
-            B_AWAKEN = 11, B_BLOCK_HIT = 12, B_THUNDER = 13, B_MAGMA = 14, B_ERUPTION = 15, B_GRAVITY = 16;
+            B_AWAKEN = 11, B_BLOCK_HIT = 12, B_THUNDER = 13, B_MAGMA = 14, B_ERUPTION = 15, B_GRAVITY = 16,
+            B_ARMOR = 17, B_KNOCKOUT = 18, B_CANNON = 19, B_SPLASH = 20, B_SLASH_HIT = 21;
 
     // aura kinds (particles following an entity)
-    public static final int A_STEAM = 0, A_FLAME = 1, A_FROST = 2, A_LIGHT = 3, A_THUNDER = 4;
+    public static final int A_STEAM = 0, A_FLAME = 1, A_FROST = 2, A_LIGHT = 3, A_THUNDER = 4, A_SENSE = 5, A_ARMOR = 6;
 
     // particle styles for beams / rings / orbs
     public static final int S_NONE = 0, S_DUST = 1, S_FLAME = 2, S_FROST = 3, S_LIGHT = 4, S_QUAKE = 5,
             S_THUNDER = 6, S_GRAVITY = 7;
 
     // projectile kinds
-    public static final int P_FIRE_FIST = 0, P_ICE_SPEAR = 1, P_MAGMA = 2;
+    public static final int P_FIRE_FIST = 0, P_ICE_SPEAR = 1, P_MAGMA = 2, P_CANNON = 3;
 
     // orb attach modes
     public static final int ATTACH_NONE = 0, ATTACH_CENTER = 1, ATTACH_HAND = 2;
@@ -261,6 +262,19 @@ public final class Vfx {
         buf.writeFloat(intensity);
         buf.writeVarInt(duration);
         ServerPlayNetworking.send(player, Net.VFX, buf);
+    }
+
+    /** Flying sword slash: a glowing crescent travelling along dir. roll tilts the crescent (degrees). */
+    public static void slash(ServerWorld w, Vec3d start, Vec3d dir, float speed, int life, float width, float roll, int color) {
+        broadcast(w, start, SLASH, b -> {
+            vec(b, start);
+            vec(b, dir);
+            b.writeFloat(speed);
+            b.writeVarInt(life);
+            b.writeFloat(width);
+            b.writeFloat(roll);
+            b.writeInt(color);
+        });
     }
 
     public static Vec3d rgb(int color) {

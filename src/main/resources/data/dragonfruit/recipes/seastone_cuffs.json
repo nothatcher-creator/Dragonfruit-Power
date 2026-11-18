@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SCS"
+  ],
+  "key": {
+    "S": {
+      "item": "dragonfruit:seastone"
+    },
+    "C": {
+      "item": "minecraft:chain"
+    }
+  },
+  "result": {
+    "item": "dragonfruit:seastone_cuffs",
+    "count": 1
+  }
+}

@@ -127,6 +127,12 @@ public class ArmEffect extends VfxEffect {
             g = 0.72f;
             b = 0.74f;
         }
+        if (VfxManager.hasAura(ownerId, com.nothatcher.dragonfruit.net.Vfx.A_ARMOR)) {
+            // Willpower Armor: hardened, near-black arm
+            r = 0.16f;
+            g = 0.15f;
+            b = 0.2f;
+        }
 
         // motion after-images trailing the fist while it shoots out
         if (t < extend && alpha >= 0.99f) {

@@ -1,0 +1,86 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:prismarine_shard",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4,
+                "max": 10
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:seastone",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2,
+                "max": 5
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:random_chance",
+          "chance": 0.6
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:rubber_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:flame_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:ice_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:light_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:quake_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:thunder_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:magma_dragonfruit"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dragonfruit:gravity_dragonfruit"
+        }
+      ]
+    }
+  ]
+}

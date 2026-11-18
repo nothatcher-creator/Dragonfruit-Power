@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  D",
+    " R ",
+    "S  "
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "dragonfruit:crimson_katana",
+    "count": 1
+  }
+}

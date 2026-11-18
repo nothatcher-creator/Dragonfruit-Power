@@ -70,6 +70,7 @@ public final class PowerManager {
         p.sendMessage(Text.translatable("msg.dragonfruit.awaken", type.displayName()).styled(s -> s.withColor(type.color).withBold(true)), false);
         p.sendMessage(Text.translatable("msg.dragonfruit.controls").formatted(Formatting.YELLOW), false);
         sync(p);
+        broadcastFruit(p);
     }
 
     public static void clear(ServerPlayerEntity p) {
@@ -79,6 +80,7 @@ public final class PowerManager {
         COOLDOWN_END.remove(p.getUuid());
         BUFF_END.remove(p.getUuid());
         sync(p);
+        broadcastFruit(p);
     }
 
     public static boolean buffActive(ServerPlayerEntity p) {
@@ -94,7 +96,7 @@ public final class PowerManager {
         FruitType f = get(p);
         int t = now(p);
         int[] ends = COOLDOWN_END.get(p.getUuid());
-        int[] remaining = new int[f.abilities.length];
+        int[] remaining = new int[f.full.length];
         for (int i = 0; i < remaining.length; i++) {
             remaining[i] = ends != null && i < ends.length ? ends[i] - t : 0;
         }
@@ -107,17 +109,22 @@ public final class PowerManager {
     public static void useAbility(ServerPlayerEntity p, int index) {
         if (!p.isAlive() || p.isSpectator()) return;
         FruitType f = get(p);
-        if (f == FruitType.NONE || index < 0 || index >= f.abilities.length) return;
+        if (index < 0 || index >= f.full.length) return;
+        boolean willpower = f.isWillpower(index);
 
-        if (p.isTouchingWater() && !p.isCreative()) {
+        if (!willpower && p.isTouchingWater() && !p.isCreative()) {
             p.sendMessage(Text.translatable("msg.dragonfruit.water").formatted(Formatting.AQUA), true);
+            return;
+        }
+        if (!willpower && isSealed(p) && !p.isCreative()) {
+            p.sendMessage(Text.translatable("msg.dragonfruit.sealed").formatted(Formatting.DARK_AQUA), true);
             return;
         }
 
         int t = now(p);
-        int[] ends = COOLDOWN_END.computeIfAbsent(p.getUuid(), k -> new int[f.abilities.length]);
-        if (ends.length != f.abilities.length) {
-            ends = new int[f.abilities.length];
+        int[] ends = COOLDOWN_END.get(p.getUuid());
+        if (ends == null || ends.length != f.full.length) {
+            ends = new int[f.full.length];
             COOLDOWN_END.put(p.getUuid(), ends);
         }
         if (ends[index] > t && !p.isCreative()) {
@@ -128,13 +135,59 @@ public final class PowerManager {
             return;
         }
 
-        boolean used = Abilities.run(p, f, index);
+        boolean used = willpower ? WillpowerAbilities.run(p, index - f.abilities.length) : Abilities.run(p, f, index);
         if (used) {
             // creative players still get a short cooldown so spamming the key doesn't stack effects
-            int cd = p.isCreative() ? Math.min(10, f.abilities[index].cooldown()) : f.abilities[index].cooldown();
-            ends[index] = t + cd;
+            int full = f.full[index].cooldown();
+            ends[index] = t + (p.isCreative() ? Math.min(10, full) : full);
         }
         sync(p);
+    }
+
+    // ---------------------------------------------------------- seastone / willpower state
+
+    private static final Map<UUID, Integer> SEALED_UNTIL = new HashMap<>();
+    private static final Map<UUID, Integer> SENSE_UNTIL = new HashMap<>();
+
+    public static boolean isSealed(ServerPlayerEntity p) {
+        Integer end = SEALED_UNTIL.get(p.getUuid());
+        return end != null && end > now(p);
+    }
+
+    public static void seal(ServerPlayerEntity p, int ticks) {
+        int end = now(p) + ticks;
+        SEALED_UNTIL.merge(p.getUuid(), end, Math::max);
+    }
+
+    public static void setSense(ServerPlayerEntity p, int ticks) {
+        SENSE_UNTIL.put(p.getUuid(), now(p) + ticks);
+    }
+
+    public static boolean senseActive(ServerPlayerEntity p) {
+        Integer end = SENSE_UNTIL.get(p.getUuid());
+        return end != null && end > now(p);
+    }
+
+    /** Tell every client what fruit this player has (for the body glow). */
+    public static void broadcastFruit(ServerPlayerEntity p) {
+        MinecraftServer server = p.getServer();
+        if (server == null) return;
+        FruitType f = get(p);
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+            Net.sendFruits(other, java.util.List.of(p.getUuid()), java.util.List.of(f.ordinal()));
+        }
+    }
+
+    private static void sendAllFruits(ServerPlayerEntity to) {
+        MinecraftServer server = to.getServer();
+        if (server == null) return;
+        java.util.List<UUID> ids = new java.util.ArrayList<>();
+        java.util.List<Integer> fruits = new java.util.ArrayList<>();
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+            ids.add(other.getUuid());
+            fruits.add(get(other).ordinal());
+        }
+        Net.sendFruits(to, ids, fruits);
     }
 
     // ------------------------------------------------------------------ events
@@ -147,11 +200,17 @@ public final class PowerManager {
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sync(handler.player));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            sync(handler.player);
+            sendAllFruits(handler.player);
+            broadcastFruit(handler.player);
+        });
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> sync(newPlayer));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             COOLDOWN_END.clear();
             BUFF_END.clear();
+            SEALED_UNTIL.clear();
+            SENSE_UNTIL.clear();
             Scheduler.clear();
         });
 
@@ -165,6 +224,12 @@ public final class PowerManager {
         if (!p.isAlive()) return;
         FruitType f = get(p);
         if (f == FruitType.NONE) return;
+
+        // Seastone nearby seals fruit powers.
+        if (tick % 10 == 0 && !p.isCreative() && nearSeastone(p)) {
+            seal(p, 20);
+            p.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 30, 0, true, false, true));
+        }
 
         // Seawater weakness: drained while in water.
         if (p.isTouchingWater() && !p.isCreative() && !p.isSpectator() && tick % 20 == 0) {
@@ -191,10 +256,26 @@ public final class PowerManager {
         }
     }
 
+    private static boolean nearSeastone(ServerPlayerEntity p) {
+        net.minecraft.util.math.BlockPos base = p.getBlockPos();
+        for (net.minecraft.util.math.BlockPos pos : net.minecraft.util.math.BlockPos.iterate(base.add(-2, -1, -2), base.add(2, 1, 2))) {
+            if (p.getWorld().getBlockState(pos).isOf(com.nothatcher.dragonfruit.content.ModContent.SEASTONE_BLOCK)) return true;
+        }
+        return false;
+    }
+
     private static boolean allowDamage(ServerPlayerEntity p, DamageSource source) {
-        FruitType f = get(p);
-        if (f == FruitType.NONE) return true;
         ServerWorld w = (ServerWorld) p.getWorld();
+        // Willpower Sense: dodge some melee hits
+        if (senseActive(p) && source.getAttacker() != null && !source.isIn(DamageTypeTags.IS_PROJECTILE)
+                && p.getRandom().nextFloat() < 0.4f) {
+            w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, SoundCategory.PLAYERS, 1f, 1.8f);
+            Vfx.burst(w, p.getPos().add(0, 1, 0), Vec3d.ZERO, Vfx.B_LIGHT_SMALL, 1f);
+            p.sendMessage(Text.translatable("msg.dragonfruit.dodged").formatted(Formatting.WHITE), true);
+            return false;
+        }
+        FruitType f = get(p);
+        if (f == FruitType.NONE || isSealed(p)) return true;
         switch (f) {
             case RUBBER -> {
                 if (source.isIn(DamageTypeTags.IS_FALL) || source.isIn(DamageTypeTags.IS_LIGHTNING)) return false;

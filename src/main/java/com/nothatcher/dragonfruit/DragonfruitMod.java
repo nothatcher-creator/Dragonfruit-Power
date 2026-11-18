@@ -17,6 +17,7 @@ public class DragonfruitMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        com.nothatcher.dragonfruit.content.ModContent.register();
         ModItems.register();
         Net.registerServer();
         PowerManager.registerEvents();

@@ -71,6 +71,14 @@ public final class VfxManager {
         return false;
     }
 
+    /** Does this entity currently have an aura of this kind (e.g. Willpower Armor)? */
+    public static boolean hasAura(int entityId, int kind) {
+        for (VfxEffect e : EFFECTS) {
+            if (e instanceof AuraEffect a && a.is(entityId, kind)) return true;
+        }
+        return false;
+    }
+
     /** Is this entity charging something in its hand (raise the arm in third person)? */
     public static boolean charging(int entityId) {
         for (VfxEffect e : EFFECTS) {

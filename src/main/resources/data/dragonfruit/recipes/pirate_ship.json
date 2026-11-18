@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WLW",
+    "BBB"
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:white_wool"
+    },
+    "L": {
+      "tag": "minecraft:logs"
+    },
+    "B": {
+      "tag": "minecraft:boats"
+    }
+  },
+  "result": {
+    "item": "dragonfruit:pirate_ship",
+    "count": 1
+  }
+}

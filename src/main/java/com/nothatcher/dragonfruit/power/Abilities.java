@@ -954,44 +954,44 @@ public final class Abilities {
     // ================================================================== helpers
 
     /** First solid surface straight below pos (within 40 blocks), else pos itself. */
-    static Vec3d groundBelow(ServerPlayerEntity p, Vec3d pos) {
+    public static Vec3d groundBelow(ServerPlayerEntity p, Vec3d pos) {
         BlockHitResult down = p.getWorld().raycast(new RaycastContext(pos, pos.add(0, -40, 0),
                 RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
         return down.getType() == HitResult.Type.MISS ? pos : down.getPos();
     }
 
-    static boolean valid(ServerPlayerEntity p) {
+    public static boolean valid(ServerPlayerEntity p) {
         return !p.isRemoved() && p.isAlive();
     }
 
-    static ServerWorld world(ServerPlayerEntity p) {
+    public static ServerWorld world(ServerPlayerEntity p) {
         return (ServerWorld) p.getWorld();
     }
 
-    static Vec3d rightOf(Vec3d look) {
+    public static Vec3d rightOf(Vec3d look) {
         Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
         if (right.lengthSquared() < 1.0E-4) right = new Vec3d(1, 0, 0);
         return right.normalize();
     }
 
-    static BlockHitResult rayBlock(ServerPlayerEntity p, Vec3d from, Vec3d dir, double dist) {
+    public static BlockHitResult rayBlock(ServerPlayerEntity p, Vec3d from, Vec3d dir, double dist) {
         return p.getWorld().raycast(new RaycastContext(from, from.add(dir.multiply(dist)),
                 RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
     }
 
-    static EntityHitResult rayEntity(ServerPlayerEntity p, Vec3d from, Vec3d dir, double dist) {
+    public static EntityHitResult rayEntity(ServerPlayerEntity p, Vec3d from, Vec3d dir, double dist) {
         Vec3d to = from.add(dir.multiply(dist));
         Box box = new Box(from, to).expand(1.0);
         return ProjectileUtil.raycast(p, from, to, box,
                 e -> e != p && !e.isSpectator() && e.canHit() && e instanceof LivingEntity, dist * dist);
     }
 
-    static List<LivingEntity> inRadius(ServerWorld w, Vec3d c, double r, ServerPlayerEntity exclude) {
+    public static List<LivingEntity> inRadius(ServerWorld w, Vec3d c, double r, ServerPlayerEntity exclude) {
         return w.getEntitiesByClass(LivingEntity.class, new Box(c, c).expand(r),
                 e -> e != exclude && e.isAlive() && !e.isSpectator() && e.squaredDistanceTo(c) <= r * r);
     }
 
-    static List<LivingEntity> cone(ServerPlayerEntity p, double range, double minDot) {
+    public static List<LivingEntity> cone(ServerPlayerEntity p, double range, double minDot) {
         Vec3d eye = p.getEyePos();
         Vec3d look = p.getRotationVec(1f);
         return world(p).getEntitiesByClass(LivingEntity.class, p.getBoundingBox().expand(range), e -> {
@@ -1003,40 +1003,40 @@ public final class Abilities {
         });
     }
 
-    static void hurt(ServerPlayerEntity p, LivingEntity target, float amount, boolean ignoreIFrames) {
+    public static void hurt(ServerPlayerEntity p, LivingEntity target, float amount, boolean ignoreIFrames) {
         if (ignoreIFrames) target.timeUntilRegen = 0;
         target.damage(p.getDamageSources().playerAttack(p), amount);
     }
 
-    static void push(Entity target, Vec3d velocity) {
+    public static void push(Entity target, Vec3d velocity) {
         target.addVelocity(velocity.x, velocity.y, velocity.z);
         target.velocityModified = true;
     }
 
-    static void launch(ServerPlayerEntity p, Vec3d velocity) {
+    public static void launch(ServerPlayerEntity p, Vec3d velocity) {
         p.setVelocity(velocity);
         p.velocityModified = true;
         p.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(p));
         p.fallDistance = 0;
     }
 
-    static void freeze(LivingEntity e, int ticks) {
+    public static void freeze(LivingEntity e, int ticks) {
         e.setFrozenTicks(Math.max(e.getFrozenTicks(), ticks));
     }
 
-    static void sound(ServerPlayerEntity p, SoundEvent s, float volume, float pitch) {
+    public static void sound(ServerPlayerEntity p, SoundEvent s, float volume, float pitch) {
         p.getWorld().playSound(null, p.getX(), p.getY(), p.getZ(), s, SoundCategory.PLAYERS, volume, pitch);
     }
 
-    static void sound(ServerWorld w, Vec3d at, SoundEvent s, float volume, float pitch) {
+    public static void sound(ServerWorld w, Vec3d at, SoundEvent s, float volume, float pitch) {
         w.playSound(null, at.x, at.y, at.z, s, SoundCategory.PLAYERS, volume, pitch);
     }
 
-    static boolean griefing(ServerWorld w) {
+    public static boolean griefing(ServerWorld w) {
         return w.getGameRules().getBoolean(GameRules.DO_MOB_GRIEFING);
     }
 
-    static void placeFire(ServerWorld w, Vec3d center, int r) {
+    public static void placeFire(ServerWorld w, Vec3d center, int r) {
         BlockPos c = BlockPos.ofFloored(center);
         Random rand = w.getRandom();
         for (BlockPos pos : BlockPos.iterate(c.add(-r, -r, -r), c.add(r, r, r))) {
@@ -1049,7 +1049,7 @@ public final class Abilities {
     }
 
     /** Server-side projectile that mirrors the client visual: straight line, hits first entity or block. */
-    static void simulate(ServerPlayerEntity owner, ServerWorld w, Vec3d start, Vec3d dir, float speed, int life,
+    public static void simulate(ServerPlayerEntity owner, ServerWorld w, Vec3d start, Vec3d dir, float speed, int life,
                          float radius, Consumer<Vec3d> onHit) {
         final Vec3d[] pos = {start};
         Scheduler.loop(0, age -> {

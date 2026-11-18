@@ -12,7 +12,20 @@ public final class ClientPowerData {
     /** ticks since the selected ability last changed (for the HUD toast) */
     public static int selectAge = 999;
 
+    /** every other player's fruit, for body effects */
+    private static final java.util.Map<java.util.UUID, FruitType> OTHERS = new java.util.HashMap<>();
+
     private ClientPowerData() {}
+
+    public static void setOther(java.util.UUID id, FruitType f) {
+        if (f == FruitType.NONE) OTHERS.remove(id);
+        else OTHERS.put(id, f);
+    }
+
+    public static FruitType fruitOf(net.minecraft.entity.player.PlayerEntity p) {
+        if (p == net.minecraft.client.MinecraftClient.getInstance().player) return fruit;
+        return OTHERS.getOrDefault(p.getUuid(), FruitType.NONE);
+    }
 
     public static void apply(int fruitOrdinal, int[] remaining, int buffRemaining) {
         FruitType newFruit = FruitType.byOrdinal(fruitOrdinal);
@@ -24,7 +37,7 @@ public final class ClientPowerData {
         cooldownEnd = new int[remaining.length];
         for (int i = 0; i < remaining.length; i++) cooldownEnd[i] = clock + remaining[i];
         buffEnd = clock + buffRemaining;
-        if (selected >= fruit.abilities.length) selected = 0;
+        if (selected >= fruit.full.length) selected = 0;
     }
 
     public static void tick() {
@@ -33,7 +46,7 @@ public final class ClientPowerData {
     }
 
     public static void cycle(int dir) {
-        int n = fruit.abilities.length;
+        int n = fruit.full.length;
         if (n == 0) return;
         selected = Math.floorMod(selected + dir, n);
         selectAge = 0;
@@ -45,8 +58,8 @@ public final class ClientPowerData {
     }
 
     public static float cooldownFraction(int i, float td) {
-        if (i < 0 || i >= fruit.abilities.length) return 0;
-        int total = fruit.abilities[i].cooldown();
+        if (i < 0 || i >= fruit.full.length) return 0;
+        int total = fruit.full[i].cooldown();
         if (total <= 0) return 0;
         return Math.max(0f, Math.min(1f, (cooldownLeft(i) - td) / total));
     }
@@ -60,6 +73,7 @@ public final class ClientPowerData {
     }
 
     public static void reset() {
+        OTHERS.clear();
         fruit = FruitType.NONE;
         selected = 0;
         cooldownEnd = new int[0];

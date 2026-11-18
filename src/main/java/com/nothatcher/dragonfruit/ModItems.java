@@ -38,6 +38,7 @@ public final class ModItems {
                 .displayName(Text.translatable("itemGroup.dragonfruit.fruits"))
                 .entries((context, entries) -> {
                     for (DragonfruitItem item : FRUITS.values()) entries.add(item);
+                    for (Item item : com.nothatcher.dragonfruit.content.ModContent.creativeItems()) entries.add(item);
                 })
                 .build();
         Registry.register(Registries.ITEM_GROUP, DragonfruitMod.id("fruits"), group);
