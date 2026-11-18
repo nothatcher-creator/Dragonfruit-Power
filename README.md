@@ -19,6 +19,7 @@ Eat a Dragonfruit, get anime-style powers. The visuals are the main feature: a *
 | **R** | Use selected ability |
 | **C** | Next ability |
 | **X** | Previous ability |
+| **G** | Fire ship cannons (while riding a ship) |
 | **V** | Third-person camera mode: right shoulder → left shoulder → centred → vanilla |
 
 You can rebind them in Options → Controls → Dragonfruit Powers.
@@ -38,6 +39,14 @@ In F5 back view the camera sits over your shoulder with smooth follow, never cli
 | **Thunder** | Lightning Strike (bolt from the sky where you aim), Thunder Dash (zip 28 blocks as lightning), Thunder Storm (bolts rain on everything around you) | Lightning immune, attackers get shocked |
 | **Magma** | Magma Fist (molten rock fist), Eruption (3 rings of lava erupt outward), Meteor Rain (14 magma fists fall from the sky) | Fire and lava immune |
 | **Gravity** | Gravity Crush (slam an area into the ground), Gravity Lift (float enemies up, then smash them down), Meteor Call (a giant meteor falls on your target) | No fall damage |
+
+## More content
+- **Pirate Ship**: craft (3 white wool / wool + log + wool / 3 boats) or grab from the creative tab, right-click on water. Steer like a boat, it's faster under sail. **G** fires both broadsides (6 cannons).
+- **Willpower** (everyone, even without a fruit, works in water and while sealed): **Sense**: mobs glow through walls and you dodge 40% of melee hits. **Armor**: black hardened arms, Strength II + Resistance. **Dominance**: red-black lightning, weak mobs collapse.
+- **Katanas** (White, Crimson, Black): right-click = flying slash, sneak + right-click = tornado. Carry all three for the **three-sword style**.
+- **Seastone**: standing near it seals fruit powers. **Seastone Cuffs**: right-click a player or mob to seal them for 60s.
+- **Sea King**: a giant serpent boss in deep oceans. It hunts anyone in the water or on a boat, bites and breaches. Drops seastone and often a random Dragonfruit.
+- **Fruit body effects**: every fruit user glows with their element (fire, frost, magma cracks, electricity...), visible to other players.
 
 **Every fruit:** water drains you. You sink, get weakened, and can't use abilities while touching water. Eating a different fruit swaps your power. Powers persist through death and relogs.
 
