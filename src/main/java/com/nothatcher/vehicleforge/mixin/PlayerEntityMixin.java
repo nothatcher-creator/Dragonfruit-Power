@@ -12,13 +12,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /** Players have their own fixed sizes and eye heights, so they need shrinking separately. */
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin {
-    @Inject(method = "getDimensions", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getDimensions", at = @At("RETURN"), cancellable = true, require = 0)
     private void vf$shrinkDimensions(EntityPose pose, CallbackInfoReturnable<EntityDimensions> cir) {
         float s = ModEffects.scaleOf((PlayerEntity) (Object) this);
         if (s < 1f) cir.setReturnValue(cir.getReturnValue().scaled(s));
     }
 
-    @Inject(method = "getActiveEyeHeight", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getActiveEyeHeight", at = @At("RETURN"), cancellable = true, require = 0)
     private void vf$shrinkEyes(EntityPose pose, EntityDimensions dimensions, CallbackInfoReturnable<Float> cir) {
         float s = ModEffects.scaleOf((PlayerEntity) (Object) this);
         if (s < 1f) cir.setReturnValue(cir.getReturnValue() * s);

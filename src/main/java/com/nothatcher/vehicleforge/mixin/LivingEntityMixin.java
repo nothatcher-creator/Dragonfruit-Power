@@ -24,13 +24,13 @@ public abstract class LivingEntityMixin extends Entity {
         super(type, world);
     }
 
-    @Inject(method = "getDimensions", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "getDimensions", at = @At("RETURN"), cancellable = true, require = 0)
     private void vf$shrinkDimensions(EntityPose pose, CallbackInfoReturnable<EntityDimensions> cir) {
         float s = ModEffects.scaleOf((LivingEntity) (Object) this);
         if (s < 1f) cir.setReturnValue(cir.getReturnValue().scaled(s));
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "tick", at = @At("HEAD"), require = 0)
     private void vf$updateSize(CallbackInfo ci) {
         float s = ModEffects.scaleOf((LivingEntity) (Object) this);
         if (Math.abs(s - vf$lastScale) > 0.01f) {
