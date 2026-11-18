@@ -24,7 +24,8 @@ public final class Vfx {
     public static final int B_RUBBER_HIT = 0, B_FIRE_BIG = 1, B_FIRE_SMALL = 2, B_FLAME_PILLAR = 3, B_FROST = 4,
             B_ICE_SHATTER = 5, B_LIGHT = 6, B_LIGHT_SMALL = 7, B_QUAKE_LINE = 8, B_GROUND_QUAKE = 9, B_STEAM = 10,
             B_AWAKEN = 11, B_BLOCK_HIT = 12, B_THUNDER = 13, B_MAGMA = 14, B_ERUPTION = 15, B_GRAVITY = 16,
-            B_ARMOR = 17, B_KNOCKOUT = 18, B_CANNON = 19, B_SPLASH = 20, B_SLASH_HIT = 21;
+            B_ARMOR = 17, B_KNOCKOUT = 18, B_CANNON = 19, B_SPLASH = 20, B_SLASH_HIT = 21,
+            B_BREATH = 22, B_HEAL = 23, B_TRANSFORM = 24;
 
     // aura kinds (particles following an entity)
     public static final int A_STEAM = 0, A_FLAME = 1, A_FROST = 2, A_LIGHT = 3, A_THUNDER = 4, A_SENSE = 5, A_ARMOR = 6;

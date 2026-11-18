@@ -23,6 +23,12 @@ PAL = {
                 leaf='#e8d43a', leafl='#fff27a', tip='#ffffff', accent='#fff36b'),
  'magma':  dict(out='#1a0a06', dark='#3a1a12', mid='#5e2818', light='#8a3a1c', hi='#ff9a3a',
                 leaf='#c42a00', leafl='#ff6a1a', tip='#ffd24a', accent='#ff6a1a'),
+ 'wolf':   dict(out='#2e3236', dark='#5f656b', mid='#8c939a', light='#b8bec4', hi='#e8ecef',
+                leaf='#3a3f44', leafl='#6a7076', tip='#ffd84a', accent='#2e3236'),
+ 'dragon': dict(out='#0e3a1e', dark='#1f7a3e', mid='#2faf5a', light='#5ad47e', hi='#c8ffd8',
+                leaf='#e04fb4', leafl='#ff7ad0', tip='#ffd24a', accent='#ffd24a'),
+ 'reindeer':dict(out='#3a2414', dark='#7a5530', mid='#a0703a', light='#c99a60', hi='#f0ead8',
+                leaf='#e8dcc0', leafl='#f5efe0', tip='#ffffff', accent='#f0ead8'),
  'gravity':dict(out='#1a0f33', dark='#3b2470', mid='#6b45c4', light='#9a74ff', hi='#e2d6ff',
                 leaf='#2a1a52', leafl='#5a3aa8', tip='#d6c2ff', accent='#14092a'),
 }
@@ -99,6 +105,17 @@ def frame(name, f):
                     d = math.hypot(x-cx, y-cy)
                     if abs(d - (1 + f*0.8)) < 0.5: px[x,y] = mix(px[x,y], p['hi'], 0.6)
         if inside(cx,cy): px[cx,cy] = p['accent']; px[cx-1,cy] = p['accent']
+    if name == 'wolf':
+        for x,y in [(6,8),(7,9),(9,9),(10,8),(8,12)]:
+            if inside(x,y): px[x,y] = p['accent'] if (x+f)%2 else p['hi']
+        if inside(6,7): px[6,7] = p['tip']
+        if inside(10,7): px[10,7] = p['tip']
+    if name == 'dragon':
+        for i,(x,y) in enumerate([(5,9),(6,10),(9,8),(10,9),(7,12),(8,13),(11,11)]):
+            if inside(x,y): px[x,y] = p['dark'] if (i+f)%2 else p['light']
+    if name == 'reindeer':
+        for x,y in [(6,10),(9,9),(8,12),(10,12),(5,12)]:
+            if inside(x,y): px[x,y] = p['hi']
     if name == 'flame':
         for y in range(16):
             for x in range(16):

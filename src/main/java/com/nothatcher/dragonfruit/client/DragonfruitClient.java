@@ -32,15 +32,18 @@ public class DragonfruitClient implements ClientModInitializer {
     public static KeyBinding prevKey;
     public static KeyBinding camKey;
     public static KeyBinding cannonKey;
+    public static KeyBinding formKey;
 
     private static double lastVelY;
     private static boolean wasOnGround = true;
 
     @Override
     public void onInitializeClient() {
+        CustomSkins.ensureFolder();
         useKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.use", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.dragonfruit"));
         nextKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.next", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, "category.dragonfruit"));
         prevKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.prev", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "category.dragonfruit"));
+        formKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.transform", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "category.dragonfruit"));
         cannonKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.cannons", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.dragonfruit"));
         camKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.camera", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "category.dragonfruit"));
 
@@ -62,6 +65,18 @@ public class DragonfruitClient implements ClientModInitializer {
             }
             client.execute(() -> {
                 for (int i = 0; i < n; i++) ClientPowerData.setOther(ids[i], FruitType.byOrdinal(fruits[i]));
+            });
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Net.FORMS, (client, handler, buf, responseSender) -> {
+            int n = buf.readVarInt();
+            java.util.UUID[] ids = new java.util.UUID[n];
+            boolean[] on = new boolean[n];
+            for (int i = 0; i < n; i++) {
+                ids[i] = buf.readUuid();
+                on[i] = buf.readBoolean();
+            }
+            client.execute(() -> {
+                for (int i = 0; i < n; i++) ClientPowerData.setForm(ids[i], on[i]);
             });
         });
         ClientPlayNetworking.registerGlobalReceiver(Net.VFX, (client, handler, buf, responseSender) -> {
@@ -88,6 +103,7 @@ public class DragonfruitClient implements ClientModInitializer {
             VfxManager.clear();
             CameraFx.reset();
             PowerCam.reset();
+            CustomSkins.clear();
         }));
     }
 
@@ -105,6 +121,7 @@ public class DragonfruitClient implements ClientModInitializer {
         while (camKey.wasPressed()) PowerCam.cycle();
         while (nextKey.wasPressed()) ClientPowerData.cycle(1);
         while (prevKey.wasPressed()) ClientPowerData.cycle(-1);
+        while (formKey.wasPressed()) ClientPlayNetworking.send(Net.TOGGLE_FORM, PacketByteBufs.create());
         while (cannonKey.wasPressed()) {
             if (player.getVehicle() instanceof com.nothatcher.dragonfruit.content.ShipEntity) {
                 ClientPlayNetworking.send(Net.FIRE_CANNONS, PacketByteBufs.create());
@@ -115,6 +132,8 @@ public class DragonfruitClient implements ClientModInitializer {
             buf.writeVarInt(ClientPowerData.selected);
             ClientPlayNetworking.send(Net.USE_ABILITY, buf);
         }
+
+        FormFx.tick(client);
 
         FruitType fruit = ClientPowerData.fruit;
         if (fruit == FruitType.NONE || player.isSpectator()) {

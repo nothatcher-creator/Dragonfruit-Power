@@ -1,5 +1,6 @@
 package com.nothatcher.dragonfruit.client;
 
+import com.nothatcher.dragonfruit.FruitType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.text.Text;
@@ -56,6 +57,11 @@ public final class PowerCam {
         d += Math.max(0, Math.min(3.5, CameraFx.fovKickAmount() * 9.0)); // abilities pull the camera back
         d += Math.min(2.5, e.getVelocity().length() * 1.3);            // so does speed
         if (e.isInSneakingPose()) d -= 0.6;
+        if (e instanceof net.minecraft.entity.player.PlayerEntity pl) {
+            FruitType beast = ClientPowerData.beastOf(pl);
+            if (beast == FruitType.DRAGON) d += 3.5;
+            else if (beast == FruitType.REINDEER) d += 1.0;
+        }
         return d;
     }
 

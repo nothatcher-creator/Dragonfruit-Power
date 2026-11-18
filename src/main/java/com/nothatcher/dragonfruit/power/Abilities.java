@@ -64,6 +64,24 @@ public final class Abilities {
                 case 2 -> meteorRain(p);
                 default -> false;
             };
+            case WOLF -> switch (index) {
+                case 0 -> pounce(p);
+                case 1 -> howl(p);
+                case 2 -> frenzy(p);
+                default -> false;
+            };
+            case DRAGON -> switch (index) {
+                case 0 -> dragonBreath(p);
+                case 1 -> wingGust(p);
+                case 2 -> diveBomb(p);
+                default -> false;
+            };
+            case REINDEER -> switch (index) {
+                case 0 -> antlerCharge(p);
+                case 1 -> healingBurst(p);
+                case 2 -> hornGuard(p);
+                default -> false;
+            };
             case GRAVITY -> switch (index) {
                 case 0 -> gravityCrush(p);
                 case 1 -> gravityLift(p);
@@ -948,6 +966,198 @@ public final class Abilities {
             sound(w, target, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 0.5f);
             if (griefing(w)) placeFire(w, target, 4);
         });
+        return true;
+    }
+
+    // ===================================================================== WOLF
+
+    private static boolean pounce(ServerPlayerEntity p) {
+        Vec3d look = p.getRotationVec(1f);
+        launch(p, look.multiply(1.6).add(0, 0.45, 0));
+        Vfx.speedLines(p, 0.8f, 10);
+        Vfx.fov(p, 0.25f, 8);
+        sound(p, SoundEvents.ENTITY_WOLF_GROWL, 1.5f, 0.8f);
+        Scheduler.loop(2, age -> {
+            if (!valid(p) || age > 14) return false;
+            List<LivingEntity> hits = inRadius(world(p), p.getPos().add(0, 0.8, 0), 2.4, p);
+            if (hits.isEmpty()) return true;
+            ServerWorld w = world(p);
+            for (LivingEntity e : hits) {
+                hurt(p, e, 12f, true);
+                push(e, p.getRotationVec(1f).multiply(0.8).add(0, 0.3, 0));
+                Vfx.impact(w, e.getBoundingBox().getCenter(), 1.8f, 0xFFFFFF, 5);
+                Vfx.slash(w, e.getBoundingBox().getCenter().subtract(look.multiply(0.6)), look, 0.2f, 5, 1.6f, 70f, 0xFF3030);
+            }
+            sound(w, p.getPos(), SoundEvents.ENTITY_WOLF_HURT, 1f, 0.5f);
+            sound(w, p.getPos(), SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 1.2f, 0.8f);
+            return false;
+        });
+        return true;
+    }
+
+    private static boolean howl(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        for (LivingEntity e : inRadius(w, p.getPos(), 20, p)) {
+            if (e instanceof ServerPlayerEntity) continue;
+            e.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 160, 1));
+            e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 100, 1));
+        }
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, 240, 1, false, false, true));
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 240, 1, false, false, true));
+        Vfx.ring(w, p.getPos().add(0, 1.4, 0), Vfx.UP, 20f, 0xC8D0FF, 24, Vfx.S_NONE);
+        Vfx.ring(w, p.getEyePos(), p.getRotationVec(1f), 6f, 0xFFFFFF, 14, Vfx.S_QUAKE);
+        Vfx.shake(w, p.getPos(), 0.4f, 20, 20);
+        sound(p, SoundEvents.ENTITY_WOLF_HOWL, 3f, 0.8f);
+        return true;
+    }
+
+    private static boolean frenzy(ServerPlayerEntity p) {
+        final int duration = 30;
+        Scheduler.loop(0, age -> {
+            if (!valid(p) || age >= duration) return false;
+            if (age % 3 != 0) return true;
+            ServerWorld w = world(p);
+            Vec3d look = p.getRotationVec(1f);
+            Vec3d front = p.getEyePos().add(look.multiply(1.6)).add(0, -0.3, 0);
+            float roll = (age / 3) % 2 == 0 ? 60f : -60f;
+            Vfx.slash(w, front.subtract(look.multiply(0.8)), look, 0.35f, 5, 1.8f, roll, 0xFF4040);
+            for (LivingEntity e : cone(p, 3.8, 0.4)) {
+                hurt(p, e, 3.5f, true);
+                push(e, look.multiply(0.15));
+            }
+            sound(p, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 0.8f, 1.3f + p.getRandom().nextFloat() * 0.4f);
+            return true;
+        });
+        sound(p, SoundEvents.ENTITY_WOLF_GROWL, 2f, 0.6f);
+        return true;
+    }
+
+    // =================================================================== DRAGON
+
+    private static boolean dragonBreath(ServerPlayerEntity p) {
+        final int duration = 40;
+        sound(p, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 1.2f);
+        Scheduler.loop(0, age -> {
+            if (!valid(p) || age >= duration) return false;
+            ServerWorld w = world(p);
+            Vec3d look = p.getRotationVec(1f);
+            Vec3d mouth = p.getEyePos().add(look.multiply(1.2));
+            Vfx.burst(w, mouth, look, Vfx.B_BREATH, 1f);
+            if (age % 2 == 0) {
+                for (LivingEntity e : cone(p, 11, 0.8)) {
+                    hurt(p, e, 2.5f, true);
+                    e.setOnFireFor(4);
+                }
+            }
+            if (age % 5 == 0) sound(p, SoundEvents.ENTITY_BLAZE_SHOOT, 1f, 0.5f + p.getRandom().nextFloat() * 0.2f);
+            return true;
+        });
+        return true;
+    }
+
+    private static boolean wingGust(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d look = p.getRotationVec(1f);
+        for (LivingEntity e : cone(p, 13, 0.55)) {
+            hurt(p, e, 6f, true);
+            push(e, look.multiply(2.6).add(0, 0.6, 0));
+        }
+        Vfx.ring(w, p.getEyePos().add(look.multiply(2)), look, 7f, 0xE6FFE6, 12, Vfx.S_QUAKE);
+        Vfx.burst(w, p.getEyePos().add(look.multiply(3)), look, Vfx.B_QUAKE_LINE, 12f);
+        Vfx.speedLines(p, 0.6f, 10);
+        Vfx.shake(w, p.getPos(), 0.4f, 10, 12);
+        sound(p, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, 3f, 0.8f);
+        sound(p, SoundEvents.ENTITY_PHANTOM_FLAP, 2f, 0.5f);
+        return true;
+    }
+
+    private static boolean diveBomb(ServerPlayerEntity p) {
+        boolean airborne = !p.isOnGround();
+        if (!airborne) launch(p, new Vec3d(0, 1.6, 0));
+        sound(p, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, 2f, 1.2f);
+        final int slamAt = airborne ? 0 : 12;
+        Scheduler.loop(slamAt, age -> {
+            if (!valid(p) || age > 60) return false;
+            if (age == 0) {
+                p.getAbilities().flying = false;
+                p.sendAbilitiesUpdate();
+                launch(p, p.getRotationVec(1f).multiply(1, 0, 1).multiply(0.6).add(0, -3.2, 0));
+                Vfx.speedLines(p, 1f, 14);
+                return true;
+            }
+            if (!p.isOnGround()) return true;
+            ServerWorld w = world(p);
+            Vec3d c = p.getPos();
+            for (LivingEntity e : inRadius(w, c, 6.5, p)) {
+                hurt(p, e, 16f, true);
+                Vec3d out = e.getPos().subtract(c).multiply(1, 0, 1).normalize();
+                push(e, out.multiply(1.0).add(0, 1.0, 0));
+            }
+            p.fallDistance = 0;
+            Vfx.burst(w, c, Vfx.UP, Vfx.B_GROUND_QUAKE, 7f);
+            Vfx.ring(w, c.add(0, 0.15, 0), Vfx.UP, 8f, 0x9CFFB0, 16, Vfx.S_DUST);
+            Vfx.impact(w, c.add(0, 0.6, 0), 3.5f, 0xFFFFFF, 7);
+            Vfx.shake(w, c, 1.4f, 24, 36);
+            sound(w, c, SoundEvents.ENTITY_GENERIC_EXPLODE, 2f, 0.6f);
+            sound(w, c, SoundEvents.ENTITY_ENDER_DRAGON_GROWL, 1.2f, 0.8f);
+            return false;
+        });
+        return true;
+    }
+
+    // ================================================================= REINDEER
+
+    private static boolean antlerCharge(ServerPlayerEntity p) {
+        Vec3d dir = p.getRotationVec(1f).multiply(1, 0, 1);
+        if (dir.lengthSquared() < 1.0E-4) dir = new Vec3d(1, 0, 0);
+        final Vec3d d = dir.normalize();
+        launch(p, d.multiply(2.0).add(0, 0.2, 0));
+        Vfx.speedLines(p, 1f, 12);
+        Vfx.fov(p, 0.3f, 10);
+        sound(p, SoundEvents.ENTITY_RAVAGER_ROAR, 1f, 1.4f);
+        final java.util.Set<Integer> hitIds = new java.util.HashSet<>();
+        Scheduler.loop(1, age -> {
+            if (!valid(p) || age > 10) return false;
+            ServerWorld w = world(p);
+            Vfx.burst(w, p.getPos().add(0, 0.2, 0), Vfx.UP, Vfx.B_BLOCK_HIT, 0.5f);
+            for (LivingEntity e : inRadius(w, p.getPos().add(d.multiply(1.0)).add(0, 0.9, 0), 1.9, p)) {
+                if (!hitIds.add(e.getId())) continue;
+                hurt(p, e, 10f, true);
+                push(e, d.multiply(1.2).add(0, 0.9, 0));
+                Vfx.impact(w, e.getBoundingBox().getCenter(), 2f, 0xFFFFFF, 6);
+                sound(w, e.getPos(), SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.5f, 0.7f);
+            }
+            return true;
+        });
+        return true;
+    }
+
+    private static boolean healingBurst(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        p.heal(8f);
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 120, 1));
+        for (LivingEntity e : inRadius(w, p.getPos(), 8, p)) {
+            if (e instanceof ServerPlayerEntity ally) {
+                ally.heal(6f);
+                ally.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 100, 0));
+                Vfx.burst(w, ally.getPos().add(0, 1, 0), Vec3d.ZERO, Vfx.B_HEAL, 0.7f);
+            }
+        }
+        Vfx.burst(w, p.getPos().add(0, 1, 0), Vec3d.ZERO, Vfx.B_HEAL, 1.4f);
+        Vfx.ring(w, p.getPos().add(0, 0.15, 0), Vfx.UP, 8f, 0x7CFF9A, 20, Vfx.S_NONE);
+        sound(p, SoundEvents.ENTITY_PLAYER_LEVELUP, 1f, 1.6f);
+        sound(p, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.5f, 1.2f);
+        return true;
+    }
+
+    private static boolean hornGuard(ServerPlayerEntity p) {
+        final int duration = 240;
+        PowerManager.setBuff(p, duration);
+        p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 1, false, false, true));
+        Vfx.aura(world(p), p, Vfx.A_ARMOR, 20);
+        Vfx.burst(world(p), p.getPos().add(0, 1, 0), Vec3d.ZERO, Vfx.B_ARMOR, 0.8f);
+        sound(p, SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE, 1.5f, 0.6f);
+        sound(p, SoundEvents.ENTITY_RAVAGER_ROAR, 0.8f, 1.6f);
         return true;
     }
 

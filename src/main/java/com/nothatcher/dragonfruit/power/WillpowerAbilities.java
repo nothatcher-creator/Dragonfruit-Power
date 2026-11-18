@@ -44,6 +44,7 @@ public final class WillpowerAbilities {
     private static boolean armor(ServerPlayerEntity p) {
         ServerWorld w = Abilities.world(p);
         int duration = 400;
+        PowerManager.setArmor(p, duration);
         p.addStatusEffect(new StatusEffectInstance(StatusEffects.STRENGTH, duration, 1, false, false, true));
         p.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, duration, 0, false, false, true));
         Vfx.aura(w, p, Vfx.A_ARMOR, duration);

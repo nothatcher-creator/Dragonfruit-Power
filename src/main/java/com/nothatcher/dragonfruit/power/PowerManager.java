@@ -51,6 +51,7 @@ public final class PowerManager {
         MinecraftServer server = p.getServer();
         if (server == null) return;
         FruitType old = get(p);
+        exitForm(p, false);
         PowerState.get(server).setFruit(p.getUuid(), type);
         COOLDOWN_END.remove(p.getUuid());
         BUFF_END.remove(p.getUuid());
@@ -76,6 +77,7 @@ public final class PowerManager {
     public static void clear(ServerPlayerEntity p) {
         MinecraftServer server = p.getServer();
         if (server == null) return;
+        exitForm(p, false);
         PowerState.get(server).setFruit(p.getUuid(), FruitType.NONE);
         COOLDOWN_END.remove(p.getUuid());
         BUFF_END.remove(p.getUuid());
@@ -168,6 +170,155 @@ public final class PowerManager {
         return end != null && end > now(p);
     }
 
+    // ------------------------------------------------------------------ forms
+
+    private static final java.util.Set<UUID> FORM_ON = new java.util.HashSet<>();
+    private static final Map<UUID, Integer> ARMOR_UNTIL = new HashMap<>();
+
+    public static boolean inForm(ServerPlayerEntity p) {
+        return FORM_ON.contains(p.getUuid());
+    }
+
+    public static void setArmor(ServerPlayerEntity p, int ticks) {
+        ARMOR_UNTIL.put(p.getUuid(), now(p) + ticks);
+    }
+
+    public static boolean armorActive(ServerPlayerEntity p) {
+        Integer end = ARMOR_UNTIL.get(p.getUuid());
+        return end != null && end > now(p);
+    }
+
+    public static void toggleForm(ServerPlayerEntity p) {
+        if (!p.isAlive() || p.isSpectator()) return;
+        FruitType f = get(p);
+        if (inForm(p)) {
+            exitForm(p, true);
+            return;
+        }
+        if (f.form() == FruitType.Form.NONE) {
+            p.sendMessage(Text.translatable("msg.dragonfruit.no_form").formatted(Formatting.GRAY), true);
+            return;
+        }
+        if (p.isTouchingWater() && !p.isCreative()) {
+            p.sendMessage(Text.translatable("msg.dragonfruit.water").formatted(Formatting.AQUA), true);
+            return;
+        }
+        if (isSealed(p) && !p.isCreative()) {
+            p.sendMessage(Text.translatable("msg.dragonfruit.sealed").formatted(Formatting.DARK_AQUA), true);
+            return;
+        }
+        FORM_ON.add(p.getUuid());
+        ServerWorld w = (ServerWorld) p.getWorld();
+        Vec3d c = p.getPos().add(0, 1, 0);
+        Vfx.burst(w, c, Vfx.rgb(f.color), Vfx.B_TRANSFORM, f == FruitType.DRAGON ? 2.5f : 1.5f);
+        Vfx.ring(w, p.getPos().add(0, 0.1, 0), Vfx.UP, 5f, f.color, 16, Vfx.S_NONE);
+        Vfx.impact(w, c, 3f, f.color, 7);
+        Vfx.shake(w, c, 0.5f, 14, 14);
+        Vfx.fov(p, 0.2f, 10);
+        w.playSound(null, p.getX(), p.getY(), p.getZ(), f.form() == FruitType.Form.BEAST ? SoundEvents.ENTITY_RAVAGER_ROAR
+                : SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.PLAYERS, 1.5f, f == FruitType.DRAGON ? 0.6f : 1.0f);
+        if (f == FruitType.DRAGON) {
+            w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ENDER_DRAGON_GROWL, SoundCategory.PLAYERS, 1.2f, 1.1f);
+            if (!p.getAbilities().allowFlying) {
+                p.getAbilities().allowFlying = true;
+                p.sendAbilitiesUpdate();
+            }
+        }
+        p.sendMessage(Text.translatable("msg.dragonfruit.form_on", f.displayName()).styled(s -> s.withColor(f.color)), true);
+        broadcastForm(p);
+    }
+
+    public static void exitForm(ServerPlayerEntity p, boolean effects) {
+        if (!FORM_ON.remove(p.getUuid())) return;
+        if (!p.isCreative() && !p.isSpectator() && p.getAbilities().allowFlying) {
+            p.getAbilities().allowFlying = false;
+            p.getAbilities().flying = false;
+            p.sendAbilitiesUpdate();
+        }
+        if (effects) {
+            ServerWorld w = (ServerWorld) p.getWorld();
+            Vfx.burst(w, p.getPos().add(0, 1, 0), Vfx.rgb(get(p).color), Vfx.B_TRANSFORM, 0.8f);
+            w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.PLAYERS, 0.8f, 1.2f);
+        }
+        broadcastForm(p);
+    }
+
+    public static void broadcastForm(ServerPlayerEntity p) {
+        MinecraftServer server = p.getServer();
+        if (server == null) return;
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+            Net.sendForms(other, java.util.List.of(p.getUuid()), java.util.List.of(inForm(p)));
+        }
+    }
+
+    private static void sendAllForms(ServerPlayerEntity to) {
+        MinecraftServer server = to.getServer();
+        if (server == null) return;
+        java.util.List<UUID> ids = new java.util.ArrayList<>();
+        java.util.List<Boolean> on = new java.util.ArrayList<>();
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+            ids.add(other.getUuid());
+            on.add(inForm(other));
+        }
+        Net.sendForms(to, ids, on);
+    }
+
+    private static void tickForm(ServerPlayerEntity p, FruitType f, int tick) {
+        if (p.isTouchingWater() && !p.isCreative()) {
+            exitForm(p, true);
+            p.sendMessage(Text.translatable("msg.dragonfruit.water").formatted(Formatting.AQUA), true);
+            return;
+        }
+        if (isSealed(p) && !p.isCreative()) {
+            exitForm(p, true);
+            return;
+        }
+        p.addExhaustion(0.012f);
+        if (tick % 20 == 0) {
+            switch (f) {
+                case FLAME, MAGMA -> effect(p, StatusEffects.FIRE_RESISTANCE, 0);
+                case THUNDER -> effect(p, StatusEffects.SPEED, 1);
+                case LIGHT -> effect(p, StatusEffects.SPEED, 2);
+                case WOLF -> {
+                    effect(p, StatusEffects.SPEED, 2);
+                    effect(p, StatusEffects.JUMP_BOOST, 1);
+                    effect(p, StatusEffects.NIGHT_VISION, 0);
+                }
+                case REINDEER -> {
+                    effect(p, StatusEffects.SPEED, 1);
+                    effect(p, StatusEffects.JUMP_BOOST, 2);
+                }
+                case DRAGON -> {
+                    effect(p, StatusEffects.STRENGTH, 0);
+                    if (!p.getAbilities().allowFlying) {
+                        p.getAbilities().allowFlying = true;
+                        p.sendAbilitiesUpdate();
+                    }
+                }
+                default -> { }
+            }
+        }
+        ServerWorld w = (ServerWorld) p.getWorld();
+        if ((f == FruitType.FLAME || f == FruitType.MAGMA) && tick % 10 == 0) {
+            for (LivingEntity e : Abilities.inRadius(w, p.getPos().add(0, 1, 0), 1.8, p)) e.setOnFireFor(4);
+        }
+        if (f == FruitType.ICE && p.isOnGround()) {
+            FrostWalkerEnchantment.freezeWater(p, p.getWorld(), p.getBlockPos(), 3);
+        }
+        if (f == FruitType.THUNDER && tick % 25 == 0) {
+            java.util.List<LivingEntity> near = Abilities.inRadius(w, p.getPos(), 4.5, p);
+            if (!near.isEmpty()) {
+                LivingEntity e = near.get(p.getRandom().nextInt(near.size()));
+                Abilities.hurt(p, e, 3f, false);
+                Vfx.bolt(w, p.getPos().add(0, 1.2, 0), e.getBoundingBox().getCenter(), 0xBFE9FF, 0.3f, 5, p.getRandom().nextLong());
+            }
+        }
+    }
+
+    private static void effect(ServerPlayerEntity p, net.minecraft.entity.effect.StatusEffect e, int amp) {
+        p.addStatusEffect(new StatusEffectInstance(e, 50, amp, true, false, false));
+    }
+
     /** Tell every client what fruit this player has (for the body glow). */
     public static void broadcastFruit(ServerPlayerEntity p) {
         MinecraftServer server = p.getServer();
@@ -204,13 +355,21 @@ public final class PowerManager {
             sync(handler.player);
             sendAllFruits(handler.player);
             broadcastFruit(handler.player);
+            sendAllForms(handler.player);
         });
-        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> sync(newPlayer));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            FORM_ON.remove(newPlayer.getUuid());
+            sync(newPlayer);
+            broadcastForm(newPlayer);
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> FORM_ON.remove(handler.player.getUuid()));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             COOLDOWN_END.clear();
             BUFF_END.clear();
             SEALED_UNTIL.clear();
             SENSE_UNTIL.clear();
+            FORM_ON.clear();
+            ARMOR_UNTIL.clear();
             Scheduler.clear();
         });
 
@@ -236,6 +395,8 @@ public final class PowerManager {
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 40, 1, true, false, true));
             p.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 40, 1, true, false, true));
         }
+
+        if (inForm(p)) tickForm(p, f, tick);
 
         switch (f) {
             case ICE -> {
@@ -276,6 +437,18 @@ public final class PowerManager {
         }
         FruitType f = get(p);
         if (f == FruitType.NONE || isSealed(p)) return true;
+
+        // Elemental form: attacks pass through your body, unless the attacker has Willpower Armor.
+        if (inForm(p) && f.form() == FruitType.Form.ELEMENT && source.getAttacker() instanceof LivingEntity att && att != p
+                && !(att instanceof ServerPlayerEntity sp && armorActive(sp))) {
+            Vfx.burst(w, p.getPos().add(0, 1, 0), Vec3d.ZERO, switch (f) {
+                case FLAME, MAGMA -> Vfx.B_FIRE_SMALL;
+                case ICE -> Vfx.B_ICE_SHATTER;
+                case THUNDER -> Vfx.B_THUNDER;
+                default -> Vfx.B_LIGHT_SMALL;
+            }, 0.6f);
+            return false;
+        }
         switch (f) {
             case RUBBER -> {
                 if (source.isIn(DamageTypeTags.IS_FALL) || source.isIn(DamageTypeTags.IS_LIGHTNING)) return false;
@@ -320,6 +493,15 @@ public final class PowerManager {
             }
             case GRAVITY -> {
                 if (source.isIn(DamageTypeTags.IS_FALL)) return false;
+            }
+            case DRAGON -> {
+                if (inForm(p) && source.isIn(DamageTypeTags.IS_FIRE)) return false;
+            }
+            case REINDEER -> {
+                if (buffActive(p) && !source.isIn(DamageTypeTags.IS_PROJECTILE)
+                        && source.getAttacker() instanceof LivingEntity attacker && attacker != p) {
+                    attacker.damage(p.getDamageSources().thorns(p), 3f);
+                }
             }
             default -> { }
         }

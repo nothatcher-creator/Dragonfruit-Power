@@ -19,6 +19,7 @@ Eat a Dragonfruit, get anime-style powers. The visuals are the main feature: a *
 | **R** | Use selected ability |
 | **C** | Next ability |
 | **X** | Previous ability |
+| **Z** | Transform: elemental form (Flame, Ice, Magma, Thunder, Light) or beast form (Wolf, Dragon, Reindeer) |
 | **G** | Fire ship cannons (while riding a ship) |
 | **V** | Third-person camera mode: right shoulder → left shoulder → centred → vanilla |
 
@@ -47,6 +48,11 @@ In F5 back view the camera sits over your shoulder with smooth follow, never cli
 - **Seastone**: standing near it seals fruit powers. **Seastone Cuffs**: right-click a player or mob to seal them for 60s.
 - **Sea King**: a giant serpent boss in deep oceans. It hunts anyone in the water or on a boat, bites and breaches. Drops seastone and often a random Dragonfruit.
 - **Fruit body effects**: every fruit user glows with their element (fire, frost, magma cracks, electricity...), visible to other players.
+
+## Transformations
+- **Elemental forms** (Flame, Ice, Magma, Thunder, Light): your whole body becomes the element. Melee and projectiles pass straight through you unless the attacker has Willpower **Armor** active. Each element also gives bonuses (speed, fire immunity, frost walking, shocking nearby mobs). Water or seastone forces you back to normal. Drains hunger while active.
+- **Animal fruits**: **Wolf** (Pounce, Howl, Frenzy; fast with night vision), **Dragon** (Dragon Breath, Wing Gust, Dive Bomb; **you can fly**), **Reindeer** (Antler Charge, Healing Burst, Horn Guard). Transform turns you into the full beast.
+- **Your own skins**: put any 64x64 skin PNG in `.minecraft/config/dragonfruit/skins/` named after a fruit (`rubber.png`, `flame.png`, `wolf.png`...). Everyone with that fruit is shown with that skin on your screen (the stretching arm uses it too). Rejoin the world to reload.
 
 **Every fruit:** water drains you. You sink, get weakened, and can't use abilities while touching water. Eating a different fruit swaps your power. Powers persist through death and relogs.
 

@@ -19,6 +19,10 @@ public final class Net {
     public static final Identifier FRUITS = DragonfruitMod.id("fruits");
     /** C2S: fire the ship's cannons (no payload) */
     public static final Identifier FIRE_CANNONS = DragonfruitMod.id("fire_cannons");
+    /** C2S: toggle fruit form (no payload) */
+    public static final Identifier TOGGLE_FORM = DragonfruitMod.id("toggle_form");
+    /** S2C: list of (player uuid, in form?) */
+    public static final Identifier FORMS = DragonfruitMod.id("forms");
 
     private Net() {}
 
@@ -27,10 +31,22 @@ public final class Net {
             int index = buf.readVarInt();
             server.execute(() -> PowerManager.useAbility(player, index));
         });
+        ServerPlayNetworking.registerGlobalReceiver(TOGGLE_FORM, (server, player, handler, buf, responseSender) ->
+                server.execute(() -> PowerManager.toggleForm(player)));
         ServerPlayNetworking.registerGlobalReceiver(FIRE_CANNONS, (server, player, handler, buf, responseSender) ->
                 server.execute(() -> {
                     if (player.getVehicle() instanceof com.nothatcher.dragonfruit.content.ShipEntity ship) ship.fireCannons(player);
                 }));
+    }
+
+    public static void sendForms(ServerPlayerEntity player, java.util.List<java.util.UUID> ids, java.util.List<Boolean> on) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeVarInt(ids.size());
+        for (int i = 0; i < ids.size(); i++) {
+            buf.writeUuid(ids.get(i));
+            buf.writeBoolean(on.get(i));
+        }
+        ServerPlayNetworking.send(player, FORMS, buf);
     }
 
     public static void sendFruits(ServerPlayerEntity player, java.util.List<java.util.UUID> ids, java.util.List<Integer> fruits) {

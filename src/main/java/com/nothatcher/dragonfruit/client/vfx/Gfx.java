@@ -134,6 +134,41 @@ public final class Gfx {
         }
     }
 
+    /**
+     * Box aligned to a frame (f = forward, r = right, u = up), with simple per-face shading baked into the colour.
+     * hr / hu / hf are half sizes along r / u / f.
+     */
+    public static void orientedBox(VertexConsumer vc, Matrix4f m, Vec3d c, Vec3d f, Vec3d r, Vec3d u,
+                                   double hr, double hu, double hf, int rgb) {
+        Vec3d[] k = new Vec3d[8];
+        int idx = 0;
+        for (int i = -1; i <= 1; i += 2) for (int j = -1; j <= 1; j += 2) for (int l = -1; l <= 1; l += 2) {
+            k[idx++] = c.add(r.multiply(i * hr)).add(u.multiply(j * hu)).add(f.multiply(l * hf));
+        }
+        int top = argb(rgb, 1f), side = argb(scaleRgb(rgb, 0.8f), 1f), front = argb(scaleRgb(rgb, 0.9f), 1f), bottom = argb(scaleRgb(rgb, 0.55f), 1f);
+        quad(vc, m, k[2], k[3], k[7], k[6], top);
+        quad(vc, m, k[0], k[1], k[5], k[4], bottom);
+        quad(vc, m, k[4], k[5], k[7], k[6], side);
+        quad(vc, m, k[0], k[1], k[3], k[2], side);
+        quad(vc, m, k[1], k[3], k[7], k[5], front);
+        quad(vc, m, k[0], k[2], k[6], k[4], bottom);
+    }
+
+    /** A box stretched between two points (legs, horns, bones). */
+    public static void stick(VertexConsumer vc, Matrix4f m, Vec3d a, Vec3d b, double halfWidth, int rgb) {
+        Vec3d axis = b.subtract(a);
+        double len = axis.length();
+        if (len < 1.0E-4) return;
+        Vec3d u = axis.multiply(1 / len);
+        Vec3d[] bs = basis(u);
+        orientedBox(vc, m, a.add(b).multiply(0.5), bs[1], bs[0], u, halfWidth, len / 2, halfWidth, rgb);
+    }
+
+    public static int scaleRgb(int rgb, float s) {
+        int r = (int) Math.min(255, ((rgb >> 16) & 0xFF) * s), g = (int) Math.min(255, ((rgb >> 8) & 0xFF) * s), b = (int) Math.min(255, (rgb & 0xFF) * s);
+        return (r << 16) | (g << 8) | b;
+    }
+
     /** Two unit vectors perpendicular to n (and to each other). */
     public static Vec3d[] basis(Vec3d n) {
         Vec3d nn = n.lengthSquared() < 1.0E-8 ? UP : n.normalize();

@@ -21,6 +21,10 @@ public abstract class HeldItemRendererMixin {
                                               float swingProgress, ItemStack item, float equipProgress,
                                               MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
                                               CallbackInfo ci) {
+        if (com.nothatcher.dragonfruit.client.ClientPowerData.beastOf(player) != com.nothatcher.dragonfruit.FruitType.NONE) {
+            ci.cancel(); // you're an animal: no human hands
+            return;
+        }
         Arm arm = hand == Hand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
         int side = arm == Arm.RIGHT ? 1 : -1;
         if (VfxManager.armActive(player.getId(), side)) ci.cancel();

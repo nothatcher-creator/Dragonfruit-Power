@@ -24,6 +24,10 @@ public final class Particles {
         mc.particleManager.addParticle(effect, pos.x, pos.y, pos.z, vel.x, vel.y, vel.z);
     }
 
+    public static Vec3d randDirPublic(Random r) {
+        return randDir(r);
+    }
+
     static Vec3d randDir(Random r) {
         Vec3d v = new Vec3d(r.nextGaussian(), r.nextGaussian(), r.nextGaussian());
         return v.lengthSquared() < 1.0E-6 ? Gfx.UP : v.normalize();
@@ -237,6 +241,30 @@ public final class Particles {
                 add(ParticleTypes.SWEEP_ATTACK, pos, Vec3d.ZERO);
                 for (int i = 0; i < 16; i++) add(ParticleTypes.CRIT, pos, randDir(r).multiply(0.6));
                 for (int i = 0; i < 10; i++) add(ParticleTypes.ENCHANTED_HIT, pos, randDir(r).multiply(0.5));
+            }
+            case Vfx.B_BREATH -> {
+                Vec3d d = dir.lengthSquared() < 1.0E-6 ? Gfx.UP : dir.normalize();
+                for (int i = 0; i < 26; i++) {
+                    Vec3d v = d.multiply(0.6 + r.nextDouble() * 0.5).add(randDir(r).multiply(0.12));
+                    add(i % 4 == 0 ? ParticleTypes.SMALL_FLAME : ParticleTypes.FLAME, pos, v);
+                }
+                for (int i = 0; i < 4; i++) add(ParticleTypes.LARGE_SMOKE, pos.add(d.multiply(4)), d.multiply(0.2));
+                if (r.nextInt(3) == 0) add(ParticleTypes.LAVA, pos.add(d.multiply(2)), Vec3d.ZERO);
+            }
+            case Vfx.B_HEAL -> {
+                for (int i = 0; i < 14 * s; i++) add(ParticleTypes.HEART, pos.add(randDir(r).multiply(0.9 * s)), new Vec3d(0, 0.1, 0));
+                for (int i = 0; i < 20 * s; i++) add(ParticleTypes.HAPPY_VILLAGER, pos.add(randDir(r).multiply(1.2 * s)), Vec3d.ZERO);
+            }
+            case Vfx.B_TRANSFORM -> {
+                DustParticleEffect col = new DustParticleEffect(new Vector3f((float) dir.x, (float) dir.y, (float) dir.z), 2f);
+                for (int i = 0; i < 90 * s; i++) {
+                    Vec3d d = randDir(r);
+                    add(col, pos.add(d.multiply(0.4 * s)), Vec3d.ZERO);
+                    if (i % 3 == 0) add(ParticleTypes.CLOUD, pos, d.multiply(0.3 * s));
+                }
+                for (int i = 0; i < 30; i++) add(ParticleTypes.END_ROD, pos, randDir(r).multiply(0.2 * s));
+                add(ParticleTypes.FLASH, pos, Vec3d.ZERO);
+                shockRing(pos.add(0, -0.8, 0), Gfx.UP, ParticleTypes.CLOUD, 30, 0.5 * s);
             }
             default -> { }
         }

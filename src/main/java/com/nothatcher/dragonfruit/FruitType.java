@@ -52,7 +52,34 @@ public enum FruitType {
     GRAVITY("gravity", 0x9A6BFF,
             new Ability("gravity_crush", 120),
             new Ability("gravity_lift", 140),
-            new Ability("meteor_call", 400));
+            new Ability("meteor_call", 400)),
+
+    // animal fruits: Transform turns you into the beast
+    WOLF("wolf", 0x9AA3AD,
+            new Ability("pounce", 40),
+            new Ability("howl", 300),
+            new Ability("frenzy", 160)),
+
+    DRAGON("dragon", 0x2FAF5A,
+            new Ability("dragon_breath", 160),
+            new Ability("wing_gust", 100),
+            new Ability("dive_bomb", 200)),
+
+    REINDEER("reindeer", 0xA0703A,
+            new Ability("antler_charge", 80),
+            new Ability("healing_burst", 400),
+            new Ability("horn_guard", 400));
+
+    /** What the Transform key does for this fruit. */
+    public enum Form { NONE, ELEMENT, BEAST }
+
+    public Form form() {
+        return switch (this) {
+            case FLAME, ICE, MAGMA, THUNDER, LIGHT -> Form.ELEMENT;
+            case WOLF, DRAGON, REINDEER -> Form.BEAST;
+            default -> Form.NONE;
+        };
+    }
 
     public record Ability(String id, int cooldown) {}
 

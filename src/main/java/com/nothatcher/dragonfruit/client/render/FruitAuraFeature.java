@@ -29,8 +29,8 @@ public class FruitAuraFeature extends FeatureRenderer<AbstractClientPlayerEntity
     private static final Identifier ARMOR = DragonfruitMod.id("textures/entity/aura/armor.png");
 
     static {
-        for (FruitType f : FruitType.values()) {
-            if (f == FruitType.NONE || f == FruitType.RUBBER) continue;
+        for (FruitType f : new FruitType[]{FruitType.FLAME, FruitType.ICE, FruitType.LIGHT, FruitType.QUAKE,
+                FruitType.THUNDER, FruitType.MAGMA, FruitType.GRAVITY}) {
             Identifier[] ids = new Identifier[FRAMES];
             for (int i = 0; i < FRAMES; i++) ids[i] = DragonfruitMod.id("textures/entity/aura/" + f.id + "_" + i + ".png");
             TEXTURES.put(f, ids);
@@ -58,5 +58,10 @@ public class FruitAuraFeature extends FeatureRenderer<AbstractClientPlayerEntity
         float pulse = 0.75f + 0.25f * (float) Math.sin((player.age + tickDelta) * 0.15f);
         model.render(matrices, vcp.getBuffer(RenderLayer.getEyes(frames[frame])), 0xF000F0, OverlayTexture.DEFAULT_UV,
                 pulse, pulse, pulse, 1f);
+        if (ClientPowerData.inForm(player)) {
+            // elemental form: a second, offset frame doubles the glow so the whole body burns/crackles
+            Identifier second = frames[(frame + 2) % FRAMES];
+            model.render(matrices, vcp.getBuffer(RenderLayer.getEyes(second)), 0xF000F0, OverlayTexture.DEFAULT_UV, 1f, 1f, 1f, 1f);
+        }
     }
 }

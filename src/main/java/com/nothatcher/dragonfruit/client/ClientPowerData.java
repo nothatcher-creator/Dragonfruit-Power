@@ -17,6 +17,23 @@ public final class ClientPowerData {
 
     private ClientPowerData() {}
 
+    private static final java.util.Set<java.util.UUID> IN_FORM = new java.util.HashSet<>();
+
+    public static void setForm(java.util.UUID id, boolean on) {
+        if (on) IN_FORM.add(id);
+        else IN_FORM.remove(id);
+    }
+
+    public static boolean inForm(net.minecraft.entity.player.PlayerEntity p) {
+        return IN_FORM.contains(p.getUuid()) && fruitOf(p).form() != FruitType.Form.NONE;
+    }
+
+    /** The beast this player currently is, or NONE. */
+    public static FruitType beastOf(net.minecraft.entity.player.PlayerEntity p) {
+        FruitType f = fruitOf(p);
+        return inForm(p) && f.form() == FruitType.Form.BEAST ? f : FruitType.NONE;
+    }
+
     public static void setOther(java.util.UUID id, FruitType f) {
         if (f == FruitType.NONE) OTHERS.remove(id);
         else OTHERS.put(id, f);
@@ -74,6 +91,7 @@ public final class ClientPowerData {
 
     public static void reset() {
         OTHERS.clear();
+        IN_FORM.clear();
         fruit = FruitType.NONE;
         selected = 0;
         cooldownEnd = new int[0];
