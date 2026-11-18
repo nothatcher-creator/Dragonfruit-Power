@@ -1,0 +1,162 @@
+{
+  "engine_car": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_car"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_car"
+  },
+  "engine_truck": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_truck"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_truck"
+  },
+  "engine_bike": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_bike"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_bike"
+  },
+  "engine_tank": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_tank"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_tank"
+  },
+  "engine_heli": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_heli"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_heli"
+  },
+  "engine_prop": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_prop"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_prop"
+  },
+  "engine_jet": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_jet"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_jet"
+  },
+  "engine_rocket": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_rocket"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_rocket"
+  },
+  "engine_train": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_train"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_train"
+  },
+  "engine_boat": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_boat"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_boat"
+  },
+  "horn_car": {
+    "sounds": [
+      {
+        "name": "vehicleforge:horn_car"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.horn_car"
+  },
+  "horn_truck": {
+    "sounds": [
+      {
+        "name": "vehicleforge:horn_truck"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.horn_truck"
+  },
+  "bike_bell": {
+    "sounds": [
+      {
+        "name": "vehicleforge:bike_bell"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.bike_bell"
+  },
+  "horn_train": {
+    "sounds": [
+      {
+        "name": "vehicleforge:horn_train"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.horn_train"
+  },
+  "horn_boat": {
+    "sounds": [
+      {
+        "name": "vehicleforge:horn_boat"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.horn_boat"
+  },
+  "siren": {
+    "sounds": [
+      {
+        "name": "vehicleforge:siren"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.siren"
+  },
+  "cannon": {
+    "sounds": [
+      {
+        "name": "vehicleforge:cannon"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.cannon"
+  },
+  "rocket_launch": {
+    "sounds": [
+      {
+        "name": "vehicleforge:rocket_launch"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.rocket_launch"
+  },
+  "gunshot": {
+    "sounds": [
+      {
+        "name": "vehicleforge:gunshot"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.gunshot"
+  },
+  "water_spray": {
+    "sounds": [
+      {
+        "name": "vehicleforge:water_spray"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.water_spray"
+  }
+}

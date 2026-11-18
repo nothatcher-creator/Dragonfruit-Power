@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "vehicleforge",
+  "version": "${version}",
+  "name": "Vehicle Forge",
+  "description": "Drivable cars, trucks, bikes, tanks, rocket artillery, helicopters, planes, a rocket ship, trains, boats and a livable RV, all with interiors.",
+  "authors": ["Bradley (nothatcher-creator)"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/vehicleforge/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.nothatcher.vehicleforge.VehicleForge"],
+    "client": ["com.nothatcher.vehicleforge.client.VehicleClient"]
+  },
+  "mixins": ["vehicleforge.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}

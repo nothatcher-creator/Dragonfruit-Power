@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "IGI",
+    "B B"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "B": {
+      "item": "minecraft:quartz_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:classic_cruiser",
+    "count": 1
+  }
+}
