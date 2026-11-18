@@ -121,7 +121,7 @@ public final class Weapons {
                 RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.ANY, driver));
         Vec3d target = hit.getType() == HitResult.Type.MISS ? eye.add(look.multiply(140)) : hit.getPos();
         driver.sendMessage(Text.translatable("msg.vehicleforge.salvo", (int) target.distanceTo(eye)).formatted(Formatting.RED), true);
-        Random r = v.getRandom();
+        Random r = w.getRandom();
         for (int i = 0; i < 8; i++) {
             final Vec3d spread = target.add((r.nextDouble() - 0.5) * 9, 0, (r.nextDouble() - 0.5) * 9);
             final int col = i % 4, row = i / 4;
@@ -152,7 +152,7 @@ public final class Weapons {
 
     private static void machineGun(ServerWorld w, VehicleEntity v, PlayerEntity driver) {
         boolean plane = v.type.category == Category.PLANE;
-        Random r = v.getRandom();
+        Random r = w.getRandom();
         for (int i = 0; i < 6; i++) {
             final int shot = i;
             Scheduler.after(i * 2, () -> {
