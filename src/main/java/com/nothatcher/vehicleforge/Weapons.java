@@ -164,7 +164,7 @@ public final class Weapons {
                     muzzle = v.toWorld(shot % 2 == 0 ? 1.6 : -1.6, 0.95, 1.6);
                 } else {
                     dir = aim(driver, -40, 30);
-                    muzzle = v.toWorld(0, 2.55, -1.0).add(dir.multiply(1.7));
+                    muzzle = v.toWorld(v.type.turret.x, v.type.turret.y, v.type.turret.z).add(dir.multiply(v.type.barrelLen));
                 }
                 dir = dir.add(r.nextGaussian() * 0.015, r.nextGaussian() * 0.015, r.nextGaussian() * 0.015).normalize();
                 bullet(w, v, driver, muzzle, dir, 90, 5f);

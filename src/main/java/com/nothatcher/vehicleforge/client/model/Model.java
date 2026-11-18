@@ -40,6 +40,10 @@ public final class Model {
     }
 
     public final List<Group> groups = new ArrayList<>();
+    /** headlight centres (one per side), found from the HEADLIGHT quads; light beams start here */
+    public final List<Vector3f> lights = new ArrayList<>();
+    /** frontmost z of the headlights */
+    public float lightZ;
 
     public static Builder builder() {
         return new Builder();
@@ -48,6 +52,7 @@ public final class Model {
     public static final class Builder {
         private final Model model = new Model();
         private Group current;
+        private final double[] lightSum = new double[8];   // left x,y,z,n | right x,y,z,n
 
         Builder() {
             group(Kind.BODY, 0, 0, 0, 0, false);
@@ -65,6 +70,12 @@ public final class Model {
 
         public Model build() {
             model.groups.removeIf(g -> g.quads.isEmpty());
+            for (int side = 0; side < 2; side++) {
+                double n = lightSum[side * 4 + 3];
+                if (n > 0) {
+                    model.lights.add(new Vector3f((float) (lightSum[side * 4] / n), (float) (lightSum[side * 4 + 1] / n), (float) (lightSum[side * 4 + 2] / n)));
+                }
+            }
             return model;
         }
 
@@ -96,6 +107,15 @@ public final class Model {
             q.nz = (float) (nz / len);
             q.mat = m;
             current.quads.add(q);
+            if (m == Mat.HEADLIGHT && (current.kind == Kind.BODY || current.kind == Kind.BIKE_FORK)) {
+                double cx = (a[0] + b[0] + c[0] + d[0]) / 4, cy = (a[1] + b[1] + c[1] + d[1]) / 4, cz = (a[2] + b[2] + c[2] + d[2]) / 4;
+                int side = cx >= 0 ? 0 : 4;
+                lightSum[side] += cx;
+                lightSum[side + 1] += cy;
+                lightSum[side + 2] += cz;
+                lightSum[side + 3] += 1;
+                model.lightZ = Math.max(model.lightZ, (float) cz);
+            }
             return this;
         }
 

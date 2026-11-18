@@ -63,12 +63,79 @@ def make(name, paint, kind):
         d.polygon([(0,8),(15,8),(12,12),(2,12)], fill=WHT); d.line([(1,9),(14,9)], fill=p); d.polygon([(8,8),(10,5),(11,8)], fill=GLS); d.rectangle([0,6,1,10], fill=BLK)
     elif kind == 'yacht':
         d.polygon([(0,8),(15,7),(13,12),(2,12)], fill=WHT); d.line([(1,10),(14,10)], fill=(27,42,74,255)); d.rectangle([4,5,11,8], fill=WHT); d.rectangle([5,6,10,7], fill=GLS); d.line([(7,2),(7,5)], fill=BLK)
+    elif kind == 'police':
+        d.rectangle([1,8,14,11], fill=p); d.polygon([(4,8),(6,5),(10,5),(12,8)], fill=p); d.polygon([(5,8),(6,6),(8,6),(8,8)], fill=GLS); d.polygon([(9,8),(9,6),(10,6),(11,8)], fill=GLS)
+        d.rectangle([5,9,10,10], fill=BLK); d.point((7,4), fill=RED); d.point((8,4), fill=(40,80,255,255)); d.point((14,9), fill=YEL); wheel(d,4,12); wheel(d,11,12)
+    elif kind == 'taxi':
+        d.rectangle([1,8,14,11], fill=p); d.polygon([(4,8),(6,5),(10,5),(12,8)], fill=p); d.polygon([(5,8),(6,6),(8,6),(8,8)], fill=GLS); d.polygon([(9,8),(9,6),(10,6),(11,8)], fill=GLS)
+        d.rectangle([7,3,8,4], fill=WHT)
+        for x in range(1,15,2): d.point((x,9), fill=BLK)
+        wheel(d,4,12); wheel(d,11,12)
+    elif kind == 'hatch':
+        d.rectangle([2,8,13,11], fill=p); d.polygon([(3,8),(4,5),(10,5),(12,8)], fill=p); d.polygon([(4,8),(5,6),(7,6),(7,8)], fill=GLS); d.polygon([(8,8),(8,6),(10,6),(11,8)], fill=GLS); wheel(d,4,12); wheel(d,11,12)
+    elif kind == 'suv':
+        d.rectangle([1,6,14,11], fill=p); d.rectangle([2,3,11,6], fill=p); d.rectangle([3,4,6,6], fill=GLS); d.rectangle([7,4,10,6], fill=GLS); d.line([(2,2),(10,2)], fill=CHR); wheel(d,4,12,3); wheel(d,11,12,3)
+    elif kind == 'muscle':
+        d.rectangle([0,8,15,11], fill=p); d.polygon([(5,8),(7,5),(10,5),(11,8)], fill=p); d.polygon([(7,8),(8,6),(10,6),(10,8)], fill=GLS); d.line([(11,8),(15,8)], fill=WHT); d.rectangle([12,7,13,7], fill=BLK); wheel(d,3,12); wheel(d,12,12,3)
+    elif kind == 'roadster':
+        d.rectangle([2,8,13,10], fill=p); d.rectangle([10,6,14,9], fill=p); d.line([(9,4),(9,8)], fill=CHR); d.rectangle([2,7,6,8], fill=(70,40,20,255)); d.point((15,7), fill=YEL)
+        wheel(d,4,12,3); wheel(d,12,12,3); d.line([(4,9),(11,9)], fill=BLK)
+    elif kind == 'limo':
+        d.rectangle([0,8,15,11], fill=p); d.polygon([(2,8),(3,6),(12,6),(13,8)], fill=p)
+        for x in (3,6,9,11): d.rectangle([x,7,x+1,7], fill=(90,100,120,255))
+        d.line([(0,10),(15,10)], fill=CHR); wheel(d,2,12); wheel(d,13,12)
+    elif kind == 'atv':
+        d.rectangle([4,8,11,10], fill=p); d.rectangle([2,7,5,8], fill=BLK); d.rectangle([10,7,13,8], fill=BLK); d.line([(10,7),(11,4)], fill=BLK); d.line([(9,4),(12,4)], fill=BLK); d.rectangle([6,7,9,7], fill=BLK); wheel(d,3,12,3); wheel(d,12,12,3)
+    elif kind == 'ambulance':
+        d.rectangle([1,4,13,11], fill=p); d.polygon([(13,6),(15,8),(15,11),(13,11)], fill=p); d.polygon([(13,7),(14,8),(13,8)], fill=GLS); d.line([(1,8),(15,8)], fill=RED)
+        d.line([(6,5),(6,7)], fill=RED); d.line([(5,6),(7,6)], fill=RED); d.point((12,3), fill=RED); d.point((13,3), fill=(40,80,255,255)); wheel(d,4,12); wheel(d,12,12)
+    elif kind == 'bus':
+        d.rectangle([0,3,15,11], fill=p)
+        for x in range(1,14,3): d.rectangle([x,5,x+1,7], fill=GLS)
+        d.rectangle([14,5,15,9], fill=GLS); d.line([(0,9),(15,9)], fill=WHT); wheel(d,3,12); wheel(d,12,12)
+    elif kind == 'schoolbus':
+        d.rectangle([0,4,12,11], fill=p); d.rectangle([12,7,15,11], fill=p)
+        for x in range(1,12,3): d.rectangle([x,5,x+1,7], fill=GLS)
+        d.line([(0,9),(15,9)], fill=BLK); d.point((1,8), fill=RED); wheel(d,3,12); wheel(d,13,12)
+    elif kind == 'dump':
+        d.rectangle([11,4,14,11], fill=p); d.rectangle([12,5,13,7], fill=GLS); d.polygon([(0,4),(10,4),(10,10),(1,10)], fill=dark(p,0.7)); d.polygon([(1,4),(4,2),(8,2),(10,4)], fill=(60,60,60,255)); wheel(d,3,12); wheel(d,7,12); wheel(d,13,12)
+    elif kind == 'tractor':
+        d.rectangle([7,6,14,10], fill=p); d.rectangle([2,2,8,3], fill=p); d.line([(3,3),(3,8)], fill=BLK); d.line([(7,3),(7,8)], fill=BLK); d.rectangle([4,4,6,7], fill=GLS); d.line([(12,2),(12,6)], fill=BLK)
+        wheel(d,4,11,4); wheel(d,13,12,2)
+    elif kind == 'monster':
+        d.rectangle([2,4,13,7], fill=p); d.rectangle([6,2,10,4], fill=p); d.rectangle([7,3,9,4], fill=GLS); d.line([(4,7),(4,9)], fill=CHR); d.line([(11,7),(11,9)], fill=CHR); wheel(d,4,11,4); wheel(d,11,11,4)
+    elif kind == 'scooter':
+        wheel(d,3,12,2); wheel(d,12,12,2); d.polygon([(1,10),(2,7),(6,7),(6,10)], fill=p); d.rectangle([6,10,11,11], fill=p); d.line([(11,10),(12,5)], fill=CHR); d.rectangle([2,6,6,6], fill=BLK); d.line([(11,5),(13,5)], fill=BLK)
+    elif kind == 'apc':
+        d.polygon([(0,6),(12,6),(15,9),(15,11),(0,11)], fill=p); d.rectangle([5,4,8,6], fill=p); d.line([(8,5),(13,5)], fill=BLK); d.line([(11,7),(13,8)], fill=GLS)
+        for x in (2,6,10,13): wheel(d,x,12)
+    elif kind == 'airliner':
+        d.rounded_rectangle([1,6,15,9], 2, fill=p); d.line([(3,7),(13,7)], fill=GLS); d.polygon([(5,9),(10,9),(4,13)], fill=dark(p,0.8)); d.polygon([(1,6),(1,2),(4,6)], fill=(40,80,160,255)); d.rectangle([6,10,8,11], fill=(150,150,160,255)); d.point((14,7), fill=GLS)
+    elif kind == 'jetski':
+        d.polygon([(0,10),(15,9),(13,12),(2,12)], fill=WHT); d.polygon([(4,10),(11,9),(12,7),(8,8)], fill=p); d.rectangle([3,8,7,9], fill=BLK); d.line([(10,7),(11,5)], fill=BLK)
+    elif kind == 'sub':
+        d.rounded_rectangle([0,6,13,11], 3, fill=p); d.ellipse([11,6,15,11], fill=GLS); d.rectangle([5,3,8,6], fill=dark(p,0.7)); d.line([(7,1),(7,3)], fill=CHR)
+        for x in (3,6,9): d.point((x,8), fill=YEL)
+    elif kind == 'diesel':
+        d.rectangle([0,5,10,11], fill=p); d.rectangle([10,3,14,11], fill=p); d.rectangle([11,4,13,6], fill=GLS); d.line([(0,8),(10,8)], fill=WHT); d.point((14,9), fill=YEL); wheel(d,3,12); wheel(d,6,12); wheel(d,10,12); wheel(d,13,12)
+    elif kind == 'bullet':
+        d.polygon([(0,4),(8,4),(15,10),(15,11),(0,11)], fill=p); d.polygon([(9,5),(11,5),(13,8),(11,8)], fill=GLS); d.line([(0,8),(15,8)], fill=(27,42,120,255))
+        for x in (1,4,7): d.rectangle([x,6,x+1,6], fill=GLS)
+        d.line([(1,12),(14,12)], fill=BLK)
+    elif kind == 'fuelcan':
+        d.rectangle([3,4,12,14], fill=p); d.rectangle([4,5,11,13], outline=dark(p,0.6)); d.line([(4,5),(11,13)], fill=dark(p,0.6)); d.line([(11,5),(4,13)], fill=dark(p,0.6))
+        d.rectangle([5,2,9,3], fill=BLK); d.rectangle([10,1,12,3], fill=(230,200,60,255))
     img.save(os.path.join(ITEM, name + '.png'))
 specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('sports_car','#E0301E','sports'),('pickup_truck','#3C6E3A','pickup'),
  ('van','#F2F2F2','van'),('semi_truck','#B0122A','semi'),('fire_truck','#C81E1E','fire'),('bicycle','#2A9DF4','bicycle'),('motorbike','#262626','motorbike'),
  ('dirt_bike','#F07A10','dirt'),('army_jeep','#5B6B3A','jeep'),('tank','#4F5D33','tank'),('rocket_artillery','#55643A','artillery'),('helicopter','#1E2A3A','heli'),
  ('prop_plane','#E8C21A','prop'),('jet','#7E8A96','jet'),('rocket_ship','#F2F2F2','rocket'),('rv','#F2EEE2','rv'),('steam_train','#1E3A2A','train'),
- ('train_carriage','#7A1E1E','carriage'),('speedboat','#E0301E','speedboat'),('yacht','#FAFAFA','yacht')]
+ ('train_carriage','#7A1E1E','carriage'),('speedboat','#E0301E','speedboat'),('yacht','#FAFAFA','yacht'),
+ ('police_car','#F5F5F5','police'),('taxi','#F2C21B','taxi'),('hatchback','#3FA34D','hatch'),('suv','#4A5560','suv'),('muscle_car','#F07818','muscle'),
+ ('vintage_roadster','#6B1E2A','roadster'),('limousine','#1C1C22','limo'),('atv','#B71C1C','atv'),('ambulance','#F4F4F4','ambulance'),('city_bus','#1F6FB5','bus'),
+ ('school_bus','#F2B90F','schoolbus'),('dump_truck','#E0A020','dump'),('tractor','#2F7D32','tractor'),('monster_truck','#7B2FBE','monster'),('scooter','#8FD3C8','scooter'),
+ ('apc','#5B6B3A','apc'),('airliner','#F4F6F8','airliner'),('jet_ski','#1565C0','jetski'),('submarine','#2F3E46','sub'),('diesel_locomotive','#1F4E8C','diesel'),
+ ('bullet_train','#F4F6F8','bullet'),('fuel_can','#C62828','fuelcan')]
 for s in specs: make(*s)
 door = Image.new('RGBA', (16,16), (120,84,48,255)); dd = ImageDraw.Draw(door)
 dd.rectangle([0,0,15,15], outline=(70,48,28,255)); dd.rectangle([3,2,12,7], fill=(150,210,240,255)); dd.rectangle([11,9,12,10], fill=(220,200,80,255)); door.save(os.path.join(BLOCK, 'rv_door.png'))
@@ -77,6 +144,6 @@ for i, n in enumerate(['sports_car','helicopter','tank','rv']):
     im = Image.open(os.path.join(ITEM, n + '.png')).resize((60,60), Image.NEAREST)
     icon.alpha_composite(im, (4 + (i % 2) * 62, 4 + (i // 2) * 62))
 icon.save(os.path.join(ROOT, 'icon.png'))
-prev = Image.new('RGBA', (len(specs)*68+8, 76), (50,50,58,255))
-for i, s in enumerate(specs): prev.alpha_composite(Image.open(os.path.join(ITEM, s[0] + '.png')).resize((64,64), Image.NEAREST), (6 + i*68, 6))
+prev = Image.new('RGBA', (11*68+8, 5*68+8), (50,50,58,255))
+for i, s in enumerate(specs): prev.alpha_composite(Image.open(os.path.join(ITEM, s[0] + '.png')).resize((64,64), Image.NEAREST), (6 + (i%11)*68, 6 + (i//11)*68))
 prev.save('/tmp/vicons.png'); print('icons ok')

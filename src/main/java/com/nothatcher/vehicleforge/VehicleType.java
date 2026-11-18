@@ -10,7 +10,7 @@ import java.util.List;
  * looked up by the same id). Local space everywhere: x = LEFT, y = up, z = forward.
  */
 public final class VehicleType {
-    public enum Category { CAR, BIKE, TRUCK, MILITARY, BOAT, HELICOPTER, PLANE, ROCKET, TRAIN, RV }
+    public enum Category { CAR, BIKE, TRUCK, MILITARY, BOAT, HELICOPTER, PLANE, ROCKET, TRAIN, RV, SUBMARINE }
 
     public enum Weapon { NONE, TANK_CANNON, ROCKET_SALVO, MACHINE_GUN, AIR_ROCKETS, WATER_CANNON }
 
@@ -29,12 +29,101 @@ public final class VehicleType {
     /** for trains: number of carriages a new train starts with */
     public int carriages = 0;
     public String engineSound = "engine_car";
+    /** model extents along z (front > 0 > rear); axles sit at 70% of these */
+    public float frontZ, rearZ;
+    /** automatic gearbox: number of forward gears (0 = no gears, continuous rpm) */
+    public int gears = 5;
+    /** loses little speed on grass, sand, snow and mud */
+    public boolean offroad;
+    /** minutes of running at full speed on one tank (0 = needs no fuel) */
+    public float endurance = 20f;
+    /** roof gun pivot (local) and barrel length, for ground machine guns */
+    public Vec3d turret = new Vec3d(0, 2.55, -1.0);
+    public double barrelLen = 1.7;
+    /** trains: chimney / exhaust position (null = none), carriage model and spacing */
+    public Vec3d smoke;
+    public String carriageModel = "train_carriage";
+    public float carriageStart = 9.7f;
+
+    public float axleF() {
+        return frontZ * 0.7f;
+    }
+
+    public float axleR() {
+        return rearZ * 0.7f;
+    }
 
     VehicleType(String id, Category category, float width, float height) {
         this.id = id;
         this.category = category;
         this.width = width;
         this.height = height;
+        this.frontZ = width * 1.15f;
+        this.rearZ = -width * 1.15f;
+        if (category == Category.TRUCK || category == Category.RV) gears = 6;
+        if (category == Category.BIKE) gears = 5;
+        if (category == Category.MILITARY) offroad = true;
+        if (category == Category.BOAT || category == Category.HELICOPTER || category == Category.PLANE
+                || category == Category.ROCKET || category == Category.TRAIN || category == Category.SUBMARINE) gears = 0;
+    }
+
+    VehicleType len(double front, double rear) {
+        this.frontZ = (float) front;
+        this.rearZ = (float) rear;
+        return this;
+    }
+
+    VehicleType gears(int g) {
+        this.gears = g;
+        return this;
+    }
+
+    VehicleType offroad() {
+        this.offroad = true;
+        return this;
+    }
+
+    VehicleType endurance(float minutes) {
+        this.endurance = minutes;
+        return this;
+    }
+
+    VehicleType turret(double x, double y, double z, double barrel) {
+        this.turret = new Vec3d(x, y, z);
+        this.barrelLen = barrel;
+        return this;
+    }
+
+    VehicleType smoke(double x, double y, double z) {
+        this.smoke = new Vec3d(x, y, z);
+        return this;
+    }
+
+    VehicleType carriage(String model, float start) {
+        this.carriageModel = model;
+        this.carriageStart = start;
+        return this;
+    }
+
+    VehicleType amphibious() {
+        this.amphibious = true;
+        return this;
+    }
+
+    public boolean needsWater() {
+        return category == Category.BOAT || category == Category.SUBMARINE;
+    }
+
+    public boolean usesFuel() {
+        return endurance > 0;
+    }
+
+    /** cars, trucks, bikes: things with wheels on the ground */
+    public boolean wheeled() {
+        return switch (category) {
+            case CAR, BIKE, TRUCK, MILITARY, RV -> true;
+            default -> false;
+        };
     }
 
     VehicleType seat(double leftX, double y, double forwardZ) {

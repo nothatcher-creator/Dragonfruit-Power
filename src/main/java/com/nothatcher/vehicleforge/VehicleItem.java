@@ -35,7 +35,7 @@ public class VehicleItem extends Item {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        boolean water = type.category == Category.BOAT;
+        boolean water = type.needsWater();
         BlockHitResult hit = raycast(world, user, water ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE);
         if (hit.getType() == HitResult.Type.MISS) return TypedActionResult.pass(stack);
         BlockPos bp = hit.getBlockPos();
@@ -78,5 +78,6 @@ public class VehicleItem extends Item {
         }
         if (type.interiorRoom) tooltip.add(Text.translatable("tooltip.vehicleforge.room").formatted(Formatting.AQUA));
         tooltip.add(Text.translatable("tooltip.vehicleforge.seats", type.seats.size()).formatted(Formatting.DARK_GRAY));
+        if (type.usesFuel()) tooltip.add(Text.translatable("tooltip.vehicleforge.care").formatted(Formatting.DARK_GRAY));
     }
 }

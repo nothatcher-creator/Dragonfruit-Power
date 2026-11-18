@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "III",
+    "C C"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:orange_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:muscle_car",
+    "count": 1
+  }
+}

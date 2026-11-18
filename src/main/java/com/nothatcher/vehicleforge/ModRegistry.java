@@ -35,12 +35,14 @@ public final class ModRegistry {
             "engine_car", "engine_truck", "engine_bike", "engine_tank", "engine_heli", "engine_prop", "engine_jet",
             "engine_rocket", "engine_train", "engine_boat",
             "horn_car", "horn_truck", "bike_bell", "horn_train", "horn_boat",
-            "siren", "cannon", "rocket_launch", "gunshot", "water_spray"
+            "siren", "cannon", "rocket_launch", "gunshot", "water_spray",
+            "skid", "crash", "fuel_fill"
     };
 
     public static final Block RV_DOOR = new RvDoorBlock(AbstractBlock.Settings.create()
             .mapColor(MapColor.BROWN).strength(-1f, 3600000f).sounds(BlockSoundGroup.WOOD).nonOpaque());
     public static Item CARRIAGE_ITEM;
+    public static Item FUEL_CAN;
 
     private ModRegistry() {}
 
@@ -66,6 +68,7 @@ public final class ModRegistry {
         }
 
         CARRIAGE_ITEM = Registry.register(Registries.ITEM, VehicleForge.id("train_carriage"), new Item(new Item.Settings().maxCount(16)));
+        FUEL_CAN = Registry.register(Registries.ITEM, VehicleForge.id("fuel_can"), new FuelCanItem(new Item.Settings().maxCount(16)));
         Registry.register(Registries.BLOCK, VehicleForge.id("rv_door"), RV_DOOR);
         Registry.register(Registries.ITEM, VehicleForge.id("rv_door"), new BlockItem(RV_DOOR, new Item.Settings()));
 
@@ -75,6 +78,7 @@ public final class ModRegistry {
                 .entries((ctx, entries) -> {
                     for (VehicleItem item : ITEMS.values()) entries.add(item);
                     entries.add(CARRIAGE_ITEM);
+                    entries.add(FUEL_CAN);
                 })
                 .build();
         Registry.register(Registries.ITEM_GROUP, VehicleForge.id("vehicles"), group);

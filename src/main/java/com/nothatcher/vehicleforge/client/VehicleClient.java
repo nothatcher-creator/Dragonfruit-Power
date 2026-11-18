@@ -25,6 +25,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import org.lwjgl.glfw.GLFW;
@@ -42,6 +43,11 @@ public class VehicleClient implements ClientModInitializer {
         downKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.down", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.vehicleforge"));
 
         VehicleEntity.clientTickHook = VehicleClient::vehicleTick;
+        VehicleEntity.crashHook = (v, impact) -> {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeFloat(impact);
+            ClientPlayNetworking.send(Net.CRASH, buf);
+        };
         ClientTickEvents.END_CLIENT_TICK.register(VehicleClient::tick);
         HudRenderCallback.EVENT.register(VehicleClient::hud);
     }
@@ -74,7 +80,7 @@ public class VehicleClient implements ClientModInitializer {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.world == null) return;
         VehicleType t = v.type;
-        if (!"none".equals(t.engineSound) && v.hasPassengers()
+        if (!"none".equals(t.engineSound) && v.engineRunning()
                 && (!(v.engineSound instanceof EngineSound es) || es.isDone())) {
             SoundEvent s = ModRegistry.sound(t.engineSound);
             if (s != null) {
@@ -84,13 +90,13 @@ public class VehicleClient implements ClientModInitializer {
             }
         }
         Random r = mc.world.random;
-        boolean running = v.hasPassengers();
+        boolean running = v.engineRunning();
         float speed = v.displaySpeed();
+        effects(mc, v, r, speed);
         switch (t.category) {
             case CAR, TRUCK, MILITARY, RV -> {
                 if (running && r.nextInt(speed > 0.3f ? 2 : 5) == 0) {
-                    double back = -(t.width * 0.5 + (t.category == Category.CAR ? 1.8 : 2.6));
-                    Vec3d at = v.toWorld(0.5, 0.35, back);
+                    Vec3d at = v.toWorld(0.5, 0.35, t.rearZ - 0.1);
                     mc.world.addParticle(ParticleTypes.SMOKE, at.x, at.y, at.z, 0, 0.02, 0);
                 }
             }
@@ -101,8 +107,8 @@ public class VehicleClient implements ClientModInitializer {
                 }
             }
             case TRAIN -> {
-                if (running || speed > 0.05f) {
-                    Vec3d at = v.toWorld(0, 3.9, 2.9);
+                if (t.smoke != null && (running || speed > 0.05f)) {
+                    Vec3d at = v.toWorld(t.smoke.x, t.smoke.y, t.smoke.z);
                     mc.world.addParticle(speed > 0.4f ? ParticleTypes.LARGE_SMOKE : ParticleTypes.CAMPFIRE_COSY_SMOKE,
                             true, at.x, at.y, at.z, 0, 0.12 + speed * 0.1, 0);
                 }
@@ -150,6 +156,46 @@ public class VehicleClient implements ClientModInitializer {
         }
     }
 
+    private static final java.util.Map<Integer, Integer> SKID_COOLDOWN = new java.util.HashMap<>();
+
+    /** Tyre smoke and skid sounds when sliding, engine smoke and fire when damaged, bubbles under water. */
+    private static void effects(MinecraftClient mc, VehicleEntity v, Random r, float speed) {
+        VehicleType t = v.type;
+        if (t.wheeled() && v.isOnGround()) {
+            boolean skidding = v.slipVis > 0.09f || (v.accelVis < -0.03f && speed > 0.35f);
+            if (skidding) {
+                for (int sd = -1; sd <= 1; sd += 2) {
+                    if (t.category == Category.BIKE && sd > 0) continue;
+                    Vec3d at = v.toWorld(t.category == Category.BIKE ? 0 : sd * t.width * 0.4, 0.15, t.axleR());
+                    mc.world.addParticle(ParticleTypes.CLOUD, at.x, at.y, at.z, (r.nextDouble() - 0.5) * 0.05, 0.03, (r.nextDouble() - 0.5) * 0.05);
+                    if (r.nextInt(3) == 0) mc.world.addParticle(ParticleTypes.LARGE_SMOKE, at.x, at.y, at.z, 0, 0.02, 0);
+                }
+                int key = v.getId();
+                int until = SKID_COOLDOWN.getOrDefault(key, 0);
+                if (v.age >= until || v.age < until - 40) {
+                    SoundEvent skid = ModRegistry.sound("skid");
+                    if (skid != null) mc.world.playSound(v.getX(), v.getY(), v.getZ(), skid, net.minecraft.sound.SoundCategory.NEUTRAL,
+                            0.7f + Math.min(0.8f, speed), 0.85f + r.nextFloat() * 0.3f, false);
+                    SKID_COOLDOWN.put(key, v.age + 14);
+                }
+            }
+        }
+        float hp = v.getHealth() / t.health;
+        if (hp < 0.5f) {
+            Vec3d at = t.flies() ? v.toWorld(0, t.height * 0.7, 0) : v.toWorld(0, t.height * 0.55, t.frontZ * 0.6);
+            if (r.nextInt(hp < 0.25f ? 1 : 3) == 0) {
+                mc.world.addParticle(hp < 0.25f ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, true, at.x, at.y, at.z,
+                        (r.nextDouble() - 0.5) * 0.04, 0.06, (r.nextDouble() - 0.5) * 0.04);
+            }
+            if (hp < 0.2f && r.nextInt(3) == 0) mc.world.addParticle(ParticleTypes.FLAME, at.x, at.y, at.z, 0, 0.03, 0);
+        }
+        if (t.category == Category.SUBMARINE && v.isSubmergedInWater() && speed > 0.05f) {
+            Vec3d at = v.toWorld(0, 1.3, t.rearZ);
+            for (int i = 0; i < 3; i++) mc.world.addParticle(ParticleTypes.BUBBLE, at.x, at.y, at.z,
+                    (r.nextDouble() - 0.5) * 0.2, 0.05, (r.nextDouble() - 0.5) * 0.2);
+        }
+    }
+
     /** distance to the ground below (within max) or -1 */
     private static double groundBelow(VehicleEntity v, int max) {
         for (int i = 0; i <= max; i++) {
@@ -165,8 +211,8 @@ public class VehicleClient implements ClientModInitializer {
         TextRenderer tr = mc.textRenderer;
         int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
         int kmh = Math.round(v.displaySpeed() * 20 * 3.6f);
-        int x = w - 112, y = h - 60;
-        ctx.fill(x - 4, y - 4, w - 4, h - 26, 0x99000000);
+        int x = w - 112, y = h - 70;
+        ctx.fill(x - 4, y - 4, w - 4, h - 8, 0x99000000);
         ctx.drawTextWithShadow(tr, Text.literal(kmh + " km/h").styled(s -> s.withBold(true)), x, y, 0xFFFFFF);
         int line = y + 11;
         if (v.type.flies()) {
@@ -177,9 +223,27 @@ public class VehicleClient implements ClientModInitializer {
             ctx.drawTextWithShadow(tr, Text.translatable("hud.vehicleforge.throttle", Math.round(v.throttle * 100)), x, line, 0xFFD27A);
             line += 10;
         }
+        if (v.type.wheeled() && v.type.gears > 0) {
+            String g = v.gear < 0 ? "R" : !v.engineRunning() ? "N" : "D" + v.gear;
+            ctx.drawTextWithShadow(tr, Text.literal(g), x + 74, y, 0xFFD27A);
+            // tachometer
+            float rpm = MathHelper.lerp(td, v.prevRpm, v.rpm);
+            ctx.fill(x, line + 1, x + 100, line + 4, 0xFF333333);
+            int rw = (int) (100 * MathHelper.clamp(rpm, 0, 1));
+            ctx.fill(x, line + 1, x + rw, line + 4, rpm > 0.88f ? 0xFFFF5040 : 0xFFFFB040);
+            line += 6;
+        }
         float hp = v.getHealth() / v.type.health;
-        ctx.fill(x, line + 1, x + 100, line + 4, 0xFF333333);
-        ctx.fill(x, line + 1, x + (int) (100 * hp), line + 4, hp > 0.5f ? 0xFF55DD55 : hp > 0.25f ? 0xFFDDDD55 : 0xFFDD5555);
+        ctx.drawTextWithShadow(tr, Text.literal("\u2764"), x - 1, line - 1, 0xFFAAAA);
+        ctx.fill(x + 9, line + 1, x + 100, line + 4, 0xFF333333);
+        ctx.fill(x + 9, line + 1, x + 9 + (int) (91 * hp), line + 4, hp > 0.5f ? 0xFF55DD55 : hp > 0.25f ? 0xFFDDDD55 : 0xFFDD5555);
+        if (v.type.usesFuel()) {
+            line += 7;
+            float fuel = v.getFuel();
+            ctx.drawTextWithShadow(tr, Text.literal("\u26FD"), x - 1, line - 1, 0xFFD27A);
+            ctx.fill(x + 9, line + 1, x + 100, line + 4, 0xFF333333);
+            ctx.fill(x + 9, line + 1, x + 9 + (int) (91 * fuel), line + 4, fuel > 0.25f ? 0xFFE0A030 : 0xFFDD3333);
+        }
         if (v.getControllingPassenger() == mc.player) {
             String hint = Text.translatable("hud.vehicleforge.controls." + controlsKey(v.type),
                     primaryKey.getBoundKeyLocalizedText(), secondaryKey.getBoundKeyLocalizedText(), downKey.getBoundKeyLocalizedText()).getString();
@@ -191,14 +255,15 @@ public class VehicleClient implements ClientModInitializer {
     }
 
     private static String controlsKey(VehicleType t) {
-        if (t.siren) return "siren";
+        if (t.siren) return t.weapon == VehicleType.Weapon.WATER_CANNON ? "siren" : "siren_horn";
+        if (t.category == Category.SUBMARINE) return "sub";
         if (t.weapon != VehicleType.Weapon.NONE) return t.flies() ? "air_weapon" : "weapon";
         return switch (t.category) {
             case HELICOPTER -> "heli";
             case PLANE -> "plane";
             case ROCKET -> "rocket";
             case RV -> "rv_drive";
-            default -> "basic";
+            default -> t.wheeled() ? "drive" : "basic";
         };
     }
 }

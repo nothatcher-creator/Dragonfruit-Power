@@ -97,3 +97,24 @@ tt = t(0.7)
 spray = highpass(lowpass(rng.standard_normal(len(tt)), 6000), 1500) * env(len(tt), 0.05, 0.2)
 save('water_spray', norm(spray) * 0.6)
 print('sounds ok')
+
+# ---- wave 2: tyre squeal, crash, refuel
+tt = t(0.8)
+n = rng.standard_normal(len(tt))
+sq = highpass(lowpass(n, 2600), 1400) * 2.5 + np.sin(2*np.pi*(1900 + 120*np.sin(2*np.pi*7*tt))*tt) * 0.6
+save('skid', norm(sq * env(len(tt), 0.04, 0.3)) * 0.7)
+tt = t(1.1)
+thud = np.sin(2*np.pi*55*tt) * np.exp(-tt*9) * 2
+crunch = lowpass(rng.standard_normal(len(tt)), 2500) * np.exp(-tt*7) * 2
+ring = (np.sin(2*np.pi*720*tt) + 0.6*np.sin(2*np.pi*1130*tt) + 0.4*np.sin(2*np.pi*1710*tt)) * np.exp(-tt*5) * 0.5
+glass = highpass(rng.standard_normal(len(tt)), 3500) * (rng.random(len(tt)) > 0.97) * np.exp(-tt*4) * 2
+save('crash', norm(thud + crunch + ring + glass) * 0.95)
+tt = t(1.2)
+glug = np.zeros(len(tt))
+for k in range(7):
+    c = int((0.05 + k * 0.16) * SR); m = int(0.1 * SR)
+    seg = np.arange(m) / SR
+    glug[c:c+m] += np.sin(2*np.pi*(180 + 90*seg/0.1)*seg) * np.hanning(m)
+glug += lowpass(rng.standard_normal(len(tt)), 800) * 0.15
+save('fuel_fill', norm(glug) * 0.7)
+print('wave2 sounds ok')

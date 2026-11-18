@@ -45,13 +45,19 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         ms.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-yaw));
         ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
         ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
+        if (e.type.wheeled()) {
+            // suspension: terrain, squat/dive and body roll
+            ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.lerp(td, e.prevBodyPitch, e.bodyPitch)));
+            ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.lerp(td, e.prevBodyRoll, e.bodyRoll)));
+        }
         float wobble = e.getWobble() - td;
         if (wobble > 0) ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(wobble) * wobble * 0.3f));
         draw(model, e, td, yaw, ms, vcp, light);
+        if (e.lightsOn && !model.lights.isEmpty()) beams(model, ms, vcp);
         ms.pop();
 
         if (e.type.category == Category.TRAIN) {
-            Model car = VehicleModels.get("train_carriage");
+            Model car = VehicleModels.get(e.type.carriageModel);
             Vec3d base = e.getLerpedPos(td);
             for (int k = 1; k <= e.getCarriages(); k++) {
                 VehicleEntity.CarriagePose pose = e.carriagePose(k);
@@ -99,8 +105,22 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 Matrix4f m = ms.peek().getPositionMatrix();
                 Matrix3f nm = ms.peek().getNormalMatrix();
                 for (Model.Quad q : g.quads) {
-                    if (q.mat.layer != layer) continue;
-                    float r = 1, gr = 1, b = 1;
+                    // lamps only glow when they're on: headlights at night, brake lights when slowing
+                    Mat.Layer ql = q.mat.layer;
+                    float lamp = 1f;
+                    if (q.mat == Mat.HEADLIGHT && !e.lightsOn) {
+                        ql = Mat.Layer.SOLID;
+                        lamp = 0.8f;
+                    } else if (q.mat == Mat.TAILLIGHT) {
+                        if (e.braking) lamp = 1f;
+                        else if (e.lightsOn) lamp = 0.55f;
+                        else {
+                            ql = Mat.Layer.SOLID;
+                            lamp = 0.6f;
+                        }
+                    }
+                    if (ql != layer) continue;
+                    float r = lamp, gr = lamp, b = lamp;
                     if (q.mat.tint > 0) {
                         r = pr * q.mat.tint;
                         gr = pg * q.mat.tint;
@@ -120,6 +140,34 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 ms.pop();
             }
         }
+    }
+
+    /** Soft additive cones in front of each headlight. */
+    private static void beams(Model model, MatrixStack ms, VertexConsumerProvider vcp) {
+        VertexConsumer vc = vcp.getBuffer(RenderLayer.getLightning());
+        Matrix4f m = ms.peek().getPositionMatrix();
+        float len = 11f, spread = 2.4f, drop = 1.1f;
+        int segs = 10;
+        for (org.joml.Vector3f l : model.lights) {
+            float x0 = l.x, y0 = l.y, z0 = model.lightZ + 0.05f;
+            for (int i = 0; i < segs; i++) {
+                double a0 = Math.PI * 2 * i / segs, a1 = Math.PI * 2 * (i + 1) / segs;
+                float sx0 = (float) Math.cos(a0) * 0.12f, sy0 = (float) Math.sin(a0) * 0.12f;
+                float sx1 = (float) Math.cos(a1) * 0.12f, sy1 = (float) Math.sin(a1) * 0.12f;
+                float ex0 = (float) Math.cos(a0) * spread, ey0 = (float) Math.sin(a0) * spread * 0.55f;
+                float ex1 = (float) Math.cos(a1) * spread, ey1 = (float) Math.sin(a1) * spread * 0.55f;
+                float[][] quad = {
+                        {x0 + sx0, y0 + sy0, z0, 0.2f}, {x0 + sx1, y0 + sy1, z0, 0.2f},
+                        {x0 + ex1, y0 + ey1 - drop, z0 + len, 0f}, {x0 + ex0, y0 + ey0 - drop, z0 + len, 0f}
+                };
+                for (int k = 0; k < 4; k++) beamVertex(vc, m, quad[k]);
+                for (int k = 3; k >= 0; k--) beamVertex(vc, m, quad[k]);
+            }
+        }
+    }
+
+    private static void beamVertex(VertexConsumer vc, Matrix4f m, float[] p) {
+        vc.vertex(m, p[0], p[1], p[2]).color(1f, 0.95f, 0.8f, p[3]).next();
     }
 
     private static void transform(Model.Group g, MatrixStack ms, float steer, float spin, float rotor, float speedFrac,

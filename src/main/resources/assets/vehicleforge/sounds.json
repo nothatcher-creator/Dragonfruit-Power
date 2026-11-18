@@ -158,5 +158,29 @@
       }
     ],
     "subtitle": "subtitles.vehicleforge.water_spray"
+  },
+  "skid": {
+    "sounds": [
+      {
+        "name": "vehicleforge:skid"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.skid"
+  },
+  "crash": {
+    "sounds": [
+      {
+        "name": "vehicleforge:crash"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.crash"
+  },
+  "fuel_fill": {
+    "sounds": [
+      {
+        "name": "vehicleforge:fuel_fill"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.fuel_fill"
   }
 }
