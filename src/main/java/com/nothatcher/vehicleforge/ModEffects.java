@@ -21,15 +21,23 @@ public final class ModEffects {
         Registry.register(Registries.STATUS_EFFECT, VehicleForge.id("shrunk"), SHRUNK);
     }
 
-    /** shrunk by the potion effect, or sitting in a shrunk car (that part is visible on every client) */
-    public static boolean isShrunk(LivingEntity e) {
-        if (e.hasStatusEffect(SHRUNK)) return true;
-        return e.getVehicle() instanceof VehicleEntity v && v.getScaleTarget() < 0.9f;
+    /**
+     * Size of a creature: shrunk by the potion effect, or sitting in a shrunk car (visible on every client).
+     * Must be safe to call while the entity is still being constructed (Minecraft asks for eye height in the
+     * Entity constructor, before LivingEntity's effect map exists), so never call hasStatusEffect here.
+     */
+    public static float scaleOf(LivingEntity e) {
+        try {
+            java.util.Map<StatusEffect, ?> effects = e.getActiveStatusEffects();
+            if (effects != null && effects.containsKey(SHRUNK)) return SHRUNK_SCALE;
+            if (e.getVehicle() instanceof VehicleEntity v && v.getScaleTarget() < 0.9f) return Math.max(SHRUNK_SCALE, v.scaleNow);
+        } catch (RuntimeException ignored) {
+            // half-built entity: normal size
+        }
+        return 1f;
     }
 
-    public static float scaleOf(LivingEntity e) {
-        if (e.hasStatusEffect(SHRUNK)) return SHRUNK_SCALE;
-        if (e.getVehicle() instanceof VehicleEntity v && v.getScaleTarget() < 0.9f) return Math.max(SHRUNK_SCALE, v.scaleNow);
-        return 1f;
+    public static boolean isShrunk(LivingEntity e) {
+        return scaleOf(e) < 1f;
     }
 }

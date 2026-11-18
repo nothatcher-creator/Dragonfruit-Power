@@ -10,7 +10,8 @@
   "client": [
     "client.VfCameraAccessor",
     "client.VfCameraMixin",
-    "client.LivingEntityRendererMixin"
+    "client.LivingEntityRendererMixin",
+    "client.VfGameRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -22,7 +22,7 @@ public abstract class VfCameraMixin {
         double y = MathHelper.lerp(tickDelta, focused.prevY, focused.getY())
                 + MathHelper.lerp(tickDelta, acc.vehicleforge$getLastCameraY(), acc.vehicleforge$getCameraY());
         double z = MathHelper.lerp(tickDelta, focused.prevZ, focused.getZ());
-        acc.vehicleforge$setPos(x, y + v.type.height * 0.35, z);
-        acc.vehicleforge$moveBy(-acc.vehicleforge$clipToSpace(v.type.cameraDistance), 0, 0);
+        acc.vehicleforge$setPos(x, y + v.type.height * 0.35 * v.scaleNow, z);
+        acc.vehicleforge$moveBy(-acc.vehicleforge$clipToSpace(v.type.cameraDistance * Math.max(0.35f, v.scaleNow)), 0, 0);
     }
 }
