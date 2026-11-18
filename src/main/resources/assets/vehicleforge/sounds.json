@@ -182,5 +182,69 @@
       }
     ],
     "subtitle": "subtitles.vehicleforge.fuel_fill"
+  },
+  "ostrich_call": {
+    "sounds": [
+      {
+        "name": "vehicleforge:ostrich_call"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.ostrich_call"
+  },
+  "time_warp": {
+    "sounds": [
+      {
+        "name": "vehicleforge:time_warp"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.time_warp"
+  },
+  "shrink": {
+    "sounds": [
+      {
+        "name": "vehicleforge:shrink"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.shrink"
+  },
+  "ice_cream_jingle": {
+    "sounds": [
+      {
+        "name": "vehicleforge:ice_cream_jingle"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.ice_cream_jingle"
+  },
+  "engine_electric": {
+    "sounds": [
+      {
+        "name": "vehicleforge:engine_electric"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.engine_electric"
+  },
+  "burner": {
+    "sounds": [
+      {
+        "name": "vehicleforge:burner"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.burner"
+  },
+  "ufo_hum": {
+    "sounds": [
+      {
+        "name": "vehicleforge:ufo_hum"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.ufo_hum"
+  },
+  "compactor": {
+    "sounds": [
+      {
+        "name": "vehicleforge:compactor"
+      }
+    ],
+    "subtitle": "subtitles.vehicleforge.compactor"
   }
 }

@@ -7,6 +7,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.enums.RailShape;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
@@ -65,6 +67,10 @@ public class VehicleEntity extends Entity {
     private static final TrackedData<Integer> CARRIAGES = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> WOBBLE = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Float> FUEL = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    /** special ability on/off (UFO beam, mower blades, forks up, time machine charged, rocket boost) */
+    private static final TrackedData<Boolean> ABILITY = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    /** shrink car: target size (1 = normal) */
+    private static final TrackedData<Float> SCALE = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
     /** Client hook (engine sounds etc.), set by the client mod. */
     public static Consumer<VehicleEntity> clientTickHook = e -> { };
@@ -98,6 +104,14 @@ public class VehicleEntity extends Entity {
     /** horizontal speed measured from real motion, smoothed (all sides; used for impacts on the server) */
     public float measuredSpeed;
     private Vec3d motionDir = Vec3d.ZERO;
+    /** current (animated) size and forklift fork height */
+    public float scaleNow = 1f, prevScale = 1f, forkHeight, prevForkHeight;
+    /** rocket cart boost, run by the driver's client */
+    public int boostTicks, boostCooldown;
+    /** server: ticks left on a timed ability (boost flame) */
+    public int abilityTicks;
+    /** server: time machine trail, newest first: x, y, z, yaw every half second */
+    public final ArrayDeque<double[]> timeHistory = new ArrayDeque<>();
 
     // remote interpolation
     private int lerpTicks;
@@ -125,6 +139,37 @@ public class VehicleEntity extends Entity {
         dataTracker.startTracking(CARRIAGES, -1);
         dataTracker.startTracking(WOBBLE, 0);
         dataTracker.startTracking(FUEL, -1f);
+        dataTracker.startTracking(ABILITY, false);
+        dataTracker.startTracking(SCALE, 1f);
+    }
+
+    public boolean abilityOn() {
+        return dataTracker.get(ABILITY);
+    }
+
+    public void setAbility(boolean on) {
+        dataTracker.set(ABILITY, on);
+    }
+
+    public float getScaleTarget() {
+        return dataTracker.get(SCALE);
+    }
+
+    public void setScaleTarget(float s) {
+        dataTracker.set(SCALE, s);
+    }
+
+    @Override
+    public EntityDimensions getDimensions(EntityPose pose) {
+        return super.getDimensions(pose).scaled(scaleNow);
+    }
+
+    /** rocket cart: start a boost on the driver's client (the server shows the flames) */
+    public boolean tryLocalBoost() {
+        if (boostCooldown > 0) return false;
+        boostTicks = 40;
+        boostCooldown = 120;
+        return true;
     }
 
     /** 0..1 */
@@ -197,6 +242,10 @@ public class VehicleEntity extends Entity {
         if (nbt.contains("Health")) dataTracker.set(HEALTH, nbt.getFloat("Health"));
         if (nbt.contains("Carriages")) dataTracker.set(CARRIAGES, nbt.getInt("Carriages"));
         if (nbt.contains("Fuel")) dataTracker.set(FUEL, nbt.getFloat("Fuel"));
+        if (nbt.contains("Scale")) {
+            dataTracker.set(SCALE, nbt.getFloat("Scale"));
+            scaleNow = prevScale = nbt.getFloat("Scale");
+        }
         interiorId = nbt.contains("Interior") ? nbt.getInt("Interior") : -1;
     }
 
@@ -206,6 +255,7 @@ public class VehicleEntity extends Entity {
         nbt.putFloat("Health", dataTracker.get(HEALTH));
         nbt.putInt("Carriages", dataTracker.get(CARRIAGES));
         nbt.putFloat("Fuel", dataTracker.get(FUEL));
+        nbt.putFloat("Scale", dataTracker.get(SCALE));
         nbt.putInt("Interior", interiorId);
     }
 
@@ -286,7 +336,7 @@ public class VehicleEntity extends Entity {
 
     public Vec3d seatPos(int index) {
         if (index < type.seats.size()) {
-            Vec3d s = type.seats.get(index);
+            Vec3d s = type.seats.get(index).multiply(scaleNow);
             float pitch = type.flies() ? getPitch() : 0;
             return getPos().add(rotate(s.x, s.y, s.z, getYaw(), pitch));
         }
@@ -358,7 +408,16 @@ public class VehicleEntity extends Entity {
             }
             return ActionResult.success(getWorld().isClient);
         }
-        if (stack.isOf(Items.IRON_INGOT) && getHealth() < type.health) {
+        if (type.category == Category.ANIMAL && stack.isOf(Items.WHEAT) && getHealth() < type.health) {
+            if (!getWorld().isClient) {
+                setHealth(Math.min(type.health, getHealth() + type.health * 0.3f));
+                if (getWorld() instanceof ServerWorld w) w.spawnParticles(ParticleTypes.HEART, getX(), getY() + 2.2, getZ(), 3, 0.3, 0.2, 0.3, 0);
+                serverWorldSound("ostrich_call", 0.6f, 1.4f);
+                if (!player.getAbilities().creativeMode) stack.decrement(1);
+            }
+            return ActionResult.success(getWorld().isClient);
+        }
+        if (stack.isOf(Items.IRON_INGOT) && getHealth() < type.health && type.category != Category.ANIMAL) {
             if (!getWorld().isClient) {
                 setHealth(Math.min(type.health, getHealth() + type.health * 0.2f));
                 getWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_ANVIL_USE, SoundCategory.NEUTRAL, 0.6f, 1.3f);
@@ -443,7 +502,15 @@ public class VehicleEntity extends Entity {
         prevRpm = rpm;
         prevBodyPitch = bodyPitch;
         prevBodyRoll = bodyRoll;
+        prevScale = scaleNow;
+        prevForkHeight = forkHeight;
         float oyaw = getYaw();
+        float st = getScaleTarget();
+        if (scaleNow != st) {
+            scaleNow += (st - scaleNow) * 0.12f;
+            if (Math.abs(st - scaleNow) < 0.003f) scaleNow = st;
+            calculateDimensions();
+        }
         super.tick();
         if (getWobble() > 0 && !getWorld().isClient) dataTracker.set(WOBBLE, getWobble() - 1);
 
@@ -494,7 +561,14 @@ public class VehicleEntity extends Entity {
             rotorSpin += powered ? (type.category == Category.HELICOPTER ? 55f : 70f) : 0f;
         }
         if (type.category == Category.SUBMARINE) rotorSpin += Math.abs(clientSpeed) * 60f + (engineRunning() ? 4f : 0f);
-        thrusting = type.category == Category.ROCKET ? dy > 0.04 : (type.category == Category.PLANE && moved > 0.4);
+        thrusting = switch (type.category) {
+            case ROCKET -> dy > 0.04;
+            case PLANE -> moved > 0.4;
+            case BALLOON -> dy > 0.004 || (getWorld().isClient && InputState.vehicleId == getId() && InputState.up && engineRunning());
+            default -> type.weapon == VehicleType.Weapon.BOOST && abilityOn();
+        };
+        if (type.weapon == VehicleType.Weapon.MOWER && abilityOn()) rotorSpin += 50f;
+        if (type.weapon == VehicleType.Weapon.FORKS) forkHeight += ((abilityOn() ? 2.0f : 0f) - forkHeight) * 0.08f;
 
         updateGearbox();
         if (getWorld().isClient) {
@@ -586,6 +660,36 @@ public class VehicleEntity extends Entity {
         }
         burnFuel();
         hitMobs();
+        switch (type.weapon) {
+            case TIME_JUMP -> {
+                if (age % 10 == 0) {
+                    timeHistory.addFirst(new double[]{getX(), getY(), getZ(), getYaw()});
+                    while (timeHistory.size() > 61) timeHistory.removeLast();
+                }
+                boolean charged = getControllingPassenger() != null && measuredSpeed >= type.maxSpeed * 0.75f;
+                if (charged != abilityOn()) setAbility(charged);
+            }
+            case SHRINK -> {
+                if (age % 20 == 0 && getScaleTarget() < 0.9f) {
+                    for (Entity p : getPassengerList()) {
+                        if (p instanceof LivingEntity le) le.addStatusEffect(new StatusEffectInstance(ModEffects.SHRUNK, 2400, 0, false, false, true));
+                    }
+                }
+            }
+            case TRACTOR_BEAM -> {
+                if (abilityOn()) {
+                    if (getControllingPassenger() == null) setAbility(false);
+                    else Weapons.beamTick(this);
+                }
+            }
+            case MOWER -> {
+                if (abilityOn() && age % 2 == 0) Weapons.mowTick(this);
+            }
+            case BOOST -> {
+                if (abilityTicks > 0 && --abilityTicks == 0) setAbility(false);
+            }
+            default -> { }
+        }
         if (type.category == Category.SUBMARINE && age % 20 == 0) {
             for (Entity p : getPassengerList()) {
                 if (p instanceof LivingEntity le && le.isSubmergedInWater()) {
@@ -664,6 +768,7 @@ public class VehicleEntity extends Entity {
             case ROCKET -> rocket(engine, pedal, steer, up);
             case BOAT -> boat(pedal, steer);
             case SUBMARINE -> submarine(driven, engine, pedal, steer, up, down);
+            case BALLOON -> balloon(driven, engine, pedal, steer, up);
             case TRAIN -> train(pedal);
             default -> ground(driven, pedal, steer, up, engine);
         }
@@ -694,11 +799,12 @@ public class VehicleEntity extends Entity {
         setYaw(getYaw() + yawDelta);
     }
 
-    private enum Surface { ROAD, SOFT, MUD, ICE }
+    private enum Surface { ROAD, SOFT, SNOW, MUD, ICE }
 
     private Surface surface() {
         BlockState st = getWorld().getBlockState(BlockPos.ofFloored(getX(), getY() - 0.2, getZ()));
         if (st.isIn(BlockTags.ICE)) return Surface.ICE;
+        if (st.isIn(BlockTags.SNOW)) return Surface.SNOW;
         if (st.isOf(Blocks.MUD) || st.isOf(Blocks.SOUL_SAND) || st.isOf(Blocks.SOUL_SOIL)) return Surface.MUD;
         if (st.isIn(BlockTags.DIRT) || st.isIn(BlockTags.SAND) || st.isIn(BlockTags.SNOW) || st.isOf(Blocks.GRAVEL)
                 || st.isOf(Blocks.FARMLAND) || st.isOf(Blocks.CLAY) || st.isOf(Blocks.DIRT_PATH)) return Surface.SOFT;
@@ -717,7 +823,7 @@ public class VehicleEntity extends Entity {
         float max = type.maxSpeed;
         float grip = 0.8f;
         switch (surf) {
-            case SOFT -> {
+            case SOFT, SNOW -> {
                 max *= type.offroad ? 0.92f : 0.6f;
                 grip = 0.55f;
             }
@@ -735,19 +841,36 @@ public class VehicleEntity extends Entity {
             max = type.maxSpeed * 0.4f;
             grip = 0.2f;
         }
+        if (type.hover) {                                                // air cushion: slides everywhere, fast on water
+            grip = 0.12f;
+            max = type.maxSpeed * (floating ? 1f : 0.95f);
+        }
+        if (type.snow && (surf == Surface.ICE || surf == Surface.SNOW)) {
+            grip = 0.65f;
+            max = type.maxSpeed * 1.1f;
+        }
+        max *= 0.5f + 0.5f * scaleNow;                                    // shrunk cars are slower
+        boolean boosting = boostTicks > 0;
+        if (boosting) {
+            max = Math.max(max, 2.0f);
+            boostTicks--;
+        }
+        if (boostCooldown > 0) boostCooldown--;
+        boolean animal = type.category == Category.ANIMAL, ball = type.category == Category.BALL;
         // momentum from last tick, in the vehicle's own frame
         Vec3d vel = getVelocity();
         Vec3d f = forward(), left = leftVec();
         double lat = vel.x * left.x + vel.z * left.z;
         if (onGround || floating) speed = (float) (vel.x * f.x + vel.z * f.z);
 
-        boolean drift = handbrake && Math.abs(speed) > 0.3f;
+        boolean drift = handbrake && Math.abs(speed) > 0.3f && !animal && !ball;
         if (onGround || floating) {
             float slope = driven ? slopeDeg() : 0;
             if (surf == Surface.ICE) pedal *= 0.5f;
             accelerate(pedal, max);
-            speed -= (float) Math.sin(Math.toRadians(slope)) * 0.03f;   // hills slow you down / roll you back
-            if (handbrake) speed *= drift ? 0.975f : 0.85f;
+            speed -= (float) Math.sin(Math.toRadians(slope)) * (ball ? 0.07f : 0.03f);   // hills slow you down / roll you back
+            if (boosting) speed += 0.09f;
+            if (handbrake && !animal) speed *= drift ? 0.975f : 0.85f;
             if (!driven) speed *= 0.8f;                                  // parked: handbrake on
             if (drift) grip = Math.min(grip, 0.1f);
         }
@@ -777,17 +900,23 @@ public class VehicleEntity extends Entity {
             vy = onGround ? -0.04 : vel.y - 0.08;
             vy *= 0.98;
             if (wet) vy = Math.max(vy, -0.08);
+            if (animal && handbrake && onGround) vy = 0.62;                // ostriches jump
         }
         Vec3d v = new Vec3d(f.x * speed + left.x * lat, vy, f.z * speed + left.z * lat);
         double before = v.horizontalLength();
         setVelocity(v);
         move(MovementType.SELF, v);
         if (horizontalCollision) {
-            double after = getVelocity().horizontalLength();
-            reportCrash((float) (before - after));
-            speed *= 0.6f;
+            if (ball) {
+                setVelocity(-v.x * 0.55, getVelocity().y, -v.z * 0.55);     // boing
+                speed = -speed * 0.55f;
+            } else {
+                double after = getVelocity().horizontalLength();
+                if (!animal) reportCrash((float) (before - after));
+                speed *= 0.6f;
+            }
         }
-        landing(onGround, 0.9f);
+        if (!animal && !ball) landing(onGround, 0.9f);
         setPitch(0);
     }
 
@@ -867,6 +996,34 @@ public class VehicleEntity extends Entity {
             speed *= 0.4f;
         }
         setPitch(MathHelper.lerp(0.08f, getPitch(), (float) MathHelper.clamp(-vy * 60, -12, 12)));
+    }
+
+    /** Hot air balloon: hold Space to fire the burner and rise, let go to sink slowly. The wind pushes you around. */
+    private void balloon(boolean driven, boolean engine, float pedal, float steer, boolean up) {
+        setNoGravity(true);
+        Vec3d vel = getVelocity();
+        double vy = vel.y;
+        boolean burn = driven && engine && up;
+        vy += burn ? 0.007 : -0.0035;
+        vy = MathHelper.clamp(vy * 0.985, -0.18, 0.25);
+        boolean ground = isOnGround();
+        if (ground && vy < 0) vy = 0;
+        float target = driven ? pedal * type.maxSpeed : 0;
+        speed += (target - speed) * 0.03f;
+        if (ground) speed *= 0.8f;
+        steerInput += (steer - steerInput) * 0.1f;
+        yawDelta = -steerInput * type.turn;
+        setYaw(getYaw() + yawDelta);
+        Vec3d f = forward();
+        double wx = 0, wz = 0;
+        if (!ground) {
+            double t = getWorld().getTime() * 0.0007;
+            wx = Math.cos(t) * 0.035;
+            wz = Math.sin(t * 1.3) * 0.035;
+        }
+        setVelocity(f.x * speed + wx, vy, f.z * speed + wz);
+        move(MovementType.SELF, getVelocity());
+        setPitch(0);
     }
 
     private void helicopter(boolean driven, boolean engine, float pedal, float steer, boolean up, boolean down) {

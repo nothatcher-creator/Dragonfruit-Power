@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OWO",
+    "S S"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:orange_dye"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:roadblock",
+    "count": 3
+  }
+}

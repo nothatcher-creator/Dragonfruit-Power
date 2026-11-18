@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/roadblock"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/roadblock",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/roadblock",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/roadblock",
+      "y": 270
+    }
+  }
+}

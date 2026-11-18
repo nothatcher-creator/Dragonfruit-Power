@@ -1,6 +1,6 @@
 # Vehicle Forge
 
-A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 21 drivable vehicles, all with modeled interiors, working gauges, engine sounds and particles.
+A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 59 drivable vehicles, all with modeled interiors, working gauges, engine sounds and particles, plus a city world type and road blocks.
 
 ## Vehicles
 
@@ -12,6 +12,16 @@ A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 21 drivable v
 | Air & space | Helicopter (rockets), Propeller Plane (guns), Jet (rockets, afterburner), Rocket Ship |
 | Rail & water | Steam Train (add up to 6 carriages), Speedboat, Yacht |
 | Living | RV with a walk-in camper room you can build in and sleep in |
+
+| Wave 2 | Police car, taxi, hatchback, SUV, muscle car, vintage roadster, limo, ATV, ambulance, city bus, school bus, dump truck, tractor, monster truck, scooter, APC, airliner, jet ski, submarine, diesel locomotive, bullet train |
+| Wave 3 | Go-kart, golf cart, ice cream truck, garbage truck, cement mixer, forklift, snowmobile, hovercraft, hot air balloon |
+| Weird | Riding ostrich, time machine (jumps 30 s back in time), shrink car (makes you tiny), UFO with tractor beam, flying carpet, hamster ball, rocket shopping cart, riding lawn mower |
+
+## City world
+
+Create a world with World Type **Vehicle Forge City**: 4-lane roads with parking lanes, lane lines, crosswalks, stop lines,
+street lamps, working traffic lights, manholes, storm drains, hydrants, downtown towers, apartments, houses, parks,
+parking lots and gas stations. All the road blocks are in the "City Blocks" creative tab.
 
 ## Controls
 

@@ -1,0 +1,178 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "vehicleforge:block/barrier",
+    "b": "vehicleforge:block/barrier",
+    "c": "vehicleforge:block/cone"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        3
+      ],
+      "to": [
+        16,
+        5,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            0,
+            11,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#b",
+          "uv": [
+            0,
+            11,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#b",
+          "uv": [
+            3,
+            11,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#b",
+          "uv": [
+            3,
+            11,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#b",
+          "uv": [
+            0,
+            3,
+            16,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#b",
+          "uv": [
+            0,
+            3,
+            16,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        5,
+        5
+      ],
+      "to": [
+        16,
+        16,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            0,
+            0,
+            16,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#b",
+          "uv": [
+            0,
+            0,
+            16,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#b",
+          "uv": [
+            0,
+            5,
+            16,
+            11
+          ]
+        },
+        "down": {
+          "texture": "#b",
+          "uv": [
+            0,
+            5,
+            16,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        11,
+        4.6
+      ],
+      "to": [
+        10,
+        13,
+        5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#c",
+          "uv": [
+            6,
+            3,
+            10,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#c",
+          "uv": [
+            6,
+            3,
+            10,
+            5
+          ]
+        }
+      }
+    }
+  ]
+}

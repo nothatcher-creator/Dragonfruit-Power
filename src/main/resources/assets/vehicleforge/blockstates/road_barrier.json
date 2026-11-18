@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/road_barrier"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/road_barrier",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/road_barrier",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/road_barrier",
+      "y": 270
+    }
+  }
+}

@@ -40,6 +40,9 @@ public class EngineSound extends MovingSoundInstance {
         } else if (vehicle.type.category == Category.ROCKET) {
             pitch = 0.8f + frac * 0.3f;
             target = vehicle.thrusting ? 1.6f : (running ? 0.15f : 0f);
+        } else if (vehicle.type.category == Category.BALLOON) {
+            pitch = 1f;
+            target = running && vehicle.thrusting ? 1.2f : 0f;
         } else if (vehicle.type.wheeled() && vehicle.type.gears > 0) {
             // follows the tachometer: climbs through each gear, drops on every upshift
             pitch = 0.55f + vehicle.rpm * 1.15f;
@@ -50,5 +53,6 @@ public class EngineSound extends MovingSoundInstance {
         }
         volume += (target - volume) * 0.15f;
         if (!running && volume < 0.02f) setDone();
+        if (vehicle.type.category == Category.BALLOON && volume < 0.02f && !running) setDone();
     }
 }

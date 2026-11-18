@@ -47,6 +47,43 @@ public final class Weapons {
             horn(v);
             return;
         }
+        switch (t.weapon) {
+            case TIME_JUMP -> {
+                timeJump(v, driver);
+                return;
+            }
+            case SHRINK -> {
+                boolean shrink = v.getScaleTarget() > 0.9f;
+                v.setScaleTarget(shrink ? 0.3f : 1f);
+                v.serverWorldSound("shrink", 1.5f, shrink ? 1.4f : 0.7f);
+                ((ServerWorld) v.getWorld()).spawnParticles(ParticleTypes.END_ROD, v.getX(), v.getY() + 0.8, v.getZ(), 40, 1.0, 0.6, 1.0, 0.05);
+                if (!shrink) {
+                    for (Entity p : v.getPassengerList()) if (p instanceof LivingEntity le) le.removeStatusEffect(ModEffects.SHRUNK);
+                }
+                driver.sendMessage(Text.translatable(shrink ? "msg.vehicleforge.shrink" : "msg.vehicleforge.grow").formatted(Formatting.AQUA), true);
+                return;
+            }
+            case TRACTOR_BEAM, MOWER, FORKS -> {
+                v.setAbility(!v.abilityOn());
+                String key = t.weapon == VehicleType.Weapon.TRACTOR_BEAM ? "beam" : t.weapon == VehicleType.Weapon.MOWER ? "blades" : "forks";
+                driver.sendMessage(Text.translatable("msg.vehicleforge." + key + (v.abilityOn() ? "_on" : "_off")).formatted(Formatting.YELLOW), true);
+                if (t.weapon == VehicleType.Weapon.TRACTOR_BEAM && v.abilityOn()) v.serverWorldSound("ufo_hum", 2f, 1.6f);
+                return;
+            }
+            case BOOST -> {
+                if (v.abilityTicks <= 0) {
+                    v.setAbility(true);
+                    v.abilityTicks = 40;
+                    v.serverWorldSound("rocket_launch", 2.5f, 1.3f);
+                }
+                return;
+            }
+            case COMPACTOR -> {
+                compact(v, driver);
+                return;
+            }
+            default -> { }
+        }
         if (t.weapon == VehicleType.Weapon.WATER_CANNON) {
             v.setSpray(!v.sprayOn());
             driver.sendMessage(Text.translatable(v.sprayOn() ? "msg.vehicleforge.spray_on" : "msg.vehicleforge.spray_off").formatted(Formatting.AQUA), true);
@@ -86,8 +123,11 @@ public final class Weapons {
             case BIKE_BELL -> "bike_bell";
             case TRAIN -> "horn_train";
             case BOAT -> "horn_boat";
+            case OSTRICH -> "ostrich_call";
+            case ICE_CREAM -> "ice_cream_jingle";
         };
-        v.serverWorldSound(s, v.type.horn == VehicleType.Horn.TRAIN || v.type.horn == VehicleType.Horn.BOAT ? 6f : 2.5f, 1f);
+        boolean loud = v.type.horn == VehicleType.Horn.TRAIN || v.type.horn == VehicleType.Horn.BOAT || v.type.horn == VehicleType.Horn.ICE_CREAM;
+        v.serverWorldSound(s, loud ? 6f : 2.5f, v.type.horn == VehicleType.Horn.OSTRICH ? 0.9f + v.getWorld().random.nextFloat() * 0.2f : 1f);
     }
 
     /** Where the turret/gunner is aiming: the driver's view, limited to sensible angles. */
@@ -277,5 +317,97 @@ public final class Weapons {
         if (v.age % 12 == 0) v.serverWorldSound("water_spray", 2f, 1f);
         Vec3d end = nozzle.add(dir.multiply(18)).add(0, -3.5, 0);
         w.spawnParticles(ParticleTypes.CLOUD, end.x, end.y, end.z, 3, 0.6, 0.3, 0.6, 0.02);
+    }
+
+    // ------------------------------------------------------ wave 3 specials
+
+    /**
+     * Time machine: at speed, jump back to where the car was 30 seconds ago and roll the clock back six hours.
+     */
+    private static void timeJump(VehicleEntity v, ServerPlayerEntity driver) {
+        if (!v.abilityOn()) {
+            int need = Math.round(v.type.maxSpeed * 0.75f * 20 * 3.6f);
+            driver.sendMessage(Text.translatable("msg.vehicleforge.time_need", need).formatted(Formatting.LIGHT_PURPLE), true);
+            return;
+        }
+        if (v.timeHistory.size() < 4) {
+            driver.sendMessage(Text.translatable("msg.vehicleforge.time_short").formatted(Formatting.LIGHT_PURPLE), true);
+            return;
+        }
+        ServerWorld w = (ServerWorld) v.getWorld();
+        double[] to = v.timeHistory.peekLast();
+        int secondsBack = v.timeHistory.size() / 2;
+        // departure: a flash and a ring of sparks
+        w.spawnParticles(ParticleTypes.FLASH, v.getX(), v.getY() + 1, v.getZ(), 1, 0, 0, 0, 0);
+        w.spawnParticles(ParticleTypes.END_ROD, v.getX(), v.getY() + 0.8, v.getZ(), 80, 1.5, 0.6, 1.5, 0.15);
+        w.spawnParticles(ParticleTypes.REVERSE_PORTAL, v.getX(), v.getY() + 0.8, v.getZ(), 120, 1.2, 0.8, 1.2, 0.2);
+        v.serverWorldSound("time_warp", 4f, 1f);
+        long tod = w.getTimeOfDay();
+        long back = tod - 6000;
+        if (back < 0) back += 24000;
+        w.setTimeOfDay(back);
+        v.refreshPositionAndAngles(to[0], to[1], to[2], (float) to[3], 0);
+        v.timeHistory.clear();
+        driver.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.VehicleMoveS2CPacket(v));
+        w.spawnParticles(ParticleTypes.FLASH, v.getX(), v.getY() + 1, v.getZ(), 1, 0, 0, 0, 0);
+        w.spawnParticles(ParticleTypes.REVERSE_PORTAL, v.getX(), v.getY() + 0.8, v.getZ(), 120, 1.2, 0.8, 1.2, 0.2);
+        v.serverWorldSound("time_warp", 4f, 0.7f);
+        driver.sendMessage(Text.translatable("msg.vehicleforge.time_jump", secondsBack).formatted(Formatting.LIGHT_PURPLE), true);
+    }
+
+    /** UFO: lift creatures and dropped items under the saucer up into the beam. */
+    public static void beamTick(VehicleEntity v) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        Vec3d top = v.getPos().add(0, -0.4, 0);
+        Box box = new Box(v.getX() - 2.5, v.getY() - 28, v.getZ() - 2.5, v.getX() + 2.5, v.getY(), v.getZ() + 2.5);
+        for (Entity e : w.getOtherEntities(v, box, e -> e.getRootVehicle() != v && (e instanceof LivingEntity || e instanceof net.minecraft.entity.ItemEntity))) {
+            Vec3d d = top.subtract(e.getPos());
+            Vec3d pull = d.length() > 0.5 ? d.normalize().multiply(Math.min(0.45, d.length() * 0.12)) : d.multiply(0.3);
+            e.setVelocity(pull);
+            e.velocityModified = true;
+            e.fallDistance = 0;
+        }
+        if (v.age % 3 == 0) {
+            for (int i = 0; i < 6; i++) {
+                double y = v.getY() - w.random.nextDouble() * 20;
+                double a = w.random.nextDouble() * Math.PI * 2, r = (v.getY() - y) * 0.09 + 0.4;
+                w.spawnParticles(ParticleTypes.END_ROD, v.getX() + Math.cos(a) * r, y, v.getZ() + Math.sin(a) * r, 1, 0, 0.05, 0, 0.01);
+            }
+        }
+        if (v.age % 40 == 0) v.serverWorldSound("ufo_hum", 2f, 1.6f);
+    }
+
+    /** Lawn mower: cut grass, ferns and flowers under and beside the deck (crops and saplings are left alone). */
+    public static void mowTick(VehicleEntity v) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        BlockPos c = BlockPos.ofFloored(v.toWorld(0, 0.2, 0.3));
+        int cut = 0;
+        for (BlockPos bp : BlockPos.iterate(c.add(-1, -1, -1), c.add(1, 1, 1))) {
+            net.minecraft.block.BlockState st = w.getBlockState(bp);
+            net.minecraft.block.Block b = st.getBlock();
+            boolean plant = (b instanceof net.minecraft.block.PlantBlock || b instanceof net.minecraft.block.TallPlantBlock)
+                    && !(b instanceof net.minecraft.block.CropBlock) && !(b instanceof net.minecraft.block.SaplingBlock)
+                    && !(b instanceof net.minecraft.block.StemBlock) && !(b instanceof net.minecraft.block.SweetBerryBushBlock);
+            if (plant) {
+                w.breakBlock(bp, false);
+                w.spawnParticles(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK, st), bp.getX() + 0.5, bp.getY() + 0.3, bp.getZ() + 0.5, 6, 0.3, 0.2, 0.3, 0.05);
+                cut++;
+            }
+        }
+        if (cut > 0 && v.age % 6 == 0) w.playSound(null, v.getX(), v.getY(), v.getZ(), net.minecraft.sound.SoundEvents.BLOCK_GRASS_BREAK, net.minecraft.sound.SoundCategory.NEUTRAL, 0.8f, 1.2f);
+    }
+
+    /** Garbage truck: scoop up dropped items behind the truck. */
+    private static void compact(VehicleEntity v, ServerPlayerEntity driver) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        Vec3d rear = v.toWorld(0, 0.5, v.type.rearZ);
+        int n = 0;
+        for (net.minecraft.entity.ItemEntity item : w.getEntitiesByClass(net.minecraft.entity.ItemEntity.class, new Box(rear, rear).expand(5, 3, 5), e -> true)) {
+            n += item.getStack().getCount();
+            w.spawnParticles(ParticleTypes.POOF, item.getX(), item.getY(), item.getZ(), 3, 0.1, 0.1, 0.1, 0.02);
+            item.discard();
+        }
+        v.serverWorldSound("compactor", 2f, 1f);
+        driver.sendMessage(Text.translatable("msg.vehicleforge.collected", n).formatted(Formatting.GREEN), true);
     }
 }

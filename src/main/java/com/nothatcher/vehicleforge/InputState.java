@@ -8,4 +8,6 @@ public final class InputState {
     public static volatile boolean forward, back, left, right, up, down;
 
     private InputState() {}
+    /** entity id of the vehicle the local player is driving, or -1 */
+    public static volatile int vehicleId = -1;
 }

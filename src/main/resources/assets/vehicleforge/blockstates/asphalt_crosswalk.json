@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "vehicleforge:block/asphalt_crosswalk"
+    },
+    "axis=x": {
+      "model": "vehicleforge:block/asphalt_crosswalk",
+      "y": 90
+    }
+  }
+}

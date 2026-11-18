@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/fire_hydrant"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/fire_hydrant",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/fire_hydrant",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/fire_hydrant",
+      "y": 270
+    }
+  }
+}

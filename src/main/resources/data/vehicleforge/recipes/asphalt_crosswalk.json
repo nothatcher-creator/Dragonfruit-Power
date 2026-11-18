@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AWA",
+    "AWA",
+    "AWA"
+  ],
+  "key": {
+    "A": {
+      "item": "vehicleforge:asphalt"
+    },
+    "W": {
+      "item": "minecraft:white_dye"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:asphalt_crosswalk",
+    "count": 6
+  }
+}

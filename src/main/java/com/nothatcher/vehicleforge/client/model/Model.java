@@ -12,7 +12,19 @@ import java.util.List;
 public final class Model {
     public enum Kind {
         BODY, WHEEL, STEER_WHEEL, NEEDLE, ROTOR_Y, ROTOR_X, PROP_Z, TURRET, BARREL, BIKE_FORK,
-        LADDER, FLAME, SIREN_A, SIREN_B, FLAG
+        LADDER, FLAME, SIREN_A, SIREN_B, FLAG,
+        /** windscreen wiper: param = glass tilt (degrees) */
+        WIPER,
+        /** ostrich legs (swing with the gait) and neck (bobs) */
+        LEG_L, LEG_R, NECK,
+        /** hamster ball shell: rolls with the ground */
+        BALL,
+        /** cement mixer drum: turns about its tilted axis, param = tilt */
+        DRUM,
+        /** forklift forks: slide up and down */
+        FORKS,
+        /** only drawn while the vehicle's special ability is on (UFO beam, time machine charge) */
+        ABILITY
     }
 
     public static final class Quad {
@@ -20,6 +32,8 @@ public final class Model {
         public final float[] uv = new float[8];
         public float nx, ny, nz;
         public Mat mat;
+        /** +1 on the left half, -1 on the right (turn signals) */
+        public float side;
     }
 
     public static final class Group {
@@ -44,6 +58,9 @@ public final class Model {
     public final List<Vector3f> lights = new ArrayList<>();
     /** frontmost z of the headlights */
     public float lightZ;
+    /** rear licence plate (centre x, y and its back face z), if the model has one */
+    public boolean hasPlate;
+    public float plateX, plateY, plateZ;
 
     public static Builder builder() {
         return new Builder();
@@ -53,6 +70,7 @@ public final class Model {
         private final Model model = new Model();
         private Group current;
         private final double[] lightSum = new double[8];   // left x,y,z,n | right x,y,z,n
+        private double plateSx, plateSy, plateN, plateMinZ = Double.MAX_VALUE;
 
         Builder() {
             group(Kind.BODY, 0, 0, 0, 0, false);
@@ -75,6 +93,12 @@ public final class Model {
                 if (n > 0) {
                     model.lights.add(new Vector3f((float) (lightSum[side * 4] / n), (float) (lightSum[side * 4 + 1] / n), (float) (lightSum[side * 4 + 2] / n)));
                 }
+            }
+            if (plateN > 0 && plateMinZ < 0) {
+                model.hasPlate = true;
+                model.plateX = (float) (plateSx / plateN);
+                model.plateY = (float) (plateSy / plateN);
+                model.plateZ = (float) plateMinZ;
             }
             return model;
         }
@@ -106,7 +130,14 @@ public final class Model {
             q.ny = (float) (ny / len);
             q.nz = (float) (nz / len);
             q.mat = m;
+            q.side = (a[0] + b[0] + c[0] + d[0]) >= 0 ? 1f : -1f;
             current.quads.add(q);
+            if (m == Mat.PLATE && current.kind == Kind.BODY) {
+                plateSx += (a[0] + b[0] + c[0] + d[0]) / 4;
+                plateSy += (a[1] + b[1] + c[1] + d[1]) / 4;
+                plateN++;
+                plateMinZ = Math.min(plateMinZ, Math.min(Math.min(a[2], b[2]), Math.min(c[2], d[2])));
+            }
             if (m == Mat.HEADLIGHT && (current.kind == Kind.BODY || current.kind == Kind.BIKE_FORK)) {
                 double cx = (a[0] + b[0] + c[0] + d[0]) / 4, cy = (a[1] + b[1] + c[1] + d[1]) / 4, cz = (a[2] + b[2] + c[2] + d[2]) / 4;
                 int side = cx >= 0 ? 0 : 4;

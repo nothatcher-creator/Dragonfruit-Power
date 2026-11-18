@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " B ",
+    "III",
+    "CCC"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:cauldron"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:cement_mixer",
+    "count": 1
+  }
+}

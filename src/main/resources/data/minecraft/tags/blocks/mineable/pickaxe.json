@@ -1,0 +1,24 @@
+{
+  "replace": false,
+  "values": [
+    "vehicleforge:asphalt",
+    "vehicleforge:asphalt_white_line",
+    "vehicleforge:asphalt_yellow_line",
+    "vehicleforge:asphalt_double_yellow_line",
+    "vehicleforge:asphalt_crosswalk",
+    "vehicleforge:manhole_cover",
+    "vehicleforge:storm_drain",
+    "vehicleforge:sidewalk",
+    "vehicleforge:sidewalk_slab",
+    "vehicleforge:curb",
+    "vehicleforge:lamp_post",
+    "vehicleforge:street_lamp",
+    "vehicleforge:traffic_light",
+    "vehicleforge:traffic_cone",
+    "vehicleforge:road_barrier",
+    "vehicleforge:roadblock",
+    "vehicleforge:fire_hydrant",
+    "vehicleforge:trash_bin",
+    "vehicleforge:rv_door"
+  ]
+}

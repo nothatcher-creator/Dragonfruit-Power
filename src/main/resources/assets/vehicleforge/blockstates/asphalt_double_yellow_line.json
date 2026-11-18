@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "vehicleforge:block/asphalt_double_yellow_line"
+    },
+    "axis=x": {
+      "model": "vehicleforge:block/asphalt_double_yellow_line",
+      "y": 90
+    }
+  }
+}

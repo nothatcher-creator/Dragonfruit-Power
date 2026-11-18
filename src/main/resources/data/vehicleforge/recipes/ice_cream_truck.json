@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SPS",
+    "III",
+    "C C"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:snowball"
+    },
+    "P": {
+      "item": "minecraft:pink_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:ice_cream_truck",
+    "count": 1
+  }
+}

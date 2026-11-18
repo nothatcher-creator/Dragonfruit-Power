@@ -41,7 +41,7 @@ cell(20, noise((242,242,242), 4)); cell(21, noise((196,30,30), 8)); cell(22, noi
 cell(23, noise((42,42,42), 6))
 cell(24, lambda x,y: (255, int(120 + 120*(y/15)), int(30*(y/15)), 230))
 cell(25, lambda x,y: (180,184,190) if y % 3 == 0 else (18,18,20))
-cell(26, lambda x,y: (30,30,60) if (y in (0,15) or x in (0,15) or (5<=y<=10 and x%3!=0 and 2<=x<=13)) else (240,240,235))
+cell(26, lambda x,y: (30,30,60) if (y in (0,15) or x in (0,15)) else (240,240,235))
 cell(27, lambda x,y: (150,100,58) if y % 4 == 0 else (176,122,70))
 cell(28, noise(hexc('1b2a4a'), 8)); cell(29, noise(hexc('f07a10'), 8)); cell(30, noise(hexc('e8dcc4'), 6))
 cell(31, lambda x,y: (40,220,140) if (y in (4,9) and 2<=x<=13) or (x == 3 and 4<=y<=12) else (10,30,40))
@@ -50,4 +50,17 @@ cell(33, lambda x,y: (43,43,43) if R.random() > 0.15 else (110,60,30))
 cell(34, lambda x,y: (20,20,20) if (x*7+y*3)%5 else (50,50,50))
 cell(35, noise((250,250,250), 4)); cell(36, noise((34,34,34), 6))
 cell(37, lambda x,y: (170,210,235,120) if (x-y) % 9 else (240,250,255,170))
+cell(38, lambda x,y: (255,150,20) if math.hypot(x-7.5,y-7.5) > 2.5 else (255,210,120))   # indicator
+cell(39, lambda x,y: (236,240,250) if math.hypot(x-7.5,y-7.5) > 2.5 else (255,255,255))   # reverse light
+def feathers(x,y):
+    v = math.sin(x*1.3 + y*0.4) + math.sin(y*1.1)
+    return (38,34,32) if v > 0.4 else (24,22,22) if v > -0.6 else (60,56,52)
+cell(40, feathers)                                                                          # ostrich feathers
+cell(41, noise((214,170,150), 10))                                                          # skin
+cell(42, lambda x,y: (150,30,40) if ((x//2 + y//2) % 4 == 0) else (196,140,40) if ((x+y) % 6 < 2) else (110,20,60))   # magic rug
+cell(43, lambda x,y: (90,255,230, 220))                                                     # alien glow
+cell(44, lambda x,y: (220,40,40) if (x // 4) % 2 == 0 else (250,210,40))                    # balloon stripes
+cell(45, lambda x,y: (176,130,70) if (x + y) % 4 < 2 else (140,100,52))                     # wicker
+cell(46, lambda x,y: (190,90,255, 230) if math.hypot(x-7.5,y-7.5) > 2 else (255,230,255,255))   # time glow
+cell(47, noise((150,152,158), 6))                                                           # brushed steel
 img.save(out); print('palette ok')

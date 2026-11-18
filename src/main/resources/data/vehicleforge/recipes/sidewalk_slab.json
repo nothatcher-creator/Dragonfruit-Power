@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS"
+  ],
+  "key": {
+    "S": {
+      "item": "vehicleforge:sidewalk"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:sidewalk_slab",
+    "count": 6
+  }
+}

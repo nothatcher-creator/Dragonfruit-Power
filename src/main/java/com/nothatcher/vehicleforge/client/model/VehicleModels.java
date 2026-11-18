@@ -28,7 +28,7 @@ public final class VehicleModels {
             case "sedan" -> sedan();
             case "sports_car" -> sports();
             case "pickup_truck" -> pickup();
-            case "van" -> van(false);
+            case "van" -> van(0);
             case "semi_truck" -> semi();
             case "fire_truck" -> fireTruck();
             case "bicycle" -> bicycle();
@@ -54,7 +54,8 @@ public final class VehicleModels {
             case "vintage_roadster" -> roadster();
             case "limousine" -> limo();
             case "atv" -> atv();
-            case "ambulance" -> van(true);
+            case "ambulance" -> van(1);
+            case "ice_cream_truck" -> van(2);
             case "city_bus" -> bus(false);
             case "school_bus" -> bus(true);
             case "dump_truck" -> dumpTruck();
@@ -68,6 +69,22 @@ public final class VehicleModels {
             case "diesel_locomotive" -> diesel();
             case "bullet_train" -> bulletTrain();
             case "bullet_carriage" -> bulletCarriage();
+            case "ostrich" -> ostrich();
+            case "chrono_car" -> chrono();
+            case "shrink_car" -> shrinkCar();
+            case "ufo" -> ufo();
+            case "flying_carpet" -> carpet();
+            case "hamster_ball" -> hamsterBall();
+            case "rocket_cart" -> rocketCart();
+            case "lawn_mower" -> mower();
+            case "go_kart" -> goKart();
+            case "golf_cart" -> golfCart();
+            case "garbage_truck" -> garbageTruck();
+            case "cement_mixer" -> mixer();
+            case "forklift" -> forklift();
+            case "snowmobile" -> snowmobile();
+            case "hovercraft" -> hovercraft();
+            case "hot_air_balloon" -> balloon();
             default -> sedan();
         };
     }
@@ -110,6 +127,18 @@ public final class VehicleModels {
         // lights, grille, bumpers, plates
         b.pair(w - 0.35, s.belt - 0.28, hl - 0.02, w - 0.08, s.belt - 0.12, hl + 0.03, Mat.HEADLIGHT);
         b.pair(w - 0.35, s.belt - 0.25, -hl - 0.03, w - 0.08, s.belt - 0.1, -hl + 0.02, Mat.TAILLIGHT);
+        b.pair(w - 0.48, s.belt - 0.25, -hl - 0.03, w - 0.36, s.belt - 0.1, -hl + 0.02, Mat.REVERSE);      // reversing lights
+        b.pair(w - 0.1, s.belt - 0.08, -hl - 0.03, w - 0.02, s.belt - 0.02, -hl + 0.02, Mat.INDICATOR);   // turn signals
+        b.pair(w - 0.1, s.belt - 0.3, hl - 0.02, w - 0.02, s.belt - 0.2, hl + 0.03, Mat.INDICATOR);
+        b.pair(w - 0.01, s.belt - 0.05, s.windBase - 0.05, w + 0.005, s.belt + 0.02, s.windBase + 0.15, Mat.INDICATOR);
+        // wipers rest along the bottom of the windscreen and sweep it in the rain
+        double tilt = Math.toDegrees(Math.atan2(s.roofFront - s.windBase, (s.roof - 0.08) - (s.belt + 0.05)));
+        for (int sd = -1; sd <= 1; sd += 2) {
+            double px = sd > 0 ? w - 0.25 : -0.05, py = s.belt + 0.1, pz = s.windBase - 0.04;
+            b.group(Kind.WIPER, px, py, pz, tilt, false);
+            b.box(px - 0.62, py - 0.012, pz - 0.012, px, py + 0.012, pz + 0.012, Mat.BLACK);
+        }
+        b.body();
         b.box(-w + 0.45, s.bottom + 0.15, hl - 0.02, w - 0.45, s.belt - 0.12, hl + 0.02, Mat.GRILLE);
         b.box(-w, s.bottom, hl, w, s.bottom + 0.14, hl + 0.08, Mat.CHROME);
         b.box(-w, s.bottom, -hl - 0.08, w, s.bottom + 0.14, -hl, Mat.CHROME);
@@ -198,7 +227,8 @@ public final class VehicleModels {
         return b.build();
     }
 
-    private static Model van(boolean ambulance) {
+    private static Model van(int kind) {
+        boolean ambulance = kind == 1, iceCream = kind == 2;
         Builder b = Model.builder();
         double w = 1.0;
         b.box(-w, 0.45, -2.6, w, 2.4, 1.4, Mat.PAINT);
@@ -238,6 +268,16 @@ public final class VehicleModels {
             b.box(0.8, 1.4, -2.3, 0.82, 1.7, -1.8, Mat.SCREEN);                        // monitor
             b.seat(-0.55, 0.95, -0.6, 0.55, Mat.SEAT);
             b.seat(-0.55, 0.95, -1.6, 0.55, Mat.SEAT);
+        } else if (iceCream) {
+            b.sidePane(-w - 0.006, 1.3, 2.1, -2.0, -0.4, -2.0, -0.4, Mat.GLASS);         // serving hatch
+            b.box(-w - 0.5, 2.1, -2.1, -w, 2.16, -0.3, Mat.BALLOON);                     // striped awning
+            b.box(-w - 0.25, 1.25, -2.0, -w, 1.3, -0.4, Mat.WHITE);                      // counter
+            b.box(-0.95, 0.58, -2.3, -0.55, 1.3, -0.3, Mat.WHITE);                       // freezer
+            b.box(0.5, 0.58, -2.4, 0.95, 1.5, -1.2, Mat.STEEL);                          // soft-serve machine
+            b.cyl(0, 2.4, -0.9, 'y', 0.04, 0.32, 0.75, 10, Mat.WICKER, Mat.WICKER);    // giant cone
+            b.cyl(0, 3.15, -0.9, 'y', 0.34, 0.0, 0.45, 10, Mat.WHITE, null);
+            b.box(-0.06, 3.55, -0.96, 0.06, 3.68, -0.84, Mat.RED);
+            b.pair(w, 0.75, -2.6, w + 0.012, 0.85, 1.4, Mat.RED);
         } else {
             b.seat(0, 0.95, -0.2, 1.7, Mat.SEAT);
             b.seat(0, 0.95, -1.2, 1.7, Mat.SEAT);
@@ -1426,6 +1466,420 @@ public final class VehicleModels {
                 b.wheel(sd * 0.85, 0.35, z + 0.4, 0.35, 0.12, false);
             }
         }
+        return b.build();
+    }
+
+    // ================================================================ wave 3
+
+    private interface SphereMat {
+        Mat at(int lat, int lon);
+    }
+
+    /** Ellipsoid from latitude/longitude quads; lat 0 is the top. */
+    private static void sphere(Builder b, double cx, double cy, double cz, double rx, double ry, int lat, int lon, SphereMat mat) {
+        for (int i = 0; i < lat; i++) {
+            double t0 = Math.PI * i / lat, t1 = Math.PI * (i + 1) / lat;
+            for (int j = 0; j < lon; j++) {
+                double p0 = Math.PI * 2 * j / lon, p1 = Math.PI * 2 * (j + 1) / lon;
+                b.quad(sp(cx, cy, cz, rx, ry, t0, p0), sp(cx, cy, cz, rx, ry, t0, p1), sp(cx, cy, cz, rx, ry, t1, p1), sp(cx, cy, cz, rx, ry, t1, p0), mat.at(i, j));
+            }
+        }
+    }
+
+    private static double[] sp(double cx, double cy, double cz, double rx, double ry, double t, double p) {
+        return v(cx + rx * Math.sin(t) * Math.cos(p), cy + ry * Math.cos(t), cz + rx * Math.sin(t) * Math.sin(p));
+    }
+
+    // ------------------------------------------------------------- weird
+
+    private static Model ostrich() {
+        Builder b = Model.builder();
+        b.hull(-0.38, 0.38, -0.65, 0.55, 1.15, -0.32, 0.32, -0.55, 0.45, 1.75, Mat.FEATHER, Mat.FEATHER);     // body
+        b.box(-0.3, 1.35, -0.98, 0.3, 1.9, -0.6, Mat.WHITE);                                                   // tail plume
+        b.pair(0.36, 1.25, -0.5, 0.42, 1.62, 0.3, Mat.FEATHER);                                                // wings
+        b.pair(0.38, 1.3, -0.65, 0.44, 1.5, -0.4, Mat.WHITE);
+        b.box(-0.3, 1.75, -0.45, 0.3, 1.8, 0.15, Mat.SEAT);                                                    // saddle
+        b.pair(0.3, 1.45, -0.2, 0.33, 1.78, -0.1, Mat.BLACK);                                                  // girth strap
+        b.group(Kind.NECK, 0, 1.6, 0.45, 0, false);
+        b.box(-0.08, 1.55, 0.38, 0.08, 2.55, 0.54, Mat.SKIN);
+        b.box(-0.13, 2.48, 0.38, 0.13, 2.72, 0.78, Mat.SKIN);                                                  // head
+        b.box(-0.07, 2.5, 0.78, 0.07, 2.6, 0.95, Mat.ORANGE);                                                  // beak
+        b.pair(0.13, 2.6, 0.6, 0.14, 2.67, 0.67, Mat.BLACK);                                                   // eyes
+        b.box(-0.09, 2.72, 0.45, 0.09, 2.78, 0.6, Mat.FEATHER);                                                // tuft
+        for (int sd = -1; sd <= 1; sd += 2) {
+            b.group(sd > 0 ? Kind.LEG_L : Kind.LEG_R, sd * 0.18, 1.2, 0.0, 0, false);
+            double x0 = sd > 0 ? 0.1 : -0.26, x1 = sd > 0 ? 0.26 : -0.1;
+            b.box(x0, 0.75, -0.1, x1, 1.22, 0.12, Mat.SKIN);                                                   // thigh
+            b.box(x0 + 0.04, 0.06, -0.04, x1 - 0.04, 0.78, 0.04, Mat.SKIN);                                    // shin
+            b.box(x0, 0.0, -0.06, x1, 0.06, 0.24, Mat.SKIN);                                                   // foot
+            b.box(x0 + 0.02, 0.0, 0.24, x1 - 0.02, 0.05, 0.32, Mat.BLACK);                                     // claw
+        }
+        b.body();
+        return b.build();
+    }
+
+    private static Model chrono() {
+        CarSpec s = new CarSpec(4.7, 0.97, 0.22, 0.8, 1.7, 0.6, -0.1, -1.0, -1.3,
+                0.37, 0.84, 1.55, -1.45, 0.55, -0.2, Double.NaN, 0.45);
+        Builder b = carShell(s, Mat.GLASS);
+        b.pair(0.97, 0.35, -2.0, 1.0, 0.75, 1.9, Mat.STEEL);                                  // steel sills
+        for (int sd = -1; sd <= 1; sd += 2) {                                                  // time coils on the rear deck
+            b.cyl(sd * 0.48, 1.1, -1.95, 'z', 0.24, 0.24, 0.07, 14, Mat.TIME_GLOW, Mat.STEEL);
+            b.cyl(sd * 0.48, 1.1, -1.75, 'z', 0.2, 0.2, 0.05, 14, Mat.STEEL, Mat.TIME_GLOW);
+            b.box(sd * 0.48 - 0.04, 0.8, -1.95, sd * 0.48 + 0.04, 0.88, -1.7, Mat.STEEL);
+        }
+        b.cyl(0, 1.7, -0.6, 'y', 0.22, 0.22, 0.06, 14, Mat.STEEL, Mat.TIME_GLOW);           // chrono dial
+        b.box(0.1, 1.05, 0.5, 0.35, 1.2, 0.55, Mat.TIME_GLOW);                               // dashboard time display
+        b.box(-0.8, 0.85, -2.4, 0.8, 0.92, -2.2, Mat.STEEL);
+        b.group(Kind.ABILITY, 0, 0, 0, 0, false);                                              // charged: glowing wheels and underglow
+        for (int sd = -1; sd <= 1; sd += 2) {
+            for (double z : new double[]{1.55, -1.45}) b.cyl(sd * 0.99, 0.37, z, 'x', 0.42, 0.42, sd * 0.03, 16, Mat.TIME_GLOW, null);
+        }
+        b.box(-0.8, 0.12, -1.8, 0.8, 0.14, 1.8, Mat.TIME_GLOW);
+        b.body();
+        return b.build();
+    }
+
+    private static Model shrinkCar() {
+        CarSpec s = new CarSpec(3.0, 0.75, 0.25, 0.85, 1.75, 0.6, 0.15, -0.8, -1.2,
+                0.3, 0.6, 1.0, -1.0, 0.65, -0.1, Double.NaN, 0.45);
+        Builder b = carShell(s, Mat.CANOPY);
+        b.cyl(0, 1.75, -0.3, 'y', 0.04, 0.04, 0.45, 6, Mat.STEEL, Mat.STEEL);               // shrink-ray antenna
+        b.cyl(0, 2.2, -0.3, 'y', 0.25, 0.0, -0.18, 10, Mat.STEEL, Mat.STEEL);               // dish
+        b.box(-0.06, 2.2, -0.36, 0.06, 2.32, -0.24, Mat.ALIEN);
+        b.pair(0.75, 0.5, -1.4, 0.76, 0.6, 1.4, Mat.WHITE);
+        b.box(0.12, 1.0, 0.4, 0.32, 1.1, 0.44, Mat.ALIEN);                                   // shrink button
+        return b.build();
+    }
+
+    private static Model ufo() {
+        Builder b = Model.builder();
+        b.cyl(0, 0.4, 0, 'y', 1.0, 3.0, 0.5, 24, Mat.STEEL, Mat.METAL);                     // lower hull
+        b.cyl(0, 0.9, 0, 'y', 3.0, 1.6, 0.45, 24, Mat.STEEL, null);                         // upper hull
+        b.cyl(0, 0.95, 0, 'y', 1.55, 1.55, 0.05, 20, Mat.METAL, Mat.CARPET);                // floor
+        b.cyl(0, 1.35, 0, 'y', 1.6, 1.25, 0.5, 20, Mat.CANOPY, null);                        // glass dome
+        b.cyl(0, 1.85, 0, 'y', 1.25, 0.3, 0.45, 20, Mat.CANOPY, Mat.CANOPY);
+        b.cyl(0, 0.4, 0, 'y', 0.6, 0.6, -0.05, 12, Mat.ALIEN, Mat.ALIEN);                   // belly light
+        for (int i = 0; i < 3; i++) {                                                         // landing legs
+            double a = Math.PI * 2 * i / 3;
+            double x = Math.sin(a) * 1.6, z = Math.cos(a) * 1.6;
+            b.box(x - 0.05, 0.0, z - 0.05, x + 0.05, 0.6, z + 0.05, Mat.METAL);
+            b.box(x - 0.18, 0.0, z - 0.18, x + 0.18, 0.04, z + 0.18, Mat.METAL);
+        }
+        b.seat(0.45, 1.0, 0, 0.5, Mat.SEAT);
+        b.seat(-0.45, 1.0, 0, 0.5, Mat.SEAT);
+        b.box(-0.6, 0.97, 0.6, 0.6, 1.4, 0.9, Mat.DASH);
+        b.box(-0.5, 1.3, 0.59, 0.5, 1.38, 0.6, Mat.ALIEN);
+        b.group(Kind.ROTOR_Y, 0, 0.9, 0, 0, false);                                           // spinning rim lights
+        for (int i = 0; i < 12; i++) {
+            double a = Math.PI * 2 * i / 12;
+            double x = Math.sin(a) * 2.95, z = Math.cos(a) * 2.95;
+            b.box(x - 0.12, 0.84, z - 0.12, x + 0.12, 0.96, z + 0.12, i % 2 == 0 ? Mat.ALIEN : Mat.SIREN_RED);
+        }
+        b.group(Kind.ABILITY, 0, 0, 0, 0, false);                                             // tractor beam
+        b.cyl(0, 0.35, 0, 'y', 0.7, 2.6, -22, 16, Mat.ALIEN, null);
+        b.body();
+        return b.build();
+    }
+
+    private static Model carpet() {
+        Builder b = Model.builder();
+        b.group(Kind.FLAG, 0, 0, 0, 0, false);
+        double w = 0.85;
+        for (double z = -1.5; z < 1.49; z += 0.25) {
+            b.quad(v(-w, 0.42, z), v(w, 0.42, z), v(w, 0.42, z + 0.25), v(-w, 0.42, z + 0.25), Mat.RUG);
+            b.quad(v(-w, 0.38, z), v(-w, 0.38, z + 0.25), v(w, 0.38, z + 0.25), v(w, 0.38, z), Mat.RUG);
+            b.quad(v(w, 0.38, z), v(w, 0.38, z + 0.25), v(w, 0.42, z + 0.25), v(w, 0.42, z), Mat.RUG);
+            b.quad(v(-w, 0.38, z), v(-w, 0.42, z), v(-w, 0.42, z + 0.25), v(-w, 0.38, z + 0.25), Mat.RUG);
+        }
+        for (double x = -0.8; x <= 0.81; x += 0.2) {                                         // tassels
+            b.box(x - 0.03, 0.3, 1.5, x + 0.03, 0.42, 1.62, Mat.YELLOW);
+            b.box(x - 0.03, 0.3, -1.62, x + 0.03, 0.42, -1.5, Mat.YELLOW);
+        }
+        b.box(0.15, 0.42, -0.25, 0.65, 0.5, 0.25, Mat.RED);                                  // cushions
+        b.box(-0.65, 0.42, -0.25, -0.15, 0.5, 0.25, Mat.RED);
+        b.body();
+        return b.build();
+    }
+
+    private static Model hamsterBall() {
+        Builder b = Model.builder();
+        b.box(-0.3, 0.35, -0.3, 0.3, 0.6, 0.3, Mat.BLACK);                                  // seat (stays level)
+        b.group(Kind.BALL, 0, 1.0, 0, 1.0, false);
+        sphere(b, 0, 1.0, 0, 1.0, 1.0, 8, 12, (i, j) -> j % 4 == 0 ? Mat.PAINT : Mat.CANOPY);
+        b.cyl(0, 1.0, 0, 'x', 1.01, 1.01, 0.0, 20, Mat.PAINT, null);
+        b.body();
+        return b.build();
+    }
+
+    private static Model rocketCart() {
+        Builder b = Model.builder();
+        b.box(-0.45, 0.45, -0.7, 0.45, 0.5, 0.6, Mat.GRILLE);                                // basket floor
+        b.pair(0.42, 0.5, -0.7, 0.45, 1.15, 0.6, Mat.GRILLE);
+        b.box(-0.45, 0.5, 0.55, 0.45, 1.05, 0.6, Mat.GRILLE);
+        b.box(-0.45, 0.5, -0.75, 0.45, 1.15, -0.7, Mat.GRILLE);
+        b.box(-0.47, 1.2, -0.88, 0.47, 1.26, -0.82, Mat.RED);                               // handle
+        b.pair(0.4, 1.0, -0.86, 0.44, 1.22, -0.74, Mat.CHROME);
+        b.pair(0.33, 0.12, -0.6, 0.38, 0.45, -0.55, Mat.CHROME);                            // legs
+        b.pair(0.33, 0.12, 0.45, 0.38, 0.45, 0.5, Mat.CHROME);
+        b.box(-0.38, 0.1, -0.62, 0.38, 0.14, 0.52, Mat.CHROME);
+        b.cyl(0, 0.75, -0.75, 'z', 0.18, 0.18, -0.65, 10, Mat.RED, Mat.METAL);              // strapped-on rocket
+        b.cyl(0, 0.75, -1.4, 'z', 0.18, 0.12, -0.12, 10, Mat.METAL, Mat.BLACK);
+        b.pair(0.16, 0.73, -1.35, 0.32, 0.77, -1.1, Mat.RED);
+        b.box(-0.02, 0.9, -1.35, 0.02, 1.05, -1.1, Mat.RED);
+        b.box(-0.2, 0.6, -0.8, 0.2, 0.64, -0.72, Mat.BLACK);                                // duct tape
+        b.group(Kind.ABILITY, 0, 0, 0, 0, false);
+        b.cyl(0, 0.75, -1.52, 'z', 0.15, 0.0, -1.3, 10, Mat.FLAME, null);
+        b.body();
+        b.wheels(0.35, 0.1, 0.5, -0.57, 0.1, 0.06);
+        return b.build();
+    }
+
+    private static Model mower() {
+        Builder b = Model.builder();
+        b.box(-0.62, 0.15, -0.2, 0.62, 0.32, 0.8, Mat.PAINT_DARK);                          // deck
+        b.box(-0.78, 0.18, 0.1, -0.62, 0.32, 0.5, Mat.BLACK);                               // grass chute
+        b.box(-0.4, 0.35, 0.2, 0.4, 0.75, 1.05, Mat.PAINT);                                 // hood
+        b.hull(-0.4, 0.4, 0.2, 1.05, 0.75, -0.32, 0.32, 0.25, 0.95, 0.82, Mat.PAINT, Mat.PAINT);
+        b.box(-0.3, 0.4, 1.05, 0.3, 0.7, 1.08, Mat.GRILLE);
+        b.pair(0.18, 0.55, 1.05, 0.32, 0.65, 1.09, Mat.HEADLIGHT);
+        b.box(-0.45, 0.32, -0.95, 0.45, 0.58, -0.1, Mat.PAINT);                             // rear body
+        b.seat(0, 0.85, -0.35, 0.5, Mat.BLACK);
+        b.box(-0.04, 0.6, 0.15, 0.04, 1.05, 0.22, Mat.BLACK);
+        b.steeringWheel(0, 1.05, 0.18, 0.15, 40);
+        b.box(0.18, 0.75, 0.15, 0.24, 0.95, 0.2, Mat.RED);                                  // blade lever
+        b.group(Kind.ROTOR_Y, 0, 0.2, 0.3, 0, false);
+        b.box(-0.55, 0.16, 0.26, 0.55, 0.19, 0.34, Mat.METAL);
+        b.box(-0.04, 0.16, -0.25, 0.04, 0.19, 0.85, Mat.METAL);
+        b.body();
+        b.wheel(0.45, 0.2, 0.75, 0.2, 0.14, true);
+        b.wheel(-0.45, 0.2, 0.75, 0.2, 0.14, true);
+        b.wheel(0.5, 0.35, -0.6, 0.35, 0.24, false);
+        b.wheel(-0.5, 0.35, -0.6, 0.35, 0.24, false);
+        return b.build();
+    }
+
+    // ------------------------------------------------------------ normal
+
+    private static Model goKart() {
+        Builder b = Model.builder();
+        b.box(-0.55, 0.1, -1.0, 0.55, 0.16, 1.0, Mat.BLACK);                                // frame
+        b.hull(-0.42, 0.42, 0.55, 1.08, 0.16, -0.3, 0.3, 0.55, 0.95, 0.4, Mat.PAINT, Mat.PAINT);   // nose
+        b.pair(0.45, 0.16, -0.45, 0.62, 0.36, 0.3, Mat.PAINT);                              // side pods
+        b.box(-0.22, 0.16, -0.55, 0.22, 0.45, 0.05, Mat.BLACK);                             // seat shell
+        b.box(-0.22, 0.45, -0.6, 0.22, 0.85, -0.5, Mat.BLACK);
+        b.box(0.2, 0.16, -0.95, 0.5, 0.48, -0.55, Mat.METAL);                               // engine
+        b.cyl(0.42, 0.35, -0.95, 'z', 0.05, 0.05, -0.25, 6, Mat.CHROME, Mat.BLACK);
+        b.box(-0.6, 0.12, -1.12, 0.6, 0.24, -1.0, Mat.BLACK);                               // bumper
+        b.box(-0.32, 0.4, 0.95, 0.32, 0.5, 1.0, Mat.WHITE);                                 // number board
+        b.box(-0.03, 0.2, 0.15, 0.03, 0.6, 0.45, Mat.BLACK);
+        b.steeringWheel(0, 0.6, 0.28, 0.15, 60);
+        b.wheel(0.62, 0.2, 0.7, 0.2, 0.2, true);
+        b.wheel(-0.62, 0.2, 0.7, 0.2, 0.2, true);
+        b.wheel(0.62, 0.23, -0.7, 0.23, 0.28, false);
+        b.wheel(-0.62, 0.23, -0.7, 0.23, 0.28, false);
+        return b.build();
+    }
+
+    private static Model golfCart() {
+        Builder b = Model.builder();
+        b.box(-0.65, 0.3, -1.4, 0.65, 0.55, 1.3, Mat.PAINT);
+        b.hull(-0.6, 0.6, 0.7, 1.35, 0.55, -0.55, 0.55, 0.75, 1.25, 0.95, Mat.PAINT, Mat.PAINT);
+        b.pair(0.35, 0.65, 1.3, 0.55, 0.78, 1.36, Mat.HEADLIGHT);
+        b.box(-0.7, 1.85, -1.3, 0.7, 1.92, 1.0, Mat.PAINT);                                 // canopy
+        b.pair(0.6, 0.55, 0.85, 0.64, 1.85, 0.9, Mat.BLACK);
+        b.pair(0.6, 0.55, -1.25, 0.64, 1.85, -1.2, Mat.BLACK);
+        b.pane(0.6, -0.6, 0.95, 0.9, 0.6, -0.6, 1.8, 0.88, Mat.GLASS);
+        b.seat(0, 0.75, 0.0, 1.1, Mat.SEAT);
+        b.seat(0, 0.75, -1.0, 1.1, Mat.SEAT);
+        b.box(-0.6, 0.55, 0.55, 0.6, 0.95, 0.7, Mat.DASH);
+        b.steeringWheel(0.38, 1.05, 0.5, 0.16, 50);
+        b.cyl(0.4, 0.55, -1.38, 'y', 0.13, 0.13, 0.8, 8, Mat.BLACK, Mat.BLACK);             // golf bag
+        b.box(0.32, 1.35, -1.45, 0.48, 1.55, -1.3, Mat.CHROME);
+        b.pair(0.3, 0.6, -1.42, 0.48, 0.7, -1.4, Mat.TAILLIGHT);
+        b.wheels(0.55, 0.25, 0.9, -0.9, 0.25, 0.2);
+        return b.build();
+    }
+
+    private static Model garbageTruck() {
+        Builder b = Model.builder();
+        double w = 1.25;
+        // cab-over cab with an interior
+        b.box(-w, 0.6, 2.6, w, 1.1, 4.3, Mat.METAL);
+        b.box(-w, 1.1, 4.2, w, 1.7, 4.3, Mat.PAINT);
+        b.pane(w - 0.05, -w + 0.05, 1.7, 4.28, w - 0.05, -w + 0.05, 2.9, 4.24, Mat.GLASS);
+        b.box(-w, 2.9, 2.6, w, 3.2, 4.3, Mat.PAINT);
+        b.pair(w - 0.1, 1.1, 2.6, w, 1.7, 4.3, Mat.PAINT);
+        b.sidePane(w - 0.05, 1.7, 2.9, 2.7, 4.2, 2.7, 4.2, Mat.GLASS);
+        b.sidePane(-w + 0.05, 1.7, 2.9, 2.7, 4.2, 2.7, 4.2, Mat.GLASS);
+        b.box(-w, 1.1, 2.6, w, 2.9, 2.7, Mat.PAINT);
+        b.box(-0.9, 0.7, 4.3, 0.9, 1.05, 4.34, Mat.GRILLE);
+        b.pair(0.75, 0.75, 4.3, 1.1, 0.95, 4.35, Mat.HEADLIGHT);
+        b.box(-w, 0.45, 4.3, w, 0.65, 4.5, Mat.BLACK);
+        b.pair(w, 2.0, 4.0, w + 0.25, 2.5, 4.15, Mat.BLACK);
+        b.box(-0.35, 3.2, 3.4, 0.35, 3.32, 3.6, Mat.INDICATOR);                              // beacon
+        b.seat(0.55, 1.6, 3.3, 0.6, Mat.SEAT);
+        b.seat(-0.55, 1.6, 3.3, 0.6, Mat.SEAT);
+        b.dashboard(w - 0.1, -w + 0.1, 1.75, 4.0, 0.55);
+        b.steeringWheel(0.55, 1.85, 3.75, 0.22, 50);
+        // compactor body and rear loader
+        b.box(-0.75, 0.55, -4.4, 0.75, 0.8, 2.6, Mat.METAL);
+        b.box(-w, 0.8, -4.2, w, 3.2, 2.5, Mat.PAINT);
+        b.hull(-w, w, -4.2, 2.5, 3.2, -w + 0.25, w - 0.25, -4.2, 2.5, 3.35, Mat.PAINT, Mat.PAINT);
+        b.pair(w, 1.4, -4.2, w + 0.012, 1.6, 2.5, Mat.WHITE);
+        b.box(-w, 0.8, -4.65, w, 2.7, -4.2, Mat.STEEL);
+        b.box(-0.9, 1.2, -4.66, 0.9, 2.2, -4.64, Mat.BLACK);
+        b.box(-w, 0.8, -4.8, w, 0.95, -4.65, Mat.STEEL);                                    // riding step
+        b.pair(0.85, 1.0, -4.67, 1.15, 1.3, -4.64, Mat.TAILLIGHT);
+        b.pair(0.95, 2.4, -4.67, 1.15, 2.6, -4.64, Mat.INDICATOR);
+        b.wheel(1.05, 0.6, 3.4, 0.6, 0.4, true);
+        b.wheel(-1.05, 0.6, 3.4, 0.6, 0.4, true);
+        for (double z : new double[]{-1.8, -3.0}) {
+            b.wheel(1.05, 0.6, z, 0.6, 0.6, false);
+            b.wheel(-1.05, 0.6, z, 0.6, 0.6, false);
+        }
+        return b.build();
+    }
+
+    private static Model mixer() {
+        Builder b = Model.builder();
+        double w = 1.25;
+        truckCab(b, w, 2.0, 3.1, 1.15, 3.0, 1.2);
+        b.box(-0.75, 0.6, -4.2, 0.75, 1.2, 2.0, Mat.METAL);
+        b.box(-w, 1.2, -4.2, w, 1.35, 1.9, Mat.METAL);
+        b.box(-0.2, 1.35, 0.6, 0.2, 2.0, 1.0, Mat.METAL);                                    // front pedestal
+        b.box(-0.3, 1.35, -3.9, 0.3, 1.8, -3.5, Mat.METAL);
+        b.cyl(0.9, 2.2, 1.2, 'y', 0.3, 0.3, 0.8, 10, Mat.STEEL, Mat.STEEL);                 // water tank
+        b.hull(-0.3, 0.3, -4.6, -4.2, 2.0, -0.25, 0.25, -5.0, -4.6, 1.6, Mat.METAL, Mat.METAL);   // chute
+        b.pair(0.85, 1.0, -4.27, 1.1, 1.25, -4.2, Mat.TAILLIGHT);
+        // rotating drum with fins so you can see it turn
+        b.group(Kind.DRUM, 0, 2.3, 0, 0, false);
+        b.cyl(0, 2.3, -3.6, 'z', 0.6, 1.15, 1.6, 16, Mat.PAINT, Mat.STEEL);
+        b.cyl(0, 2.3, -2.0, 'z', 1.15, 1.15, 1.2, 16, Mat.PAINT, null);
+        b.cyl(0, 2.3, -0.8, 'z', 1.15, 0.5, 1.1, 16, Mat.PAINT, Mat.STEEL);
+        for (int i = 0; i < 4; i++) {
+            double a = Math.PI / 2 * i;
+            double x = Math.sin(a) * 1.16, y = 2.3 + Math.cos(a) * 1.16;
+            b.box(x - 0.08, y - 0.08, -2.6 + i * 0.2, x + 0.08, y + 0.08, -0.6 + i * 0.2, Mat.ORANGE);
+        }
+        b.body();
+        b.wheel(1.05, 0.62, 3.6, 0.62, 0.42, true);
+        b.wheel(-1.05, 0.62, 3.6, 0.62, 0.42, true);
+        for (double z : new double[]{-1.8, -3.1}) {
+            b.wheel(1.05, 0.62, z, 0.62, 0.6, false);
+            b.wheel(-1.05, 0.62, z, 0.62, 0.6, false);
+        }
+        return b.build();
+    }
+
+    private static Model forklift() {
+        Builder b = Model.builder();
+        b.box(-0.6, 0.3, -1.2, 0.6, 1.1, -0.4, Mat.PAINT);                                  // counterweight
+        b.box(-0.6, 0.2, -0.6, 0.6, 0.7, 1.0, Mat.PAINT);                                   // chassis
+        b.pair(0.5, 0.7, -0.5, 0.56, 2.3, -0.44, Mat.BLACK);                                 // overhead guard
+        b.pair(0.5, 0.7, 0.9, 0.56, 2.3, 0.96, Mat.BLACK);
+        b.box(-0.56, 2.3, -0.55, 0.56, 2.36, 0.98, Mat.GRILLE);
+        b.seat(0, 1.25, -0.5, 0.55, Mat.BLACK);
+        b.box(-0.04, 0.7, 0.2, 0.04, 1.55, 0.3, Mat.BLACK);
+        b.steeringWheel(0, 1.6, 0.25, 0.17, 45);
+        b.box(0.15, 0.7, 0.5, 0.25, 1.3, 0.6, Mat.BLACK);                                    // levers
+        b.pair(0.35, 0.2, 1.05, 0.45, 2.45, 1.15, Mat.METAL);                                // mast
+        b.box(-0.45, 2.35, 1.05, 0.45, 2.45, 1.15, Mat.METAL);
+        b.pair(0.3, 2.3, 1.1, 0.42, 2.42, 1.16, Mat.HEADLIGHT);
+        b.box(-0.7, 2.36, -0.3, -0.56, 2.48, -0.1, Mat.INDICATOR);                           // beacon
+        b.group(Kind.FORKS, 0, 0, 0, 0, false);
+        b.box(-0.45, 0.25, 1.15, 0.45, 0.85, 1.22, Mat.BLACK);                               // carriage
+        b.pair(0.2, 0.2, 1.22, 0.32, 0.8, 1.3, Mat.STEEL);
+        b.pair(0.2, 0.2, 1.3, 0.32, 0.27, 2.4, Mat.STEEL);
+        b.box(-0.55, 0.27, 1.35, 0.55, 0.4, 2.4, Mat.WOOD);                                  // pallet
+        b.box(-0.45, 0.4, 1.45, 0.45, 0.95, 2.3, Mat.CANVAS);                                // load
+        b.body();
+        b.wheel(0.5, 0.3, 0.7, 0.3, 0.25, false);
+        b.wheel(-0.5, 0.3, 0.7, 0.3, 0.25, false);
+        b.wheel(0.5, 0.25, -0.8, 0.25, 0.2, true);
+        b.wheel(-0.5, 0.25, -0.8, 0.25, 0.2, true);
+        return b.build();
+    }
+
+    private static Model snowmobile() {
+        Builder b = Model.builder();
+        b.hull(-0.45, 0.45, -1.3, 1.0, 0.25, -0.38, 0.38, -1.2, 0.8, 0.75, Mat.PAINT, Mat.PAINT);
+        b.hull(-0.4, 0.4, 0.6, 1.45, 0.3, -0.25, 0.25, 0.65, 1.1, 0.85, Mat.PAINT, Mat.PAINT);   // hood
+        b.pane(0.3, -0.3, 0.85, 0.75, 0.25, -0.25, 1.15, 0.6, Mat.GLASS);
+        b.box(-0.25, 0.75, -1.2, 0.25, 0.88, 0.0, Mat.BLACK);                                // seat
+        b.box(-0.3, 0.0, -1.4, 0.3, 0.3, 0.2, Mat.TREAD);                                    // track
+        b.pair(0.45, 0.3, -1.1, 0.5, 0.5, 0.4, Mat.WHITE);
+        b.box(-0.12, 0.55, 1.42, 0.12, 0.68, 1.47, Mat.HEADLIGHT);
+        b.box(-0.15, 0.6, -1.33, 0.15, 0.68, -1.3, Mat.TAILLIGHT);
+        b.group(Kind.BIKE_FORK, 0, 0.3, 1.0, 0, false);                                       // steering skis
+        b.pair(0.33, 0.0, 0.4, 0.5, 0.06, 1.5, Mat.METAL);
+        b.pair(0.33, 0.06, 1.45, 0.5, 0.18, 1.6, Mat.METAL);
+        b.pair(0.38, 0.06, 0.85, 0.44, 0.35, 0.95, Mat.METAL);
+        b.body();
+        b.group(Kind.BIKE_FORK, 0, 1.0, 0.55, 0, false);                                      // handlebar
+        b.box(-0.04, 0.75, 0.5, 0.04, 1.0, 0.58, Mat.BLACK);
+        b.box(-0.4, 0.98, 0.48, 0.4, 1.03, 0.55, Mat.BLACK);
+        b.pair(0.32, 0.96, 0.46, 0.44, 1.05, 0.57, Mat.RUBBER);
+        b.body();
+        b.gauge(0, 0.95, 0.62, 0.1);
+        return b.build();
+    }
+
+    private static Model hovercraft() {
+        Builder b = Model.builder();
+        b.box(-1.2, 0.0, -2.3, 1.2, 0.5, 2.3, Mat.RUBBER);                                   // skirt
+        b.hull(-1.2, 1.2, 2.3, 2.6, 0.0, -0.9, 0.9, 2.3, 2.5, 0.5, Mat.RUBBER, Mat.RUBBER);
+        b.box(-1.1, 0.5, -2.4, 1.1, 0.75, 2.3, Mat.PAINT);                                   // deck
+        b.hull(-1.1, 1.1, 2.3, 2.6, 0.5, -0.8, 0.8, 2.3, 2.45, 0.75, Mat.PAINT, Mat.PAINT);
+        b.pair(1.05, 0.75, -1.4, 1.1, 1.3, 1.6, Mat.PAINT);                                  // cockpit sides
+        b.pane(1.0, -1.0, 0.75, 1.55, 0.9, -0.9, 1.6, 1.2, Mat.GLASS);
+        b.box(-1.0, 0.75, 1.55, 1.0, 0.8, 1.65, Mat.PAINT);
+        b.seat(0.4, 0.95, 0.3, 0.55, Mat.SEAT);
+        b.seat(-0.4, 0.95, 0.3, 0.55, Mat.SEAT);
+        b.seat(0.4, 0.95, -0.8, 0.55, Mat.SEAT);
+        b.seat(-0.4, 0.95, -0.8, 0.55, Mat.SEAT);
+        b.dashboard(0.9, -0.9, 1.15, 1.25, 0.4);
+        b.pair(0.7, 0.6, 2.42, 0.95, 0.72, 2.47, Mat.HEADLIGHT);
+        b.cyl(0, 1.6, -2.4, 'z', 1.0, 1.0, 0.45, 16, Mat.PAINT_DARK, null);                 // fan duct
+        b.box(-0.08, 0.75, -2.2, 0.08, 1.6, -2.0, Mat.METAL);
+        b.pair(0.3, 0.75, -2.95, 0.36, 2.4, -2.55, Mat.PAINT_DARK);                          // rudders
+        b.pair(0.9, 0.85, -2.5, 1.05, 1.0, -2.4, Mat.TAILLIGHT);
+        b.group(Kind.PROP_Z, 0, 1.6, -2.15, 0, false);
+        b.box(-0.08, 0.7, -2.18, 0.08, 2.5, -2.12, Mat.ROTOR);
+        b.box(-0.9, 1.52, -2.18, 0.9, 1.68, -2.12, Mat.ROTOR);
+        b.cyl(0, 1.6, -2.1, 'z', 0.15, 0.0, 0.2, 8, Mat.CHROME, null);
+        b.body();
+        return b.build();
+    }
+
+    private static Model balloon() {
+        Builder b = Model.builder();
+        // wicker basket
+        b.box(-0.75, 0.0, -0.75, 0.75, 0.1, 0.75, Mat.WICKER);
+        b.pair(0.68, 0.1, -0.75, 0.75, 1.1, 0.75, Mat.WICKER);
+        b.box(-0.68, 0.1, 0.68, 0.68, 1.1, 0.75, Mat.WICKER);
+        b.box(-0.68, 0.1, -0.75, 0.68, 1.1, -0.68, Mat.WICKER);
+        b.pair(0.66, 1.1, -0.77, 0.77, 1.18, 0.77, Mat.CANVAS);
+        b.box(-0.77, 1.1, 0.66, 0.77, 1.18, 0.77, Mat.CANVAS);
+        b.box(-0.77, 1.1, -0.77, 0.77, 1.18, -0.66, Mat.CANVAS);
+        b.cyl(0.45, 0.1, -0.45, 'y', 0.13, 0.13, 0.6, 8, Mat.STEEL, Mat.METAL);              // gas bottles
+        b.cyl(-0.45, 0.1, -0.45, 'y', 0.13, 0.13, 0.6, 8, Mat.STEEL, Mat.METAL);
+        // ropes and burner frame
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                b.hull(sx * 0.7 - 0.02, sx * 0.7 + 0.02, sz * 0.7 - 0.02, sz * 0.7 + 0.02, 1.1,
+                        sx * 0.32 - 0.02, sx * 0.32 + 0.02, sz * 0.32 - 0.02, sz * 0.32 + 0.02, 3.3, Mat.BLACK, Mat.BLACK);
+                b.hull(sx * 0.32 - 0.02, sx * 0.32 + 0.02, sz * 0.32 - 0.02, sz * 0.32 + 0.02, 3.3,
+                        sx * 1.6 - 0.02, sx * 1.6 + 0.02, sz * 1.6 - 0.02, sz * 1.6 + 0.02, 4.6, Mat.BLACK, Mat.BLACK);
+            }
+        }
+        b.box(-0.35, 3.25, -0.35, 0.35, 3.45, 0.35, Mat.METAL);
+        b.group(Kind.FLAME, 0, 3.45, 0, 0, false);
+        b.cyl(0, 3.45, 0, 'y', 0.18, 0.0, 1.3, 8, Mat.FLAME, null);
+        b.body();
+        // envelope: striped gores, narrowing to a throat over the burner
+        b.cyl(0, 4.4, 0, 'y', 0.9, 2.4, 1.2, 16, Mat.BALLOON, null);
+        sphere(b, 0, 7.6, 0, 3.5, 3.4, 10, 16, (i, j) -> i < 2 ? Mat.PAINT : Mat.BALLOON);
         return b.build();
     }
 }

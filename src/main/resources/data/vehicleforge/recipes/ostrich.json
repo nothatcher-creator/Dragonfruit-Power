@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FS ",
+    "EEE",
+    "L L"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:feather"
+    },
+    "S": {
+      "item": "minecraft:saddle"
+    },
+    "E": {
+      "item": "minecraft:egg"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:ostrich",
+    "count": 1
+  }
+}

@@ -2,6 +2,7 @@ package com.nothatcher.vehicleforge.world;
 
 import com.nothatcher.vehicleforge.ModRegistry;
 import com.nothatcher.vehicleforge.VehicleEntity;
+import com.nothatcher.vehicleforge.block.CityBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -18,24 +19,26 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.StructureWorldAccess;
 
 /**
- * The city layout. The world is a grid of 64x64 cells: a 12-wide road with 2-wide raised sidewalks along the
- * west and north edge of every cell, and a 48x48 city block inside. Blocks near the origin are downtown towers,
+ * The city layout. The world is a grid of 81x81 cells. Along the west and north edge of every cell runs a corridor:
+ * a 3-wide raised sidewalk, a 23-wide road (parking lane, two travel lanes each way, double yellow centre line)
+ * and another sidewalk. Inside is a 52x52 city block. Blocks near the origin are downtown towers,
  * then apartments, shops, parking lots and gas stations, then suburbs with houses. Every column is computed from
  * (x, z, seed) alone, so chunks line up perfectly no matter what order they generate in.
  */
 public final class CityGen {
-    static final int CELL = 64, GROUND = 63, BASE = 64;
+    static final int CELL = 81, C = 29, R0 = 3, R1 = 26, GROUND = 63, BASE = 64;
 
     enum Kind { TOWERS, APARTMENTS, PARKING, PARK, GAS, HOUSES }
 
     private static final BlockState AIR = Blocks.AIR.getDefaultState();
-    private static final BlockState ASPHALT = Blocks.GRAY_CONCRETE.getDefaultState();
+    private static final BlockState ASPHALT = CityBlocks.ASPHALT.getDefaultState();
     private static final BlockState LINE_W = Blocks.WHITE_CONCRETE.getDefaultState();
     private static final BlockState LINE_Y = Blocks.YELLOW_CONCRETE.getDefaultState();
-    private static final BlockState WALK = Blocks.SMOOTH_STONE.getDefaultState();
-    private static final BlockState CURB = Blocks.SMOOTH_STONE_SLAB.getDefaultState();
+    private static final BlockState WALK = CityBlocks.SIDEWALK.getDefaultState();
+    private static final BlockState CURB = CityBlocks.CURB.getDefaultState();
+    private static final BlockState WALK_SLAB = CityBlocks.SIDEWALK_SLAB.getDefaultState();
     private static final BlockState PLAZA = Blocks.POLISHED_ANDESITE.getDefaultState();
-    private static final BlockState POLE = Blocks.ANDESITE_WALL.getDefaultState();
+    private static final BlockState POLE = CityBlocks.LAMP_POST.getDefaultState();
     private static final BlockState LIGHT = Blocks.SEA_LANTERN.getDefaultState();
     private static final BlockState LADDER = Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST);
     private static final BlockState PATH = Blocks.DIRT_PATH.getDefaultState();
@@ -128,14 +131,14 @@ public final class CityGen {
 
     void column(int x, int z) {
         int ux = Math.floorMod(x, CELL), uz = Math.floorMod(z, CELL);
-        boolean rx = ux >= 2 && ux < 14, rz = uz >= 2 && uz < 14;
+        boolean rx = ux >= R0 && ux < R1, rz = uz >= R0 && uz < R1;
         if (rx || rz) {
             road(x, z, ux, uz, rx, rz);
-        } else if (ux < 16 || uz < 16) {
+        } else if (ux < C || uz < C) {
             sidewalk(x, z, ux, uz);
         } else {
             int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
-            int lx = ux - 16, lz = uz - 16;
+            int lx = ux - C, lz = uz - C;
             switch (kind(bx, bz)) {
                 case TOWERS -> lotBuilding(x, z, bx, bz, lx, lz, true);
                 case APARTMENTS -> lotBuilding(x, z, bx, bz, lx, lz, false);
@@ -150,67 +153,102 @@ public final class CityGen {
 
     // -------------------------------------------------------------- roads
 
+    /**
+     * Road surface for a north-south road at across-coordinate u (0..28) and along-coordinate v. Lanes:
+     * 3-4 parking, 5 edge line, 6-8 lane, 9 dashes, 10-13 lane, 14 double yellow, then mirrored.
+     */
+    private BlockState roadSurface(int u, int v, int along, Direction.Axis axis, int seedA, int seedB) {
+        Direction.Axis across = axis == Direction.Axis.Z ? Direction.Axis.X : Direction.Axis.Z;
+        if (v >= CELL - 3 || v < 3 || (v >= 26 && v < 32)) return CityBlocks.axis(CityBlocks.CROSSWALK, axis);   // zebra crossings
+        // stop lines before each crossing, only across the lanes heading into the junction (traffic drives on the right)
+        boolean lowHalf = u >= 5 && u < 14, highHalf = u >= 15 && u < 24;
+        boolean ns = axis == Direction.Axis.Z;
+        if (v == CELL - 4 && (ns ? lowHalf : highHalf)) return CityBlocks.axis(CityBlocks.CROSSWALK, across);
+        if (v == 32 && (ns ? highHalf : lowHalf)) return CityBlocks.axis(CityBlocks.CROSSWALK, across);
+        if (u == 14) return CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, axis);
+        if (u == 5 || u == 23) return CityBlocks.axis(CityBlocks.LINE_WHITE, axis);
+        if ((u == 9 || u == 19) && Math.floorMod(along, 8) < 4) return CityBlocks.axis(CityBlocks.LINE_WHITE, axis);
+        if ((u == 11 || u == 17) && Math.floorMod(along, 40) == 20 && rnd(seedA, seedB, 50) < 0.6f) return CityBlocks.MANHOLE.getDefaultState();
+        if ((u == 3 || u == 25) && Math.floorMod(along, 24) == 12) return CityBlocks.STORM_DRAIN.getDefaultState();
+        return ASPHALT;
+    }
+
     private void road(int x, int z, int ux, int uz, boolean rx, boolean rz) {
+        int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
         BlockState s = ASPHALT;
-        if (rx && !rz) {                                                    // north-south road
-            if (uz >= 62 || uz < 2 || (uz >= 14 && uz < 18)) s = ux % 2 == 0 ? LINE_W : ASPHALT;   // zebra crossing
-            else if (ux == 7 || ux == 8) s = LINE_Y;
-            else if ((ux == 4 || ux == 11) && Math.floorMod(z, 6) < 3) s = LINE_W;
-        } else if (rz && !rx) {                                             // east-west road
-            if (ux >= 62 || ux < 2 || (ux >= 14 && ux < 18)) s = uz % 2 == 0 ? LINE_W : ASPHALT;
-            else if (uz == 7 || uz == 8) s = LINE_Y;
-            else if ((uz == 4 || uz == 11) && Math.floorMod(x, 6) < 3) s = LINE_W;
+        if (rx && !rz) {
+            s = roadSurface(ux, uz, z, Direction.Axis.Z, bx, z);
+            // road works: cones down a lane, barricades at each end
+            if (rnd(bx, bz, 60) < 0.1f) {
+                if (ux == 10 && uz >= 45 && uz <= 60 && uz % 3 == 0) set(x, BASE, z, CityBlocks.facing(CityBlocks.TRAFFIC_CONE, Direction.NORTH));
+                if ((uz == 44 || uz == 61) && ux >= 10 && ux < 14) set(x, BASE, z, CityBlocks.facing(CityBlocks.ROADBLOCK, uz == 44 ? Direction.NORTH : Direction.SOUTH));
+            }
+        } else if (rz && !rx) {
+            s = roadSurface(uz, ux, x, Direction.Axis.X, x, bz);
+            if (rnd(bx, bz, 61) < 0.1f) {
+                if (uz == 18 && ux >= 45 && ux <= 60 && ux % 3 == 0) set(x, BASE, z, CityBlocks.facing(CityBlocks.TRAFFIC_CONE, Direction.WEST));
+                if ((ux == 44 || ux == 61) && uz >= 15 && uz < 19) set(x, BASE, z, CityBlocks.facing(CityBlocks.ROADBLOCK, ux == 44 ? Direction.WEST : Direction.EAST));
+            }
+        } else if (ux == 14 && uz == 14 && rnd(bx, bz, 62) < 0.5f) {
+            s = CityBlocks.MANHOLE.getDefaultState();
         }
         set(x, GROUND, z, s);
     }
 
     private void sidewalk(int x, int z, int ux, int uz) {
         set(x, GROUND, z, WALK);
-        if ((ux == 1 || ux == 14) && (uz == 1 || uz == 14)) {
-            trafficLight(x, z);
+        boolean cornerX = ux == R0 - 1 || ux == R1, cornerZ = uz == R0 - 1 || uz == R1;
+        if (cornerX && cornerZ) {
+            trafficLight(x, z, uz == R0 - 1 ? Direction.NORTH : Direction.SOUTH, ux == R0 - 1 ? Direction.WEST : Direction.EAST);
             return;
         }
-        if ((ux == 1 || ux == 14) && uz >= 18 && uz < 62 && Math.floorMod(z, 12) == (ux == 1 ? 0 : 6)) {
-            lamp(x, z);
-            return;
-        }
-        if ((uz == 1 || uz == 14) && ux >= 18 && ux < 62 && Math.floorMod(x, 12) == (uz == 1 ? 0 : 6)) {
-            lamp(x, z);
-            return;
-        }
-        set(x, GROUND + 1, z, CURB);
+        boolean alongZ = uz >= C + 4 && uz < CELL - 4, alongX = ux >= C + 4 && ux < CELL - 4;
+        // street lamps on the kerb, arms reaching over the road
+        if (alongZ && ux == R0 - 1 && Math.floorMod(z, 18) == 0) { lamp(x, z, Direction.EAST); return; }
+        if (alongZ && ux == R1 && Math.floorMod(z, 18) == 9) { lamp(x, z, Direction.WEST); return; }
+        if (alongX && uz == R0 - 1 && Math.floorMod(x, 18) == 0) { lamp(x, z, Direction.SOUTH); return; }
+        if (alongX && uz == R1 && Math.floorMod(x, 18) == 9) { lamp(x, z, Direction.NORTH); return; }
+        // hydrants and bins
+        if (alongZ && ux == 1 && Math.floorMod(z, 45) == 40) { set(x, BASE, z, CityBlocks.facing(CityBlocks.FIRE_HYDRANT, Direction.EAST)); return; }
+        if (alongZ && ux == C - 2 && Math.floorMod(z, 45) == 18) { set(x, BASE, z, CityBlocks.facing(CityBlocks.FIRE_HYDRANT, Direction.WEST)); return; }
+        if (alongZ && ux == 0 && Math.floorMod(z, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.EAST)); return; }
+        if (alongX && uz == C - 1 && Math.floorMod(x, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.NORTH)); return; }
+        boolean kerb = ux == R0 - 1 || ux == R1 || uz == R0 - 1 || uz == R1;
+        set(x, GROUND + 1, z, kerb ? CURB : WALK_SLAB);
     }
 
-    private void lamp(int x, int z) {
-        for (int y = BASE; y <= BASE + 4; y++) set(x, y, z, POLE);
-        set(x, BASE + 5, z, Blocks.LANTERN.getDefaultState());
+    private void lamp(int x, int z, Direction arm) {
+        for (int y = BASE; y <= BASE + 5; y++) set(x, y, z, POLE);
+        set(x, BASE + 6, z, CityBlocks.facing(CityBlocks.STREET_LAMP, arm));
     }
 
-    private void trafficLight(int x, int z) {
-        for (int y = BASE; y <= BASE + 2; y++) set(x, y, z, Blocks.POLISHED_BLACKSTONE_WALL.getDefaultState());
-        set(x, BASE + 3, z, Blocks.VERDANT_FROGLIGHT.getDefaultState());
-        set(x, BASE + 4, z, Blocks.OCHRE_FROGLIGHT.getDefaultState());
-        set(x, BASE + 5, z, Blocks.SHROOMLIGHT.getDefaultState());
-        set(x, BASE + 6, z, Blocks.BLACK_CONCRETE.getDefaultState());
+    private void trafficLight(int x, int z, Direction a, Direction b) {
+        for (int y = BASE; y <= BASE + 3; y++) set(x, y, z, POLE);
+        for (int i = 0; i < 2; i++) {
+            set(x, BASE + 4 + i, z, CityBlocks.facing(CityBlocks.TRAFFIC_LIGHT, i == 0 ? a : b));
+            pos.set(x, BASE + 4 + i, z);
+            w.scheduleBlockTick(pos.toImmutable(), CityBlocks.TRAFFIC_LIGHT, 1 + i);
+        }
+        set(x, BASE + 6, z, POLE);
     }
 
     // ---------------------------------------------------------- buildings
 
     private void lotBuilding(int x, int z, int bx, int bz, int lx, int lz, boolean towers) {
-        int li = lx / 24, lj = lz / 24, px = lx % 24, pz = lz % 24;
+        int li = lx / 26, lj = lz / 26, px = lx % 26, pz = lz % 26;
         int lotX = bx * 4 + li, lotZ = bz * 4 + lj;
-        int ox = bx * CELL + 16 + li * 24, oz = bz * CELL + 16 + lj * 24;
+        int ox = bx * CELL + C + li * 26, oz = bz * CELL + C + lj * 26;
         float r = rnd(lotX, lotZ, 3);
         int d = Math.max(Math.abs(bx), Math.abs(bz));
         int floors = towers ? 8 + (int) (r * 22) + (d <= 1 ? 8 : 0) : 2 + (int) (r * 8);
         int style = hash(lotX, lotZ, 4) % 4 + (towers ? 0 : 4);
         Direction front = lj == 0 ? Direction.NORTH : Direction.SOUTH;
-        if (px < 2 || px > 21 || pz < 2 || pz > 21) {
-            boolean walkway = (px == 11 || px == 12) && (front == Direction.NORTH ? pz < 2 : pz > 21);
+        if (px < 2 || px > 23 || pz < 2 || pz > 23) {
+            boolean walkway = (px == 12 || px == 13) && (front == Direction.NORTH ? pz < 2 : pz > 23);
             set(x, GROUND, z, towers || walkway ? PLAZA : Blocks.GRASS_BLOCK.getDefaultState());
             return;
         }
-        building(x, z, ox + 2, oz + 2, ox + 21, oz + 21, floors, STYLES[style], front, towers && floors >= 14 && r > 0.35f);
+        building(x, z, ox + 2, oz + 2, ox + 23, oz + 23, floors, STYLES[style], front, towers && floors >= 14 && r > 0.35f);
     }
 
     /**
@@ -278,7 +316,7 @@ public final class CityGen {
     // --------------------------------------------------- parks and parking
 
     private void park(int x, int z, int lx, int lz) {
-        double dx = lx - 23.5, dz = lz - 23.5, rr = dx * dx + dz * dz;
+        double dx = lx - 25.5, dz = lz - 25.5, rr = dx * dx + dz * dz;
         if (rr < 30) {                                                       // fountain
             if (rr < 1) {
                 set(x, GROUND, z, Blocks.STONE_BRICKS.getDefaultState());
@@ -294,13 +332,13 @@ public final class CityGen {
             }
             return;
         }
-        boolean path = (lx >= 22 && lx < 26) || (lz >= 22 && lz < 26) || lx < 1 || lx > 46 || lz < 1 || lz > 46;
+        boolean path = (lx >= 24 && lx < 28) || (lz >= 24 && lz < 28) || lx < 1 || lx > 50 || lz < 1 || lz > 50;
         if (path) {
             set(x, GROUND, z, PATH);
             return;
         }
-        if ((lx == 21 || lx == 26) && Math.floorMod(lz, 10) == 5 || (lz == 21 || lz == 26) && Math.floorMod(lx, 10) == 5) {
-            lamp(x, z);
+        if ((lx == 23 || lx == 28) && Math.floorMod(lz, 10) == 5 || (lz == 23 || lz == 28) && Math.floorMod(lx, 10) == 5) {
+            lamp(x, z, lx == 23 ? Direction.EAST : lx == 28 ? Direction.WEST : lz == 23 ? Direction.SOUTH : Direction.NORTH);
             return;
         }
         if (rnd(x, z, 11) < 0.05f) set(x, BASE, z, FLOWERS[hash(x, z, 12) % FLOWERS.length]);
@@ -310,9 +348,9 @@ public final class CityGen {
 
     private void parking(int x, int z, int lx, int lz) {
         set(x, GROUND, z, ASPHALT);
-        boolean margin = lx < 1 || lx > 46 || lz < 1 || lz > 46;
+        boolean margin = lx < 1 || lx > 50 || lz < 1 || lz > 50;
         if (margin) {
-            boolean entrance = (lx >= 20 && lx < 28) || (lz >= 20 && lz < 28);
+            boolean entrance = (lx >= 22 && lx < 30) || (lz >= 22 && lz < 30);
             if (!entrance) {
                 set(x, GROUND, z, Blocks.GRASS_BLOCK.getDefaultState());
                 set(x, BASE, z, Blocks.OAK_LEAVES.getDefaultState().with(LeavesBlock.PERSISTENT, true));
@@ -320,16 +358,16 @@ public final class CityGen {
             return;
         }
         for (int row : ROWS) {
-            if (lz >= row - 2 && lz < row + 3 && lx % 3 == 0 && lx > 1 && lx < 46) {
-                set(x, GROUND, z, LINE_W);
+            if (lz >= row - 2 && lz < row + 3 && lx % 3 == 0 && lx > 1 && lx < 50) {
+                set(x, GROUND, z, CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.Z));
                 return;
             }
         }
-        if ((lz == 12 || lz == 36) && lx % 12 == 6) lamp(x, z);
+        if ((lz == 12 || lz == 36) && lx % 12 == 6) lamp(x, z, Direction.SOUTH);
     }
 
     private void gas(int x, int z, int bx, int bz, int lx, int lz) {
-        int ox = bx * CELL + 16, oz = bz * CELL + 16;
+        int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 30 && lx <= 43 && lz >= 28 && lz <= 39) {                  // shop
             building(x, z, ox + 30, oz + 28, ox + 43, oz + 39, 1, STYLES[6], Direction.NORTH, false);
             if (lx == 32 && lz == 30) {
@@ -362,7 +400,7 @@ public final class CityGen {
             return;
         }
         if (lx == 4 && lz == 4) {                                            // price sign
-            for (int y = BASE; y < BASE + 7; y++) set(x, y, z, POLE);
+            for (int y = BASE; y < BASE + 7; y++) set(x, y, z, Blocks.ANDESITE_WALL.getDefaultState());
             set(x, BASE + 7, z, Blocks.RED_CONCRETE.getDefaultState());
             set(x, BASE + 8, z, Blocks.OCHRE_FROGLIGHT.getDefaultState());
         }
@@ -373,7 +411,7 @@ public final class CityGen {
     private record Lot(int ox, int oz, int hx0, int hx1, int hz0, int hz1, Direction face, boolean alongX) {}
 
     private Lot lot(int bx, int bz, int li, int lj) {
-        int ox = bx * CELL + 16 + li * 16, oz = bz * CELL + 16 + lj * 16;
+        int ox = bx * CELL + C + li * 17, oz = bz * CELL + C + lj * 17;
         Direction face = lj == 0 ? Direction.NORTH : lj == 2 ? Direction.SOUTH : li == 0 ? Direction.WEST : Direction.EAST;
         boolean alongX = face.getAxis() == Direction.Axis.Z;
         return alongX ? new Lot(ox, oz, ox + 3, ox + 12, oz + 4, oz + 11, face, true)
@@ -381,7 +419,8 @@ public final class CityGen {
     }
 
     private void houses(int x, int z, int bx, int bz, int lx, int lz) {
-        int li = lx / 16, lj = lz / 16, px = lx % 16, pz = lz % 16;
+        if (lx >= 51 || lz >= 51) return;
+        int li = lx / 17, lj = lz / 17, px = lx % 17, pz = lz % 17;
         if (li == 1 && lj == 1) {                                            // shared backyard with a pool
             if (px >= 5 && px <= 10 && pz >= 5 && pz <= 10) {
                 boolean rim = px == 5 || px == 10 || pz == 5 || pz == 10;
@@ -459,17 +498,18 @@ public final class CityGen {
     /** chance of a tree centred here (lawns and parks only, never on paths, roads or next to buildings) */
     private float treeDensity(int x, int z) {
         int ux = Math.floorMod(x, CELL), uz = Math.floorMod(z, CELL);
-        if (ux < 18 || uz < 18 || ux > 61 || uz > 61) return 0;
+        if (ux < C + 2 || uz < C + 2 || ux > CELL - 3 || uz > CELL - 3) return 0;
         int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
-        int lx = ux - 16, lz = uz - 16;
+        int lx = ux - C, lz = uz - C;
         Kind k = kind(bx, bz);
         if (k == Kind.PARK) {
-            double dx = lx - 23.5, dz = lz - 23.5;
-            if (dx * dx + dz * dz < 64 || (lx >= 19 && lx < 29) || (lz >= 19 && lz < 29)) return 0;
+            double dx = lx - 25.5, dz = lz - 25.5;
+            if (dx * dx + dz * dz < 64 || (lx >= 21 && lx < 31) || (lz >= 21 && lz < 31)) return 0;
             return 0.8f;
         }
         if (k == Kind.HOUSES) {
-            int li = lx / 16, lj = lz / 16, px = lx % 16, pz = lz % 16;
+            if (lx >= 51 || lz >= 51) return 0;
+            int li = lx / 17, lj = lz / 17, px = lx % 17, pz = lz % 17;
             if (li == 1 && lj == 1) return (px >= 3 && px <= 12 && pz >= 3 && pz <= 12) ? 0 : 0.6f;
             Lot l = lot(bx, bz, li, lj);
             if (x >= l.hx0 - 3 && x <= l.hx1 + 3 && z >= l.hz0 - 3 && z <= l.hz1 + 3) return 0;
@@ -510,8 +550,8 @@ public final class CityGen {
         Kind k = kind(bx, bz);
         if (k == Kind.PARKING) {
             for (int ri = 0; ri < ROWS.length; ri++) {
-                for (int s = 1; s <= 14; s++) {
-                    double cx = bxs + 16 + 3 * s + 1.5, cz = bzs + 16 + ROWS[ri] + 0.5;
+                for (int s = 1; s <= 15; s++) {
+                    double cx = bxs + C + 3 * s + 1.5, cz = bzs + C + ROWS[ri] + 0.5;
                     if (inChunk(cx, cz, x0, z0) && rnd(bxs + s, bzs + ri, 41) < 0.45f) {
                         spawn(cx, cz, ri == 0 ? 0f : 180f, hash(bxs + s, bzs + ri, 42));
                     }
@@ -537,19 +577,19 @@ public final class CityGen {
                 }
             }
         }
-        // kerbside parking in the outer lanes, driving on the right
+        // kerbside parking lanes, driving on the right
         for (int i = 0; i < 16; i++) {
             int z = z0 + i, x = x0 + i;
             int uz = Math.floorMod(z, CELL), ux = Math.floorMod(x, CELL);
-            if (uz >= 20 && uz <= 58 && Math.floorMod(z, 12) == 6) {
-                double west = bxs + 3.0, east = bxs + 13.0;
-                if (inChunk(west, z + 0.5, x0, z0) && rnd(bxs, z, 46) < 0.18f) spawn(west, z + 0.5, 0f, hash(bxs, z, 47));
-                if (inChunk(east, z + 0.5, x0, z0) && rnd(bxs + 1, z, 46) < 0.18f) spawn(east, z + 0.5, 180f, hash(bxs + 1, z, 47));
+            if (uz >= C + 5 && uz <= CELL - 8 && Math.floorMod(z, 9) == 4) {
+                double west = bxs + 4.0, east = bxs + 25.0;
+                if (inChunk(west, z + 0.5, x0, z0) && rnd(bxs, z, 46) < 0.3f) spawn(west, z + 0.5, 0f, hash(bxs, z, 47));
+                if (inChunk(east, z + 0.5, x0, z0) && rnd(bxs + 1, z, 46) < 0.3f) spawn(east, z + 0.5, 180f, hash(bxs + 1, z, 47));
             }
-            if (ux >= 20 && ux <= 58 && Math.floorMod(x, 12) == 6) {
-                double north = bzs + 3.0, south = bzs + 13.0;
-                if (inChunk(x + 0.5, north, x0, z0) && rnd(x, bzs, 48) < 0.18f) spawn(x + 0.5, north, 90f, hash(x, bzs, 49));
-                if (inChunk(x + 0.5, south, x0, z0) && rnd(x, bzs + 1, 48) < 0.18f) spawn(x + 0.5, south, -90f, hash(x, bzs + 1, 49));
+            if (ux >= C + 5 && ux <= CELL - 8 && Math.floorMod(x, 9) == 4) {
+                double north = bzs + 4.0, south = bzs + 25.0;
+                if (inChunk(x + 0.5, north, x0, z0) && rnd(x, bzs, 48) < 0.3f) spawn(x + 0.5, north, 90f, hash(x, bzs, 49));
+                if (inChunk(x + 0.5, south, x0, z0) && rnd(x, bzs + 1, 48) < 0.3f) spawn(x + 0.5, south, -90f, hash(x, bzs + 1, 49));
             }
         }
     }

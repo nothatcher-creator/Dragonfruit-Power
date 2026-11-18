@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IAI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_nugget"
+    },
+    "A": {
+      "item": "vehicleforge:asphalt"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:manhole_cover",
+    "count": 1
+  }
+}

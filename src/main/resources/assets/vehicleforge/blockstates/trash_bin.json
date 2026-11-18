@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/trash_bin"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/trash_bin",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/trash_bin",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/trash_bin",
+      "y": 270
+    }
+  }
+}

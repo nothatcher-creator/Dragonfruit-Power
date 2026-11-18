@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "vehicleforge:block/curb"
+    },
+    "type=top": {
+      "model": "vehicleforge:block/curb_top"
+    },
+    "type=double": {
+      "model": "vehicleforge:block/curb_double"
+    }
+  }
+}

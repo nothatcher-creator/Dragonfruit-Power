@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "III",
+    "C C"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:shears"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:coal"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:lawn_mower",
+    "count": 1
+  }
+}

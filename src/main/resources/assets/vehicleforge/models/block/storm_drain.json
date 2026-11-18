@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "vehicleforge:block/storm_drain",
+    "bottom": "vehicleforge:block/asphalt",
+    "side": "vehicleforge:block/asphalt"
+  }
+}

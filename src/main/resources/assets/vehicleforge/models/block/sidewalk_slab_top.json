@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "vehicleforge:block/sidewalk",
+    "top": "vehicleforge:block/sidewalk",
+    "side": "vehicleforge:block/sidewalk"
+  }
+}

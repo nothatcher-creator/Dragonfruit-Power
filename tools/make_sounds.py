@@ -118,3 +118,40 @@ for k in range(7):
 glug += lowpass(rng.standard_normal(len(tt)), 800) * 0.15
 save('fuel_fill', norm(glug) * 0.7)
 print('wave2 sounds ok')
+
+# ---- wave 3
+tt = t(0.9)   # ostrich: booming hoot + squawk
+hoot = np.sin(2*np.pi*(140 - 40*tt)*tt) * env(len(tt), 0.05, 0.3) * 1.2
+sq = highpass(lowpass(rng.standard_normal(len(tt)), 3000), 800) * np.exp(-((tt-0.6)/0.08)**2) * 1.5
+save('ostrich_call', norm(hoot + sq + np.sin(2*np.pi*900*tt) * np.exp(-((tt-0.6)/0.06)**2) * 0.6) * 0.85)
+tt = t(2.2)   # time warp: rising shimmer, whoosh, thump
+f = 200 + 1800 * (tt / 2.2) ** 2
+ph = 2*np.pi*np.cumsum(f)/SR
+warp = np.sin(ph) * 0.5 + np.sin(ph * 1.5) * 0.3 + lowpass(rng.standard_normal(len(tt)), 2000) * (tt/2.2) * 0.8
+warp += np.sin(2*np.pi*50*tt) * np.exp(-np.maximum(0, tt-1.9)*20) * (tt > 1.9) * 2
+save('time_warp', norm(warp * env(len(tt), 0.1, 0.15)) * 0.9)
+tt = t(1.0)   # shrink: descending sci-fi zap
+f = 1800 * np.exp(-tt * 2.5) + 150
+ph = 2*np.pi*np.cumsum(f)/SR
+save('shrink', norm((np.sin(ph) + 0.4*np.sign(np.sin(ph*0.5))) * env(len(tt), 0.01, 0.3)) * 0.7)
+# ice cream jingle: an original little tune on a music-box tone
+notes = [72, 76, 79, 76, 74, 77, 81, 77, 76, 79, 84, 79, 77, 76, 74, 72]
+seg = int(0.18 * SR); jingle = np.zeros(seg * len(notes) + SR)
+for k, n in enumerate(notes):
+    fr = 440 * 2 ** ((n - 69) / 12); s_ = np.arange(int(0.6*SR)) / SR
+    tone = (np.sin(2*np.pi*fr*s_) + 0.4*np.sin(2*np.pi*fr*2*s_) + 0.2*np.sin(2*np.pi*fr*3.01*s_)) * np.exp(-s_*5)
+    jingle[k*seg:k*seg+len(tone)] += tone
+save('ice_cream_jingle', norm(jingle) * 0.75)
+tt = t(1.0)   # electric motor whine
+el = np.sin(2*np.pi*620*tt) * 0.5 + np.sin(2*np.pi*1240*tt) * 0.2 + lowpass(rng.standard_normal(len(tt)), 400) * 0.2
+save('engine_electric', norm(el) * 0.5)
+tt = t(1.0)   # propane burner roar (loop)
+save('burner', norm(lowpass(rng.standard_normal(len(tt)), 900) * 1.2 + highpass(lowpass(rng.standard_normal(len(tt)), 4000), 1500) * 0.3) * 0.8)
+tt = t(1.0)   # ufo hum (loop)
+hum = np.sin(2*np.pi*110*tt) * (1 + 0.4*np.sin(2*np.pi*6*tt)) + np.sin(2*np.pi*330*tt) * 0.4 * (1 + np.sin(2*np.pi*2*tt)) + np.sin(2*np.pi*1760*tt) * 0.06
+save('ufo_hum', norm(hum) * 0.6)
+tt = t(1.6)   # compactor: hydraulic whine + crunch
+hyd = np.sin(2*np.pi*(180 + 60*tt)*tt) * 0.5 + lowpass(rng.standard_normal(len(tt)), 600) * 0.6
+crunch = lowpass(rng.standard_normal(len(tt)), 3000) * ((tt > 0.9) & (tt < 1.3)) * 1.5
+save('compactor', norm((hyd + crunch) * env(len(tt), 0.05, 0.2)) * 0.85)
+print('wave3 sounds ok')

@@ -24,7 +24,9 @@ public class VehicleForge implements ModInitializer {
     @Override
     public void onInitialize() {
         FUEL_RULE = GameRuleRegistry.register("vehicleFuel", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));
+        ModEffects.register();
         ModRegistry.register();
+        com.nothatcher.vehicleforge.block.CityBlocks.register();
         com.nothatcher.vehicleforge.world.CityWorld.register();
         Net.registerServer();
         InteriorManager.register();

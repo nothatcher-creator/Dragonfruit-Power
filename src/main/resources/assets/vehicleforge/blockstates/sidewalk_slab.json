@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "vehicleforge:block/sidewalk_slab"
+    },
+    "type=top": {
+      "model": "vehicleforge:block/sidewalk_slab_top"
+    },
+    "type=double": {
+      "model": "vehicleforge:block/sidewalk_slab_double"
+    }
+  }
+}

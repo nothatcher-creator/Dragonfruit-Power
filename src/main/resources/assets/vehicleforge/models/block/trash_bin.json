@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "vehicleforge:block/trash_bin",
+    "b": "vehicleforge:block/trash_bin",
+    "t": "vehicleforge:block/trash_bin_top"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        13,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#b",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#b",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#b",
+          "uv": [
+            3,
+            3,
+            13,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#b",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#t",
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2.5,
+        13,
+        2.5
+      ],
+      "to": [
+        13.5,
+        14,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            2.5,
+            2,
+            13.5,
+            3
+          ]
+        },
+        "south": {
+          "texture": "#b",
+          "uv": [
+            2.5,
+            2,
+            13.5,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#b",
+          "uv": [
+            2.5,
+            2,
+            13.5,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#b",
+          "uv": [
+            2.5,
+            2,
+            13.5,
+            3
+          ]
+        },
+        "down": {
+          "texture": "#b",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        },
+        "up": {
+          "texture": "#t",
+          "uv": [
+            2.5,
+            2.5,
+            13.5,
+            13.5
+          ]
+        }
+      }
+    }
+  ]
+}

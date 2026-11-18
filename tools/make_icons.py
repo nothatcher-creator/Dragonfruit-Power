@@ -125,6 +125,44 @@ def make(name, paint, kind):
     elif kind == 'fuelcan':
         d.rectangle([3,4,12,14], fill=p); d.rectangle([4,5,11,13], outline=dark(p,0.6)); d.line([(4,5),(11,13)], fill=dark(p,0.6)); d.line([(11,5),(4,13)], fill=dark(p,0.6))
         d.rectangle([5,2,9,3], fill=BLK); d.rectangle([10,1,12,3], fill=(230,200,60,255))
+    elif kind == 'ostrich':
+        d.ellipse([3,5,11,10], fill=(40,36,34,255)); d.rectangle([1,5,4,7], fill=WHT); d.line([(10,6),(11,1)], fill=(214,170,150,255), width=1); d.rectangle([10,0,12,1], fill=(214,170,150,255)); d.point((13,1), fill=(240,120,30,255))
+        d.line([(6,10),(5,15)], fill=(214,170,150,255)); d.line([(8,10),(9,15)], fill=(214,170,150,255)); d.rectangle([5,4,8,5], fill=(120,70,40,255))
+    elif kind == 'chrono':
+        d.polygon([(0,10),(2,8),(6,7),(9,5),(11,7),(15,9),(15,11),(0,11)], fill=p); d.polygon([(7,7),(9,6),(10,7)], fill=GLS); d.line([(0,9),(15,9)], fill=(150,152,158,255))
+        d.point((1,8), fill=(190,90,255,255)); d.point((2,8), fill=(190,90,255,255)); wheel(d,3,12); wheel(d,12,12); d.point((3,12), fill=(190,90,255,255)); d.point((12,12), fill=(190,90,255,255))
+    elif kind == 'shrinkcar':
+        d.rounded_rectangle([3,6,12,11], 3, fill=p); d.rounded_rectangle([5,4,10,8], 2, fill=GLS); d.line([(8,1),(8,4)], fill=CHR); d.point((8,0), fill=(90,255,230,255)); wheel(d,5,12,1); wheel(d,10,12,1)
+    elif kind == 'ufo':
+        d.ellipse([0,7,15,11], fill=(154,164,176,255)); d.ellipse([4,3,11,9], fill=GLS); d.point((2,9), fill=(90,255,230,255)); d.point((7,10), fill=(90,255,230,255)); d.point((12,9), fill=(90,255,230,255))
+        d.polygon([(5,11),(10,11),(13,15),(2,15)], fill=(90,255,230,90))
+    elif kind == 'carpet':
+        for x in range(1,15):
+            y = 9 + (1 if (x//3)%2 else 0); d.line([(x,y),(x,y+1)], fill=p if x%3 else (196,140,40,255))
+        d.point((0,9), fill=(242,194,26,255)); d.point((15,10), fill=(242,194,26,255))
+    elif kind == 'hamster':
+        d.ellipse([1,1,14,14], fill=(190,225,245,140), outline=p); d.line([(7,1),(7,14)], fill=p); d.ellipse([5,8,10,13], fill=(200,150,90,255))
+    elif kind == 'cart':
+        d.rectangle([3,5,13,10], outline=(180,184,190,255)); d.line([(3,7),(13,7)], fill=(180,184,190,255)); d.line([(6,5),(6,10)], fill=(180,184,190,255)); d.line([(10,5),(10,10)], fill=(180,184,190,255))
+        d.line([(13,5),(15,3)], fill=RED); d.rectangle([0,6,3,8], fill=RED); d.point((0,7), fill=(255,150,30,255)); wheel(d,4,12,1); wheel(d,12,12,1)
+    elif kind == 'mower':
+        d.rectangle([2,9,13,11], fill=(60,90,40,255)); d.rectangle([7,6,13,9], fill=p); d.rectangle([2,6,5,9], fill=p); d.rectangle([3,3,5,6], fill=BLK); d.line([(8,6),(8,3)], fill=BLK); wheel(d,3,12,2); wheel(d,12,12,1)
+    elif kind == 'kart':
+        d.polygon([(1,10),(14,10),(15,8),(10,8),(8,9),(4,9)], fill=p); d.rectangle([5,6,6,9], fill=BLK); d.line([(9,8),(10,6)], fill=BLK); wheel(d,3,11,2); wheel(d,12,11,2)
+    elif kind == 'golf':
+        d.rectangle([1,8,14,11], fill=p); d.rectangle([1,3,13,4], fill=p); d.line([(2,4),(2,8)], fill=BLK); d.line([(12,4),(13,8)], fill=BLK); d.rectangle([4,7,9,8], fill=(140,90,60,255)); d.rectangle([0,5,1,10], fill=BLK); wheel(d,3,12); wheel(d,12,12)
+    elif kind == 'garbage':
+        d.rectangle([0,3,11,11], fill=p); d.rectangle([11,4,15,11], fill=p); d.rectangle([12,5,14,7], fill=GLS); d.line([(0,6),(11,6)], fill=WHT); d.rectangle([0,4,1,10], fill=(150,152,158,255)); wheel(d,3,12); wheel(d,6,12); wheel(d,13,12)
+    elif kind == 'mixer':
+        d.rectangle([11,4,14,11], fill=(242,242,242,255)); d.rectangle([12,5,13,7], fill=GLS); d.ellipse([1,3,11,10], fill=p); d.line([(3,4),(9,9)], fill=(240,122,16,255)); d.rectangle([0,9,11,11], fill=(90,95,102,255)); wheel(d,3,12); wheel(d,7,12); wheel(d,13,12)
+    elif kind == 'forklift':
+        d.rectangle([3,7,10,11], fill=p); d.line([(4,2),(4,7)], fill=BLK); d.line([(9,2),(9,7)], fill=BLK); d.line([(4,2),(9,2)], fill=BLK); d.line([(11,2),(11,11)], fill=(90,95,102,255)); d.line([(11,10),(15,10)], fill=(150,152,158,255)); d.rectangle([12,7,15,9], fill=(138,98,56,255)); wheel(d,5,12,2); wheel(d,10,12,2)
+    elif kind == 'snowmobile':
+        d.polygon([(2,10),(4,7),(10,7),(14,9),(14,10)], fill=p); d.rectangle([3,6,8,7], fill=BLK); d.line([(10,6),(11,4)], fill=GLS); d.rectangle([2,10,9,12], fill=(40,40,42,255)); d.line([(10,12),(15,12)], fill=CHR); d.point((15,11), fill=CHR)
+    elif kind == 'hovercraft':
+        d.rectangle([0,9,15,11], fill=(34,34,34,255)); d.rectangle([1,7,13,9], fill=p); d.rectangle([7,5,11,7], fill=GLS); d.ellipse([0,1,6,7], outline=dark(p,0.6)); d.line([(3,2),(3,6)], fill=(60,60,60,255))
+    elif kind == 'balloon':
+        d.ellipse([2,0,13,10], fill=p); d.line([(5,1),(5,9)], fill=(250,210,40,255)); d.line([(10,1),(10,9)], fill=(250,210,40,255)); d.line([(5,10),(6,12)], fill=BLK); d.line([(10,10),(9,12)], fill=BLK); d.rectangle([6,12,9,15], fill=(176,130,70,255))
     img.save(os.path.join(ITEM, name + '.png'))
 specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('sports_car','#E0301E','sports'),('pickup_truck','#3C6E3A','pickup'),
  ('van','#F2F2F2','van'),('semi_truck','#B0122A','semi'),('fire_truck','#C81E1E','fire'),('bicycle','#2A9DF4','bicycle'),('motorbike','#262626','motorbike'),
@@ -135,7 +173,11 @@ specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('spo
  ('vintage_roadster','#6B1E2A','roadster'),('limousine','#1C1C22','limo'),('atv','#B71C1C','atv'),('ambulance','#F4F4F4','ambulance'),('city_bus','#1F6FB5','bus'),
  ('school_bus','#F2B90F','schoolbus'),('dump_truck','#E0A020','dump'),('tractor','#2F7D32','tractor'),('monster_truck','#7B2FBE','monster'),('scooter','#8FD3C8','scooter'),
  ('apc','#5B6B3A','apc'),('airliner','#F4F6F8','airliner'),('jet_ski','#1565C0','jetski'),('submarine','#2F3E46','sub'),('diesel_locomotive','#1F4E8C','diesel'),
- ('bullet_train','#F4F6F8','bullet'),('fuel_can','#C62828','fuelcan')]
+ ('bullet_train','#F4F6F8','bullet'),('fuel_can','#C62828','fuelcan'),
+ ('ostrich','#2A2422','ostrich'),('chrono_car','#2A1E3C','chrono'),('shrink_car','#3EC1D3','shrinkcar'),('ufo','#9AA4B0','ufo'),('flying_carpet','#8E1B3A','carpet'),
+ ('hamster_ball','#F0A030','hamster'),('rocket_cart','#B0B4BA','cart'),('lawn_mower','#C62828','mower'),('go_kart','#2E7D32','kart'),('golf_cart','#F4F4F0','golf'),
+ ('ice_cream_truck','#F8C8DC','van'),('garbage_truck','#2E7D32','garbage'),('cement_mixer','#E8E8E8','mixer'),('forklift','#F2B90F','forklift'),('snowmobile','#1E88E5','snowmobile'),
+ ('hovercraft','#E65100','hovercraft'),('hot_air_balloon','#D32F2F','balloon')]
 for s in specs: make(*s)
 door = Image.new('RGBA', (16,16), (120,84,48,255)); dd = ImageDraw.Draw(door)
 dd.rectangle([0,0,15,15], outline=(70,48,28,255)); dd.rectangle([3,2,12,7], fill=(150,210,240,255)); dd.rectangle([11,9,12,10], fill=(220,200,80,255)); door.save(os.path.join(BLOCK, 'rv_door.png'))
@@ -144,6 +186,11 @@ for i, n in enumerate(['sports_car','helicopter','tank','rv']):
     im = Image.open(os.path.join(ITEM, n + '.png')).resize((60,60), Image.NEAREST)
     icon.alpha_composite(im, (4 + (i % 2) * 62, 4 + (i // 2) * 62))
 icon.save(os.path.join(ROOT, 'icon.png'))
-prev = Image.new('RGBA', (11*68+8, 5*68+8), (50,50,58,255))
+prev = Image.new('RGBA', (11*68+8, 6*68+8), (50,50,58,255))
 for i, s in enumerate(specs): prev.alpha_composite(Image.open(os.path.join(ITEM, s[0] + '.png')).resize((64,64), Image.NEAREST), (6 + (i%11)*68, 6 + (i//11)*68))
 prev.save('/tmp/vicons.png'); print('icons ok')
+
+eff = Image.new('RGBA', (18,18), (0,0,0,0)); de = ImageDraw.Draw(eff)
+de.ellipse([1,1,16,16], outline=(62,193,211,255)); de.rectangle([7,9,10,15], fill=(200,150,120,255)); de.ellipse([7,5,10,8], fill=(200,150,120,255))
+de.line([(2,2),(5,5)], fill=(255,255,255,255)); de.line([(16,2),(13,5)], fill=(255,255,255,255))
+os.makedirs(os.path.join(ROOT, 'textures/mob_effect'), exist_ok=True); eff.save(os.path.join(ROOT, 'textures/mob_effect/shrunk.png'))

@@ -36,7 +36,8 @@ public final class ModRegistry {
             "engine_rocket", "engine_train", "engine_boat",
             "horn_car", "horn_truck", "bike_bell", "horn_train", "horn_boat",
             "siren", "cannon", "rocket_launch", "gunshot", "water_spray",
-            "skid", "crash", "fuel_fill"
+            "skid", "crash", "fuel_fill",
+            "ostrich_call", "time_warp", "shrink", "ice_cream_jingle", "engine_electric", "burner", "ufo_hum", "compactor"
     };
 
     public static final Block RV_DOOR = new RvDoorBlock(AbstractBlock.Settings.create()

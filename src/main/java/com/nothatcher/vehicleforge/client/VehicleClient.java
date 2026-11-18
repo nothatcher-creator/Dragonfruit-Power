@@ -62,10 +62,17 @@ public class VehicleClient implements ClientModInitializer {
             InputState.right = p.input.pressingRight;
             InputState.up = p.input.jumping;
             InputState.down = downKey.isPressed();
+            InputState.vehicleId = p.getVehicle().getId();
         } else {
+            InputState.vehicleId = -1;
             InputState.forward = InputState.back = InputState.left = InputState.right = InputState.up = InputState.down = false;
         }
-        while (primaryKey.wasPressed()) if (driving) send(0);
+        while (primaryKey.wasPressed()) {
+            if (!driving) continue;
+            VehicleEntity v = (VehicleEntity) p.getVehicle();
+            if (v.type.weapon == VehicleType.Weapon.BOOST && !v.tryLocalBoost()) continue;
+            send(0);
+        }
         while (secondaryKey.wasPressed()) if (driving) send(1);
     }
 
@@ -189,6 +196,44 @@ public class VehicleClient implements ClientModInitializer {
             }
             if (hp < 0.2f && r.nextInt(3) == 0) mc.world.addParticle(ParticleTypes.FLAME, at.x, at.y, at.z, 0, 0.03, 0);
         }
+        // specials
+        if (v.abilityOn()) {
+            switch (t.weapon) {
+                case TIME_JUMP -> {
+                    Vec3d at = v.toWorld((r.nextDouble() - 0.5) * 1.8, 0.4 + r.nextDouble() * 0.6, t.rearZ + r.nextDouble());
+                    mc.world.addParticle(ParticleTypes.END_ROD, at.x, at.y, at.z, 0, 0.02, 0);
+                    mc.world.addParticle(ParticleTypes.REVERSE_PORTAL, at.x, at.y, at.z, 0, 0, 0);
+                }
+                case BOOST -> {
+                    Vec3d at = v.toWorld(0, 0.6, t.rearZ - 0.3);
+                    for (int i = 0; i < 3; i++) mc.world.addParticle(ParticleTypes.FLAME, at.x, at.y, at.z,
+                            -v.forward().x * 0.3 + (r.nextDouble() - 0.5) * 0.1, 0.02, -v.forward().z * 0.3 + (r.nextDouble() - 0.5) * 0.1);
+                    mc.world.addParticle(ParticleTypes.LARGE_SMOKE, at.x, at.y, at.z, 0, 0.03, 0);
+                }
+                case MOWER -> {
+                    if (speed > 0.02f && r.nextInt(2) == 0) {
+                        Vec3d at = v.toWorld(-0.8, 0.2, 0);
+                        mc.world.addParticle(ParticleTypes.COMPOSTER, at.x, at.y, at.z, 0, 0.05, 0);
+                    }
+                }
+                default -> { }
+            }
+        }
+        if (t.category == Category.BALLOON && v.thrusting) {
+            Vec3d at = v.toWorld(0, 3.4, 0);
+            mc.world.addParticle(ParticleTypes.FLAME, at.x, at.y, at.z, (r.nextDouble() - 0.5) * 0.05, 0.15, (r.nextDouble() - 0.5) * 0.05);
+        }
+        if (t.category == Category.BALL && speed > 0.1f && r.nextInt(3) == 0) {
+            mc.world.addParticle(ParticleTypes.POOF, v.getX(), v.getY() + 0.1, v.getZ(), 0, 0.01, 0);
+        }
+        if (t.category == Category.ANIMAL && speed > 0.4f && v.isOnGround() && r.nextInt(2) == 0) {
+            mc.world.addParticle(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK,
+                    v.getWorld().getBlockState(v.getBlockPos().down())), v.getX(), v.getY() + 0.1, v.getZ(), 0, 0.1, 0);
+        }
+        if (t.hover && running) {
+            Vec3d at = v.toWorld((r.nextDouble() - 0.5) * t.width, 0.05, (r.nextDouble() - 0.5) * 3);
+            mc.world.addParticle(v.isTouchingWater() ? ParticleTypes.SPLASH : ParticleTypes.CLOUD, at.x, at.y, at.z, 0, 0.02, 0);
+        }
         if (t.category == Category.SUBMARINE && v.isSubmergedInWater() && speed > 0.05f) {
             Vec3d at = v.toWorld(0, 1.3, t.rearZ);
             for (int i = 0; i < 3; i++) mc.world.addParticle(ParticleTypes.BUBBLE, at.x, at.y, at.z,
@@ -255,6 +300,18 @@ public class VehicleClient implements ClientModInitializer {
     }
 
     private static String controlsKey(VehicleType t) {
+        switch (t.weapon) {
+            case TIME_JUMP: return "time";
+            case SHRINK: return "shrink";
+            case TRACTOR_BEAM: return "ufo";
+            case BOOST: return "boost";
+            case MOWER: return "mower";
+            case FORKS: return "forklift";
+            case COMPACTOR: return "garbage";
+            default: break;
+        }
+        if (t.category == Category.ANIMAL) return "animal";
+        if (t.category == Category.BALLOON) return "balloon";
         if (t.siren) return t.weapon == VehicleType.Weapon.WATER_CANNON ? "siren" : "siren_horn";
         if (t.category == Category.SUBMARINE) return "sub";
         if (t.weapon != VehicleType.Weapon.NONE) return t.flies() ? "air_weapon" : "weapon";

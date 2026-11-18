@@ -164,6 +164,63 @@ public final class VehicleTypes {
             .speed(2.4f, 0.016f, 0f).health(450f).paint(0xF4F6F8).camera(16f).horn(Horn.TRAIN).sound("engine_jet")
             .carriages(3).len(8.0, -6.0).carriage("bullet_carriage", 9.35f).endurance(40));
 
+
+    // ============================================================ wave 3
+    // ------------------------------------------------------------ weird
+    public static final VehicleType OSTRICH = add(new VehicleType("ostrich", Category.ANIMAL, 1.0f, 2.6f)
+            .seat(0, 1.35, -0.15)
+            .speed(1.1f, 0.06f, 7f).health(30f).paint(0x2A2422).camera(6f).horn(Horn.OSTRICH).sound("none").len(1.1, -0.9).endurance(0).step(1.1f));
+    public static final VehicleType CHRONO = add(new VehicleType("chrono_car", Category.CAR, 1.9f, 1.3f)
+            .seat(0.38, 0.15, -0.2).seat(-0.38, 0.15, -0.2)
+            .speed(1.45f, 0.05f, 4.4f).health(80f).paint(0x2A1E3C).camera(6.5f).weapon(Weapon.TIME_JUMP).len(2.35, -2.5).gears(6));
+    public static final VehicleType SHRINK = add(new VehicleType("shrink_car", Category.CAR, 1.6f, 1.6f)
+            .seat(0.4, 0.25, -0.1).seat(-0.4, 0.25, -0.1)
+            .speed(0.9f, 0.04f, 5f).health(50f).paint(0x3EC1D3).camera(5.5f).weapon(Weapon.SHRINK).len(1.55, -1.55).gears(4));
+    public static final VehicleType UFO = add(new VehicleType("ufo", Category.HELICOPTER, 4.0f, 2.4f)
+            .seat(0.45, 0.6, 0).seat(-0.45, 0.6, 0)
+            .speed(1.6f, 0.06f, 5f).health(200f).paint(0x9AA4B0).camera(12f).sound("ufo_hum").weapon(Weapon.TRACTOR_BEAM).len(3.0, -3.0).endurance(0));
+    public static final VehicleType CARPET = add(new VehicleType("flying_carpet", Category.HELICOPTER, 2.0f, 0.8f)
+            .seat(0.4, 0.1, 0).seat(-0.4, 0.1, 0)
+            .speed(1.0f, 0.04f, 4.5f).health(40f).paint(0x8E1B3A).camera(6f).horn(Horn.BIKE_BELL).sound("none").len(1.6, -1.6).endurance(0));
+    public static final VehicleType HAMSTER = add(new VehicleType("hamster_ball", Category.BALL, 2.0f, 2.0f)
+            .seat(0, 0.2, 0)
+            .speed(0.7f, 0.03f, 6f).health(40f).paint(0xF0A030).camera(6f).horn(Horn.BIKE_BELL).sound("none").len(1.0, -1.0).endurance(0).step(1.0f));
+    public static final VehicleType ROCKET_CART = add(new VehicleType("rocket_cart", Category.CAR, 1.0f, 1.3f)
+            .seat(0, 0.5, -0.1)
+            .speed(0.5f, 0.03f, 5f).health(30f).paint(0xB0B4BA).camera(5f).horn(Horn.BIKE_BELL).sound("none").weapon(Weapon.BOOST).len(0.8, -0.8).gears(0).endurance(0));
+    public static final VehicleType MOWER = add(new VehicleType("lawn_mower", Category.CAR, 1.3f, 1.4f)
+            .seat(0, 0.45, -0.35)
+            .speed(0.4f, 0.025f, 5f).health(35f).paint(0xC62828).camera(5f).sound("engine_bike").weapon(Weapon.MOWER).len(1.1, -1.0).gears(3).offroad());
+
+    // ----------------------------------------------------------- normal
+    public static final VehicleType GO_KART = add(new VehicleType("go_kart", Category.CAR, 1.3f, 0.9f)
+            .seat(0, -0.05, -0.25)
+            .speed(1.2f, 0.06f, 6f).health(30f).paint(0x2E7D32).camera(5f).sound("engine_bike").len(1.05, -1.05).gears(5));
+    public static final VehicleType GOLF_CART = add(new VehicleType("golf_cart", Category.CAR, 1.5f, 1.9f)
+            .seat(0.38, 0.35, 0.0).seat(-0.38, 0.35, 0.0).seat(0.38, 0.35, -1.0).seat(-0.38, 0.35, -1.0)
+            .speed(0.55f, 0.025f, 4.8f).health(35f).paint(0xF4F4F0).camera(5.5f).sound("engine_electric").len(1.4, -1.45).gears(0));
+    public static final VehicleType ICE_CREAM = add(new VehicleType("ice_cream_truck", Category.TRUCK, 2.0f, 2.6f)
+            .seat(0.42, 0.6, 1.2).seat(-0.42, 0.6, 1.2)
+            .speed(0.8f, 0.022f, 3.4f).health(90f).paint(0xF8C8DC).camera(7f).horn(Horn.ICE_CREAM).sound("engine_truck").len(2.62, -2.7));
+    public static final VehicleType GARBAGE = add(new VehicleType("garbage_truck", Category.TRUCK, 2.6f, 3.3f)
+            .seat(0.55, 1.2, 3.3).seat(-0.55, 1.2, 3.3)
+            .speed(0.7f, 0.014f, 2.6f).health(180f).paint(0x2E7D32).camera(11f).horn(Horn.TRUCK).sound("engine_truck").weapon(Weapon.COMPACTOR).len(4.3, -4.6).step(1.1f).gears(6));
+    public static final VehicleType MIXER = add(new VehicleType("cement_mixer", Category.TRUCK, 2.6f, 3.4f)
+            .seat(0.5, 1.3, 2.75).seat(-0.5, 1.3, 2.75)
+            .speed(0.65f, 0.013f, 2.6f).health(180f).paint(0xF2F2F2).camera(11f).horn(Horn.TRUCK).sound("engine_truck").len(4.5, -4.3).step(1.1f).gears(8));
+    public static final VehicleType FORKLIFT = add(new VehicleType("forklift", Category.TRUCK, 1.4f, 2.4f)
+            .seat(0, 0.85, -0.5)
+            .speed(0.4f, 0.025f, 6f).health(80f).paint(0xF2B90F).camera(5.5f).horn(Horn.TRUCK).sound("engine_electric").weapon(Weapon.FORKS).len(1.9, -1.2).gears(0));
+    public static final VehicleType SNOWMOBILE = add(new VehicleType("snowmobile", Category.CAR, 1.3f, 1.3f)
+            .seat(0, 0.45, -0.3).seat(0, 0.5, -0.8)
+            .speed(1.1f, 0.045f, 5f).health(40f).paint(0x1E88E5).camera(5.5f).sound("engine_bike").len(1.5, -1.4).snow().gears(0));
+    public static final VehicleType HOVERCRAFT = add(new VehicleType("hovercraft", Category.CAR, 2.4f, 2.0f)
+            .seat(0.4, 0.55, 0.3).seat(-0.4, 0.55, 0.3).seat(0.4, 0.55, -0.8).seat(-0.4, 0.55, -0.8)
+            .speed(1.1f, 0.03f, 3.5f).health(80f).paint(0xE65100).camera(8f).horn(Horn.BOAT).sound("engine_prop").len(2.4, -2.6).hover().gears(0));
+    public static final VehicleType BALLOON = add(new VehicleType("hot_air_balloon", Category.BALLOON, 2.4f, 3.0f)
+            .seat(0.45, 0.0, 0.45).seat(-0.45, 0.0, 0.45).seat(0.45, 0.0, -0.45).seat(-0.45, 0.0, -0.45)
+            .speed(0.2f, 0.01f, 1.2f).health(60f).paint(0xD32F2F).camera(14f).sound("burner").len(1.2, -1.2).endurance(30));
+
     /** adds rows of seats: pairs at x = +-x, starting at z0 going back 1.1 per row */
     private static VehicleType rows(VehicleType t, double x, double y, double z0, int count) {
         for (int i = 0; i < count; i++) {

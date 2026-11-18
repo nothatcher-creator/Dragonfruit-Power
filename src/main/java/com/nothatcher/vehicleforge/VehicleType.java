@@ -10,11 +10,15 @@ import java.util.List;
  * looked up by the same id). Local space everywhere: x = LEFT, y = up, z = forward.
  */
 public final class VehicleType {
-    public enum Category { CAR, BIKE, TRUCK, MILITARY, BOAT, HELICOPTER, PLANE, ROCKET, TRAIN, RV, SUBMARINE }
+    public enum Category { CAR, BIKE, TRUCK, MILITARY, BOAT, HELICOPTER, PLANE, ROCKET, TRAIN, RV, SUBMARINE, ANIMAL, BALL, BALLOON }
 
-    public enum Weapon { NONE, TANK_CANNON, ROCKET_SALVO, MACHINE_GUN, AIR_ROCKETS, WATER_CANNON }
+    public enum Weapon {
+        NONE, TANK_CANNON, ROCKET_SALVO, MACHINE_GUN, AIR_ROCKETS, WATER_CANNON,
+        /** wave 3 specials */
+        TIME_JUMP, SHRINK, TRACTOR_BEAM, BOOST, MOWER, COMPACTOR, FORKS
+    }
 
-    public enum Horn { CAR, TRUCK, BIKE_BELL, TRAIN, BOAT }
+    public enum Horn { CAR, TRUCK, BIKE_BELL, TRAIN, BOAT, OSTRICH, ICE_CREAM }
 
     public final String id;
     public final Category category;
@@ -35,6 +39,8 @@ public final class VehicleType {
     public int gears = 5;
     /** loses little speed on grass, sand, snow and mud */
     public boolean offroad;
+    /** hovercraft: slides everywhere, full speed on water; snowmobile: grips and runs fast on snow and ice */
+    public boolean hover, snow;
     /** minutes of running at full speed on one tank (0 = needs no fuel) */
     public float endurance = 20f;
     /** roof gun pivot (local) and barrel length, for ground machine guns */
@@ -64,7 +70,8 @@ public final class VehicleType {
         if (category == Category.BIKE) gears = 5;
         if (category == Category.MILITARY) offroad = true;
         if (category == Category.BOAT || category == Category.HELICOPTER || category == Category.PLANE
-                || category == Category.ROCKET || category == Category.TRAIN || category == Category.SUBMARINE) gears = 0;
+                || category == Category.ROCKET || category == Category.TRAIN || category == Category.SUBMARINE
+                || category == Category.ANIMAL || category == Category.BALL || category == Category.BALLOON) gears = 0;
     }
 
     VehicleType len(double front, double rear) {
@@ -102,6 +109,18 @@ public final class VehicleType {
     VehicleType carriage(String model, float start) {
         this.carriageModel = model;
         this.carriageStart = start;
+        return this;
+    }
+
+    VehicleType hover() {
+        this.hover = true;
+        this.amphibious = true;
+        return this;
+    }
+
+    VehicleType snow() {
+        this.snow = true;
+        this.offroad = true;
         return this;
     }
 
@@ -189,6 +208,6 @@ public final class VehicleType {
     }
 
     public boolean flies() {
-        return category == Category.HELICOPTER || category == Category.PLANE || category == Category.ROCKET;
+        return category == Category.HELICOPTER || category == Category.PLANE || category == Category.ROCKET || category == Category.BALLOON;
     }
 }

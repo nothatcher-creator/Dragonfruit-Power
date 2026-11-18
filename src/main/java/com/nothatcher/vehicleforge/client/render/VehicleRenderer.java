@@ -50,10 +50,13 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.lerp(td, e.prevBodyPitch, e.bodyPitch)));
             ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.lerp(td, e.prevBodyRoll, e.bodyRoll)));
         }
+        float scale = MathHelper.lerp(td, e.prevScale, e.scaleNow);
+        if (scale != 1f) ms.scale(scale, scale, scale);
         float wobble = e.getWobble() - td;
         if (wobble > 0) ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(wobble) * wobble * 0.3f));
         draw(model, e, td, yaw, ms, vcp, light);
         if (e.lightsOn && !model.lights.isEmpty()) beams(model, ms, vcp);
+        if (model.hasPlate) plate(model, e, ms, vcp, light);
         ms.pop();
 
         if (e.type.category == Category.TRAIN) {
@@ -89,6 +92,13 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             aimPitch = MathHelper.lerp(td, driver.prevPitch, driver.getPitch());
         }
         boolean sirenPhase = (e.age / 4) % 2 == 0;
+        // turn signals blink while steering, hazards when badly damaged
+        boolean blink = (e.age / 6) % 2 == 0;
+        boolean hazard = e.getHealth() < e.type.health * 0.25f;
+        boolean leftOn = blink && (hazard || (e.steerVisual > 0.3f && e.engineRunning()));
+        boolean rightOn = blink && (hazard || (e.steerVisual < -0.3f && e.engineRunning()));
+        boolean reversing = e.gear < 0 && e.engineRunning();
+        boolean ability = e.abilityOn();
 
         for (Mat.Layer layer : Mat.Layer.values()) {
             VertexConsumer vc = vcp.getBuffer(switch (layer) {
@@ -100,8 +110,10 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 if (g.kind == Model.Kind.FLAME && !e.thrusting) continue;
                 if (g.kind == Model.Kind.SIREN_A && !(e.sirenOn() && sirenPhase)) continue;
                 if (g.kind == Model.Kind.SIREN_B && !(e.sirenOn() && !sirenPhase)) continue;
+                if (g.kind == Model.Kind.ABILITY && !ability) continue;
+                boolean wave = g.kind == Model.Kind.FLAG;
                 ms.push();
-                transform(g, ms, steer, spin, rotor, speedFrac, aimYaw, aimPitch, e);
+                transform(g, ms, steer, spin, rotor, speedFrac, aimYaw, aimPitch, e, td);
                 Matrix4f m = ms.peek().getPositionMatrix();
                 Matrix3f nm = ms.peek().getNormalMatrix();
                 for (Model.Quad q : g.quads) {
@@ -111,6 +123,16 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                     if (q.mat == Mat.HEADLIGHT && !e.lightsOn) {
                         ql = Mat.Layer.SOLID;
                         lamp = 0.8f;
+                    } else if (q.mat == Mat.INDICATOR) {
+                        if (!(q.side > 0 ? leftOn : rightOn)) {
+                            ql = Mat.Layer.SOLID;
+                            lamp = 0.7f;
+                        }
+                    } else if (q.mat == Mat.REVERSE) {
+                        if (!reversing) {
+                            ql = Mat.Layer.SOLID;
+                            lamp = 0.75f;
+                        }
                     } else if (q.mat == Mat.TAILLIGHT) {
                         if (e.braking) lamp = 1f;
                         else if (e.lightsOn) lamp = 0.55f;
@@ -128,7 +150,10 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                     }
                     int l = layer == Mat.Layer.GLOW ? FULL_BRIGHT : light;
                     for (int i = 0; i < 4; i++) {
-                        vc.vertex(m, q.p[i * 3], q.p[i * 3 + 1], q.p[i * 3 + 2])
+                        float vy = q.p[i * 3 + 1];
+                        if (wave) vy += (float) Math.sin(q.p[i * 3 + 2] * 2.2 + (e.age + td) * 0.35) * 0.07f
+                                * (0.4f + Math.abs(q.p[i * 3]));
+                        vc.vertex(m, q.p[i * 3], vy, q.p[i * 3 + 2])
                                 .color(r, gr, b, 1f)
                                 .texture(q.uv[i * 2], q.uv[i * 2 + 1])
                                 .overlay(overlay)
@@ -166,12 +191,33 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         }
     }
 
+    private void plate(Model model, VehicleEntity e, MatrixStack ms, VertexConsumerProvider vcp, int light) {
+        if (dispatcher.camera == null || e.squaredDistanceTo(dispatcher.camera.getPos()) > 24 * 24) return;
+        String text = plateText(e);
+        ms.push();
+        ms.translate(model.plateX, model.plateY, model.plateZ - 0.004f);
+        float s = 0.0105f;
+        ms.scale(-s, -s, s);
+        int w = getTextRenderer().getWidth(text);
+        getTextRenderer().draw(text, -w / 2f, -3.5f, 0x1A2A55, false, ms.peek().getPositionMatrix(), vcp,
+                net.minecraft.client.font.TextRenderer.TextLayerType.POLYGON_OFFSET, 0, light);
+        ms.pop();
+    }
+
+    /** a stable plate number per vehicle, e.g. "VF 482K" */
+    private static String plateText(VehicleEntity e) {
+        long h = e.getUuid().getLeastSignificantBits() ^ e.getUuid().getMostSignificantBits();
+        int n = (int) Math.floorMod(h, 900L) + 100;
+        char c = (char) ('A' + Math.floorMod(h >> 12, 26L));
+        return "VF " + n + c;
+    }
+
     private static void beamVertex(VertexConsumer vc, Matrix4f m, float[] p) {
         vc.vertex(m, p[0], p[1], p[2]).color(1f, 0.95f, 0.8f, p[3]).next();
     }
 
     private static void transform(Model.Group g, MatrixStack ms, float steer, float spin, float rotor, float speedFrac,
-                                  float aimYaw, float aimPitch, VehicleEntity e) {
+                                  float aimYaw, float aimPitch, VehicleEntity e, float td) {
         float px = g.pivot.x, py = g.pivot.y, pz = g.pivot.z;
         switch (g.kind) {
             case WHEEL -> {
@@ -223,6 +269,48 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 ms.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(steer * 25f));
                 ms.translate(-px, -py, -pz);
             }
+            case WIPER -> {
+                float sweep = 0;
+                if (e.getWorld().isRaining() && e.engineRunning()) {
+                    float t = (e.age + td) * 0.22f;
+                    sweep = (1 - MathHelper.cos(t)) * 0.5f * 80f;
+                }
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(g.param));
+                ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(-sweep));
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-g.param));
+                ms.translate(-px, -py, -pz);
+            }
+            case LEG_L, LEG_R -> {
+                float gait = spin * 0.55f;
+                float amp = MathHelper.clamp(Math.abs(e.clientSpeed) * 70f, 0f, 40f);
+                float a = MathHelper.sin(gait + (g.kind == Model.Kind.LEG_R ? MathHelper.PI : 0)) * amp;
+                if (!e.isOnGround()) a = g.kind == Model.Kind.LEG_L ? -30 : 20;      // tucked legs in a jump
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(a));
+                ms.translate(-px, -py, -pz);
+            }
+            case NECK -> {
+                float gait = spin * 0.55f;
+                float bob = MathHelper.sin(gait * 2) * Math.min(8f, Math.abs(e.clientSpeed) * 20f)
+                        + Math.min(25f, Math.abs(e.clientSpeed) * 25f);
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(bob));
+                ms.translate(-px, -py, -pz);
+            }
+            case BALL -> {
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotation(spin * 0.4f / Math.max(0.1f, g.param)));
+                ms.translate(-px, -py, -pz);
+            }
+            case DRUM -> {
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(g.param));
+                ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((e.age + td) * 6f));
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-g.param));
+                ms.translate(-px, -py, -pz);
+            }
+            case FORKS -> ms.translate(0, MathHelper.lerp(td, e.prevForkHeight, e.forkHeight), 0);
             case FLAME -> {
                 float f = 0.85f + 0.3f * (float) Math.abs(Math.sin(e.age * 1.7 + rotor));
                 ms.translate(px, py, pz);
