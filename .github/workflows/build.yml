@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,10 +28,29 @@ jobs:
           chmod +x ./gradlew
           ./gradlew build --stacktrace
 
-      - name: Upload JAR
+      - name: Pick the mod jar
+        run: |
+          mkdir -p release
+          JAR=$(ls build/libs/*.jar | grep -v -- '-sources' | head -n 1)
+          cp "$JAR" release/dragonfruit-powers.jar
+          ls -la release
+
+      - name: Upload JAR (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: dragonfruit-powers-jar
-          path: |
-            build/libs/*.jar
-            !build/libs/*-sources.jar
+          path: release/dragonfruit-powers.jar
+
+      # Direct .jar download for phones: a GitHub Release with the jar attached.
+      # Stable link: https://github.com/<owner>/<repo>/releases/latest/download/dragonfruit-powers.jar
+      - name: Publish release with the .jar
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Dragonfruit Powers build ${{ github.run_number }}
+          body: |
+            Tap **dragonfruit-powers.jar** below to download it, then put it in your mods folder (Minecraft 1.20.1, Fabric).
+            Also needs Fabric API for 1.20.1 (0.92.x).
+          files: release/dragonfruit-powers.jar
+          make_latest: true

@@ -43,7 +43,7 @@ Fire Fist only sets blocks on fire if the `mobGriefing` gamerule is on. Nothing 
 ## Build from your phone (GitHub Actions)
 1. Create a new GitHub repo and upload everything in this folder (keep the `.github` folder).
 2. Pushing starts the **Build mod JAR** workflow automatically (or run it from the Actions tab).
-3. When it goes green, open the run → **Artifacts** → download `dragonfruit-powers-jar` → unzip → put the jar in `mods`.
+3. When it goes green, open the repo's **Releases** (or the direct link `https://github.com/nothatcher-creator/Dragonfruit-Power/releases/latest/download/dragonfruit-powers.jar`) and download `dragonfruit-powers.jar` straight into `mods`. No unzipping needed.
 
 If the build fails, the log under the **Build** step shows the error. Send it to Claude to fix.
 
