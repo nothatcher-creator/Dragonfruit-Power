@@ -230,7 +230,7 @@ public class VehicleClient implements ClientModInitializer {
             mc.world.addParticle(new net.minecraft.particle.BlockStateParticleEffect(ParticleTypes.BLOCK,
                     v.getWorld().getBlockState(v.getBlockPos().down())), v.getX(), v.getY() + 0.1, v.getZ(), 0, 0.1, 0);
         }
-        if (t.hover && running) {
+        if (t.hover && v.engineRunning()) {
             Vec3d at = v.toWorld((r.nextDouble() - 0.5) * t.width, 0.05, (r.nextDouble() - 0.5) * 3);
             mc.world.addParticle(v.isTouchingWater() ? ParticleTypes.SPLASH : ParticleTypes.CLOUD, at.x, at.y, at.z, 0, 0.02, 0);
         }
