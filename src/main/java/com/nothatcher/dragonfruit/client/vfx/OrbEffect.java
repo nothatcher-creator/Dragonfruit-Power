@@ -35,6 +35,10 @@ public class OrbEffect extends VfxEffect {
         this.style = style;
     }
 
+    boolean isHandChargeOf(int entityId) {
+        return charging && attachMode == Vfx.ATTACH_HAND && attachId == entityId;
+    }
+
     private Vec3d pos(float td) {
         if (attachMode == Vfx.ATTACH_NONE || mc().world == null) return center;
         Entity e = mc().world.getEntityById(attachId);
@@ -57,6 +61,8 @@ public class OrbEffect extends VfxEffect {
             case Vfx.S_FROST -> ParticleTypes.SNOWFLAKE;
             case Vfx.S_LIGHT -> ParticleTypes.END_ROD;
             case Vfx.S_QUAKE -> ParticleTypes.CLOUD;
+            case Vfx.S_THUNDER -> ParticleTypes.ELECTRIC_SPARK;
+            case Vfx.S_GRAVITY -> ParticleTypes.REVERSE_PORTAL;
             default -> null;
         };
         if (fx == null) return;

@@ -19,18 +19,25 @@ Eat a Dragonfruit, get anime-style powers. The visuals are the main feature: a *
 | **R** | Use selected ability |
 | **C** | Next ability |
 | **X** | Previous ability |
+| **V** | Third-person camera mode: right shoulder → left shoulder → centred → vanilla |
 
 You can rebind them in Options → Controls → Dragonfruit Powers.
-**On a phone:** add custom-control buttons in your launcher mapped to the R, C and X keys. Only two are needed (R + C).
+**On a phone:** add custom-control buttons in your launcher mapped to R and C, plus V if you want to swap shoulders. Press F5 for third person.
+
+### Power Cam (third person)
+In F5 back view the camera sits over your shoulder with smooth follow, never clips through walls, and pulls back automatically during big moves (rocket launches, dashes, meteors) and at high speed. A crosshair is shown so you can aim. Press V to change shoulder or go back to vanilla.
 
 ## The fruits
 | Fruit | Abilities | Passive |
 |---|---|---|
-| **Rubber** | Rubber Pistol (stretch punch, 26 blocks), Rubber Rocket (both arms grab a block, slingshot you), Rubber Gatling (storm of arms), Second Gear (steam, speed, strength, pink skin, faster/stronger pistol) | No fall damage (you bounce), immune to lightning, arrows bounce off |
+| **Rubber** | Rubber Pistol (stretch punch, 26 blocks), Rubber Rocket (both arms grab a block, slingshot you), Rubber Gatling (storm of arms), Gear Third (arm inflates to giant size for a huge punch), Second Gear (steam, speed, strength, pink skin, faster/stronger pistol) | No fall damage (you bounce), immune to lightning, arrows bounce off |
 | **Flame** | Fire Fist (giant fireball), Flame Pillar (ring of fire columns), Firefly Swarm (homing embers), Flame Body (melee passes through you and burns attackers) | Fire immune |
 | **Ice** | Ice Spears (7-spear volley), Ice Age (freezes water and erupts ice crystals in 12 blocks), Ice Coffin (encase a target in ice, then shatter it) | Walk on water (frost walker), freeze immune |
 | **Light** | Light Flash (teleport 40 blocks, damages everything in the path), Light Barrage (laser bullets), Light Cannon (charge, then giant beam) | No fall damage |
 | **Quake** | Quake Punch (cracks the air, shockwave cone), Ground Quake (AoE knock-up), Quake Bubble (charge, then huge shockwave) | Explosion immune |
+| **Thunder** | Lightning Strike (bolt from the sky where you aim), Thunder Dash (zip 28 blocks as lightning), Thunder Storm (bolts rain on everything around you) | Lightning immune, attackers get shocked |
+| **Magma** | Magma Fist (molten rock fist), Eruption (3 rings of lava erupt outward), Meteor Rain (14 magma fists fall from the sky) | Fire and lava immune |
+| **Gravity** | Gravity Crush (slam an area into the ground), Gravity Lift (float enemies up, then smash them down), Meteor Call (a giant meteor falls on your target) | No fall damage |
 
 **Every fruit:** water drains you. You sink, get weakened, and can't use abilities while touching water. Eating a different fruit swaps your power. Powers persist through death and relogs.
 
@@ -60,9 +67,11 @@ DragonfruitMod / ModItems / DragonfruitItem / ModLoot / ModCommands / FruitType
 power/   PowerState (saved), PowerManager (cooldowns, passives, damage rules), Abilities, Scheduler
 net/     Net (packets), Vfx (server -> client effect senders)
 client/  DragonfruitClient (keys, packets), Hud, CameraFx (shake/FOV/flash), ClientPowerData
-client/vfx/  ArmEffect (rubber arm), GatlingEffect, BeamEffect, RingEffect, OrbEffect, SpikesEffect,
+client/vfx/  ArmEffect (rubber arm), BoltEffect, MeteorEffect, ImpactEffect, PressEffect, GatlingEffect, BeamEffect, RingEffect, OrbEffect, SpikesEffect,
              IceCoffinEffect, AirCrackEffect, ProjectileEffect, FireflyEffect, AuraEffect, Particles, Gfx, Poses
-mixin/client/ GameRendererMixin (FOV + shake), HeldItemRendererMixin (hides vanilla hand while stretched)
+client/PowerCam  over-the-shoulder third-person camera
+mixin/client/ GameRendererMixin (FOV + shake), HeldItemRendererMixin (hides vanilla hand while stretched),
+              CameraMixin + CameraAccessor (Power Cam), PlayerEntityModelMixin (hides/aims model arms in third person)
 ```
 
 ## Verification status

@@ -71,6 +71,14 @@ public final class VfxManager {
         return false;
     }
 
+    /** Is this entity charging something in its hand (raise the arm in third person)? */
+    public static boolean charging(int entityId) {
+        for (VfxEffect e : EFFECTS) {
+            if (e instanceof OrbEffect orb && orb.isHandChargeOf(entityId)) return true;
+        }
+        return false;
+    }
+
     public static void clear() {
         EFFECTS.clear();
         PENDING.clear();

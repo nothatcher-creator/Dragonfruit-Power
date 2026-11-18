@@ -224,6 +224,22 @@ public final class PowerManager {
             case QUAKE -> {
                 if (source.isIn(DamageTypeTags.IS_EXPLOSION)) return false;
             }
+            case THUNDER -> {
+                if (source.isIn(DamageTypeTags.IS_LIGHTNING)) return false;
+                if (!source.isIn(DamageTypeTags.IS_PROJECTILE) && source.getAttacker() instanceof LivingEntity attacker
+                        && attacker != p && attacker.isAlive()) {
+                    // touching a thunder user shocks you
+                    attacker.timeUntilRegen = 0;
+                    attacker.damage(p.getDamageSources().lightningBolt(), 3f);
+                    Vfx.burst(w, attacker.getBoundingBox().getCenter(), Vec3d.ZERO, Vfx.B_THUNDER, 0.5f);
+                }
+            }
+            case MAGMA -> {
+                if (source.isIn(DamageTypeTags.IS_FIRE)) return false;
+            }
+            case GRAVITY -> {
+                if (source.isIn(DamageTypeTags.IS_FALL)) return false;
+            }
             default -> { }
         }
         return true;

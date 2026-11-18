@@ -7,13 +7,14 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.RotationAxis;
 
 /**
  * Ability bar centred above the hotbar (out of the way of phone touch controls on both sides),
  * plus full-screen overlays: impact flash, Second Gear / Flame Body vignette, seawater warning.
  */
 public final class Hud {
-    private static final int CHIP_W = 74, CHIP_H = 18, GAP = 3;
+    private static final int CHIP_H = 18, GAP = 3;
 
     private Hud() {}
 
@@ -33,8 +34,20 @@ public final class Hud {
             ctx.fillGradient(0, 0, w, h / 5, edge, argb(rgb, 0));
             ctx.fillGradient(0, h - h / 5, w, h, argb(rgb, 0), edge);
         }
+        float lines = CameraFx.speedLinesAlpha(td);
+        if (lines > 0.02f) speedLines(ctx, w, h, lines);
         float flash = CameraFx.flashAlpha(td);
         if (flash > 0.01f) ctx.fill(0, 0, w, h, argb(0xFFFFFF, Math.min(0.85f, flash)));
+
+        // vanilla hides the crosshair in third person; the shoulder cam needs one to aim
+        if (PowerCam.active() && !mc.options.getPerspective().isFirstPerson() && !mc.options.getPerspective().isFrontView()) {
+            int cx = w / 2, cy = h / 2;
+            ctx.fill(cx - 5, cy, cx - 1, cy + 1, 0xDDFFFFFF);
+            ctx.fill(cx + 2, cy, cx + 6, cy + 1, 0xDDFFFFFF);
+            ctx.fill(cx, cy - 5, cx + 1, cy - 1, 0xDDFFFFFF);
+            ctx.fill(cx, cy + 2, cx + 1, cy + 6, 0xDDFFFFFF);
+            ctx.fill(cx, cy, cx + 1, cy + 1, 0xFFFFFFFF);
+        }
 
         if (fruit == FruitType.NONE) return;
         TextRenderer tr = mc.textRenderer;
@@ -47,6 +60,7 @@ public final class Hud {
 
         // ---- ability bar
         int n = fruit.abilities.length;
+        final int CHIP_W = Math.max(46, Math.min(74, (w - 60 - 20 - (n - 1) * GAP) / Math.max(1, n)));
         int total = 20 + n * CHIP_W + (n - 1) * GAP;
         int x0 = (w - total) / 2;
         int y0 = h - 68 - CHIP_H;
@@ -108,6 +122,27 @@ public final class Hud {
                 ctx.getMatrices().pop();
             }
         }
+    }
+
+    /** Anime speed lines: thin white streaks radiating from the screen edge toward the centre. */
+    private static void speedLines(DrawContext ctx, int w, int h, float alpha) {
+        int cx = w / 2, cy = h / 2;
+        float outer = (float) Math.sqrt(cx * cx + cy * cy) + 4;
+        float minR = Math.min(w, h) * 0.30f;
+        java.util.Random r = new java.util.Random(CameraFx.clock() / 2 * 9973L);
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(cx, cy, 0);
+        for (int i = 0; i < 56; i++) {
+            float angle = r.nextFloat() * 360f;
+            float inner = minR + r.nextFloat() * minR * 0.9f;
+            int thick = r.nextInt(3) == 0 ? 2 : 1;
+            int color = argb(0xFFFFFF, alpha * (0.35f + r.nextFloat() * 0.5f));
+            ctx.getMatrices().push();
+            ctx.getMatrices().multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle));
+            ctx.fill((int) inner, 0, (int) outer, thick, color);
+            ctx.getMatrices().pop();
+        }
+        ctx.getMatrices().pop();
     }
 
     private static int argb(int rgb, float alpha) {

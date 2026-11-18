@@ -48,7 +48,26 @@ public final class Abilities {
                 case 0 -> rubberPistol(p);
                 case 1 -> rubberRocket(p);
                 case 2 -> rubberGatling(p);
-                case 3 -> secondGear(p);
+                case 3 -> gearThird(p);
+                case 4 -> secondGear(p);
+                default -> false;
+            };
+            case THUNDER -> switch (index) {
+                case 0 -> lightningStrike(p);
+                case 1 -> thunderDash(p);
+                case 2 -> thunderStorm(p);
+                default -> false;
+            };
+            case MAGMA -> switch (index) {
+                case 0 -> magmaFist(p);
+                case 1 -> eruption(p);
+                case 2 -> meteorRain(p);
+                default -> false;
+            };
+            case GRAVITY -> switch (index) {
+                case 0 -> gravityCrush(p);
+                case 1 -> gravityLift(p);
+                case 2 -> meteorCall(p);
                 default -> false;
             };
             case FLAME -> switch (index) {
@@ -109,6 +128,7 @@ public final class Abilities {
                 hurt(p, le, gear ? 14f : 9f, true);
                 push(le, look.multiply(gear ? 2.2 : 1.5).add(0, 0.35, 0));
                 Vfx.burst(w, target, look, Vfx.B_RUBBER_HIT, gear ? 1.6f : 1f);
+                Vfx.impact(w, target, gear ? 2.6f : 1.8f, 0xFFFFFF, 6);
                 Vfx.shake(w, target, gear ? 0.5f : 0.3f, 8, 16);
                 sound(w, target, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.3f, 0.8f);
                 sound(w, target, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, 1f, 0.7f);
@@ -152,6 +172,7 @@ public final class Abilities {
             double speed = Math.min(3.4, 1.3 + dist * 0.07);
             launch(p, dir.multiply(speed).add(0, 0.25, 0));
             Vfx.fov(p, 0.4f, 16);
+            Vfx.speedLines(p, 1f, 18);
             Vfx.burst(world(p), p.getPos().add(0, 1, 0), dir, Vfx.B_RUBBER_HIT, 0.8f);
             sound(p, SoundEvents.ENTITY_SLIME_JUMP, 1.2f, 0.6f);
             sound(p, SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 0.6f);
@@ -178,6 +199,38 @@ public final class Abilities {
             if (age % 3 == 0) sound(p, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, 0.7f, 0.8f + r.nextFloat() * 0.6f);
             if (age % 5 == 0) sound(p, SoundEvents.ENTITY_FISHING_BOBBER_THROW, 0.5f, 1.1f + r.nextFloat() * 0.5f);
             return true;
+        });
+        return true;
+    }
+
+    /** Gear Third: the arm inflates to giant size on the way out and lands a building-sized punch. */
+    private static boolean gearThird(ServerPlayerEntity p) {
+        boolean gear = PowerManager.buffActive(p);
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        BlockHitResult bh = rayBlock(p, eye, look, 30);
+        double blockDist = bh.getType() == HitResult.Type.MISS ? 30 : bh.getPos().distanceTo(eye);
+        EntityHitResult eh = rayEntity(p, eye, look, blockDist);
+        Vec3d target = eh != null ? eh.getPos() : eye.add(look.multiply(blockDist));
+        final int extend = 8;
+        Vfx.arm(p, 1, target, extend, 6, 7, 7.0f);
+        Vfx.fov(p, 0.3f, extend + 6);
+        sound(p, SoundEvents.ENTITY_PUFFER_FISH_BLOW_UP, 2f, 0.5f);
+        sound(p, SoundEvents.ENTITY_FISHING_BOBBER_THROW, 1.5f, 0.4f);
+        Scheduler.after(extend, () -> {
+            if (!valid(p)) return;
+            ServerWorld w = world(p);
+            for (LivingEntity e : inRadius(w, target, 4.5, p)) {
+                hurt(p, e, gear ? 24f : 18f, true);
+                push(e, look.multiply(3.0).add(0, 0.6, 0));
+            }
+            Vfx.impact(w, target, 5f, 0xFFFFFF, 8);
+            Vfx.burst(w, target, look, Vfx.B_RUBBER_HIT, 3f);
+            Vfx.burst(w, target, look, Vfx.B_BLOCK_HIT, 2.5f);
+            Vfx.ring(w, target, look, 7f, 0xFFD0E8, 12, Vfx.S_QUAKE);
+            Vfx.shake(w, target, 1.3f, 20, 36);
+            sound(w, target, SoundEvents.ENTITY_GENERIC_EXPLODE, 2f, 0.7f);
+            sound(w, target, SoundEvents.ENTITY_PLAYER_ATTACK_KNOCKBACK, 2f, 0.5f);
         });
         return true;
     }
@@ -406,11 +459,33 @@ public final class Abilities {
     // ==================================================================== LIGHT
 
     private static boolean lightFlash(ServerPlayerEntity p) {
+        Vec3d[] path = dash(p, 42, 9f, Vfx.B_LIGHT_SMALL);
+        if (path == null) return false;
+        ServerWorld w = world(p);
+        Vec3d a = path[0], b = path[1];
+        Vec3d look = p.getRotationVec(1f);
+        Vfx.beam(w, a.add(0, -0.4, 0), b.add(0, -0.4, 0), 0xFFF3A0, 0.55f, 12, Vfx.S_LIGHT);
+        Vfx.burst(w, a, look, Vfx.B_LIGHT, 1f);
+        Vfx.burst(w, b, look, Vfx.B_LIGHT, 1f);
+        Vfx.flash(w, b, 0.45f, 24);
+        Vfx.fov(p, 0.3f, 10);
+        Vfx.speedLines(p, 1f, 12);
+        sound(w, a, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.2f, 1.6f);
+        sound(w, b, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.2f, 1.8f);
+        sound(w, b, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.5f, 1.8f);
+        return true;
+    }
+
+    /**
+     * Shared teleport-dash (Light Flash, Thunder Dash): finds a safe landing spot along the look ray,
+     * damages everything on the path, teleports. Returns {fromEye, toEye} or null if blocked.
+     */
+    private static Vec3d[] dash(ServerPlayerEntity p, double range, float damage, int hitBurst) {
         ServerWorld w = world(p);
         Vec3d eye = p.getEyePos();
         Vec3d look = p.getRotationVec(1f);
-        BlockHitResult bh = rayBlock(p, eye, look, 42);
-        Vec3d destEye = bh.getType() == HitResult.Type.MISS ? eye.add(look.multiply(42)) : bh.getPos().subtract(look.multiply(0.8));
+        BlockHitResult bh = rayBlock(p, eye, look, range);
+        Vec3d destEye = bh.getType() == HitResult.Type.MISS ? eye.add(look.multiply(range)) : bh.getPos().subtract(look.multiply(0.8));
         double eyeH = p.getStandingEyeHeight();
         Vec3d feet = destEye.subtract(0, eyeH, 0);
 
@@ -428,30 +503,22 @@ public final class Abilities {
         }
         if (chosen == null) {
             p.sendMessage(Text.translatable("msg.dragonfruit.blocked").formatted(Formatting.GRAY), true);
-            return false;
+            return null;
         }
         Vec3d a = eye;
         Vec3d b = chosen.add(0, eyeH, 0);
         for (LivingEntity e : w.getEntitiesByClass(LivingEntity.class, new Box(a, b).expand(1.5),
                 e -> e != p && e.isAlive() && !e.isSpectator())) {
             if (e.getBoundingBox().expand(0.8).raycast(a, b).isPresent()) {
-                hurt(p, e, 9f, true);
+                hurt(p, e, damage, true);
                 push(e, look.multiply(0.8).add(0, 0.4, 0));
-                Vfx.burst(w, e.getBoundingBox().getCenter(), look, Vfx.B_LIGHT_SMALL, 1f);
+                Vfx.burst(w, e.getBoundingBox().getCenter(), look, hitBurst, 1f);
+                Vfx.impact(w, e.getBoundingBox().getCenter(), 1.6f, 0xFFFFFF, 5);
             }
         }
         p.networkHandler.requestTeleport(chosen.x, chosen.y, chosen.z, p.getYaw(), p.getPitch());
         p.fallDistance = 0;
-
-        Vfx.beam(w, a.add(0, -0.4, 0), b.add(0, -0.4, 0), 0xFFF3A0, 0.55f, 12, Vfx.S_LIGHT);
-        Vfx.burst(w, a, look, Vfx.B_LIGHT, 1f);
-        Vfx.burst(w, b, look, Vfx.B_LIGHT, 1f);
-        Vfx.flash(w, b, 0.45f, 24);
-        Vfx.fov(p, 0.3f, 10);
-        sound(w, a, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.2f, 1.6f);
-        sound(w, b, SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.2f, 1.8f);
-        sound(w, b, SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, 1.5f, 1.8f);
-        return true;
+        return new Vec3d[]{a, b};
     }
 
     private static boolean lightBarrage(ServerPlayerEntity p) {
@@ -536,6 +603,7 @@ public final class Abilities {
         Vec3d fist = eye.add(look.multiply(1.3)).add(0, -0.1, 0);
         Vfx.arm(p, 1, fist.add(look.multiply(0.3)), 2, 6, 4, 1.1f);
         Vfx.airCrack(w, fist, look, 1.7f, 34, p.getRandom().nextLong());
+        Vfx.impact(w, fist, 2.4f, 0xFFFFFF, 6);
         Vfx.ring(w, fist, look, 5f, 0xFFFFFF, 10, Vfx.S_QUAKE);
         Vfx.burst(w, fist, look, Vfx.B_QUAKE_LINE, 14f);
         Vfx.shake(w, fist, 1.0f, 22, 36);
@@ -586,6 +654,8 @@ public final class Abilities {
             Vec3d fist = eye.add(look.multiply(1.3)).add(0, -0.1, 0);
             Vfx.arm(p, 1, fist.add(look.multiply(0.4)), 2, 8, 5, 1.25f);
             Vfx.airCrack(ww, fist.add(look), look, 3.2f, 50, p.getRandom().nextLong());
+            Vfx.impact(ww, fist.add(look), 4.5f, 0xFFFFFF, 8);
+            Vfx.speedLines(p, 0.8f, 14);
             Vfx.ring(ww, fist, look, 9f, 0xFFFFFF, 14, Vfx.S_QUAKE);
             Vfx.burst(ww, fist, look, Vfx.B_QUAKE_LINE, 28f);
             Vfx.shake(ww, fist, 2.0f, 36, 64);
@@ -602,7 +672,293 @@ public final class Abilities {
         return true;
     }
 
+    // ================================================================== THUNDER
+
+    private static final int THUNDER_COLOR = 0xBFE9FF;
+
+    /** One lightning bolt from the sky onto a ground point. */
+    private static void strike(ServerPlayerEntity p, ServerWorld w, Vec3d ground, float damage, double radius, boolean big) {
+        Random r = p.getRandom();
+        Vec3d sky = ground.add((r.nextDouble() - 0.5) * 6, 28 + r.nextDouble() * 6, (r.nextDouble() - 0.5) * 6);
+        Vfx.bolt(w, sky, ground, THUNDER_COLOR, big ? 1.1f : 0.7f, big ? 12 : 9, r.nextLong());
+        Vfx.burst(w, ground.add(0, 0.2, 0), Vfx.UP, Vfx.B_THUNDER, big ? 1.5f : 1f);
+        Vfx.ring(w, ground.add(0, 0.1, 0), Vfx.UP, (float) radius + 1.5f, THUNDER_COLOR, 10, Vfx.S_THUNDER);
+        Vfx.impact(w, ground.add(0, 0.6, 0), big ? 2.6f : 1.6f, 0xE6F7FF, 5);
+        Vfx.flash(w, ground, big ? 0.5f : 0.25f, big ? 40 : 24);
+        Vfx.shake(w, ground, big ? 0.7f : 0.4f, 10, 28);
+        sound(w, ground, SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, 2f, 0.9f + r.nextFloat() * 0.3f);
+        if (big) sound(w, ground, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 1.6f, 1.1f);
+        for (LivingEntity e : inRadius(w, ground.add(0, 1, 0), radius, p)) {
+            hurt(p, e, damage, true);
+            push(e, new Vec3d(0, 0.35, 0));
+        }
+    }
+
+    private static boolean lightningStrike(ServerPlayerEntity p) {
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        BlockHitResult bh = rayBlock(p, eye, look, 50);
+        double bd = bh.getType() == HitResult.Type.MISS ? 50 : bh.getPos().distanceTo(eye);
+        EntityHitResult eh = rayEntity(p, eye, look, bd);
+        final Vec3d ground;
+        if (eh != null) ground = eh.getEntity().getPos();
+        else if (bh.getType() != HitResult.Type.MISS) ground = bh.getPos();
+        else ground = groundBelow(p, eye.add(look.multiply(bd)));
+        Vfx.orb(world(p), eye, 0.35f, THUNDER_COLOR, 6, p.getId(), Vfx.ATTACH_HAND, true, Vfx.S_THUNDER);
+        sound(p, SoundEvents.BLOCK_BEACON_POWER_SELECT, 1f, 2f);
+        Scheduler.after(5, () -> {
+            if (valid(p)) strike(p, world(p), ground, 14f, 3.0, true);
+        });
+        return true;
+    }
+
+    private static boolean thunderDash(ServerPlayerEntity p) {
+        Vec3d[] path = dash(p, 28, 11f, Vfx.B_THUNDER);
+        if (path == null) return false;
+        ServerWorld w = world(p);
+        Random r = p.getRandom();
+        Vec3d look = p.getRotationVec(1f);
+        Vfx.bolt(w, path[0].add(0, -0.4, 0), path[1].add(0, -0.4, 0), THUNDER_COLOR, 0.6f, 10, r.nextLong());
+        Vfx.bolt(w, path[0].add(0, -0.2, 0), path[1].add(0, -0.6, 0), 0xFFFFFF, 0.35f, 8, r.nextLong());
+        Vfx.burst(w, path[0], look, Vfx.B_THUNDER, 0.8f);
+        Vfx.burst(w, path[1], look, Vfx.B_THUNDER, 1f);
+        Vfx.flash(w, path[1], 0.3f, 20);
+        Vfx.fov(p, 0.3f, 10);
+        Vfx.speedLines(p, 1f, 12);
+        sound(w, path[0], SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, 1.5f, 1.4f);
+        sound(w, path[1], SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 1.6f);
+        return true;
+    }
+
+    private static boolean thunderStorm(ServerPlayerEntity p) {
+        final int duration = 48;
+        ServerWorld w = world(p);
+        Vfx.aura(w, p, Vfx.A_THUNDER, duration);
+        Vfx.orb(w, p.getPos().add(0, 2.6, 0), 1.2f, THUNDER_COLOR, duration, p.getId(), Vfx.ATTACH_NONE, true, Vfx.S_THUNDER);
+        sound(p, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 1.5f, 0.7f);
+        Scheduler.loop(4, age -> {
+            if (!valid(p) || age >= duration) return false;
+            if (age % 4 != 0) return true;
+            ServerWorld ww = world(p);
+            Random r = p.getRandom();
+            List<LivingEntity> near = inRadius(ww, p.getPos(), 18, p);
+            Vec3d ground;
+            if (!near.isEmpty() && r.nextInt(3) != 0) {
+                ground = near.get(r.nextInt(near.size())).getPos();
+            } else {
+                double a = r.nextDouble() * Math.PI * 2;
+                double d = 3 + r.nextDouble() * 13;
+                ground = groundBelow(p, p.getPos().add(Math.cos(a) * d, 8, Math.sin(a) * d));
+            }
+            strike(p, ww, ground, 9f, 2.5, false);
+            return true;
+        });
+        return true;
+    }
+
+    // ==================================================================== MAGMA
+
+    private static void magmaImpact(ServerPlayerEntity p, ServerWorld w, Vec3d hit, double radius, float damage, float scale) {
+        Vfx.burst(w, hit, Vfx.UP, Vfx.B_MAGMA, scale);
+        Vfx.impact(w, hit, 2.2f * scale, 0xFF9A3A, 6);
+        Vfx.ring(w, hit.add(0, 0.2, 0), Vfx.UP, (float) radius + 1, 0xFF5A1A, 14, Vfx.S_FLAME);
+        Vfx.shake(w, hit, 0.4f * scale, 12, 26);
+        sound(w, hit, SoundEvents.ENTITY_GENERIC_EXPLODE, 1.5f, 0.7f);
+        sound(w, hit, SoundEvents.BLOCK_LAVA_EXTINGUISH, 1.2f, 0.6f);
+        for (LivingEntity e : inRadius(w, hit, radius, p)) {
+            hurt(p, e, damage, true);
+            e.setOnFireFor(10);
+            Vec3d out = e.getPos().subtract(hit).multiply(1, 0, 1).normalize();
+            push(e, out.multiply(0.9).add(0, 0.5, 0));
+        }
+        if (griefing(w)) placeFire(w, hit, 2);
+    }
+
+    private static boolean magmaFist(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d look = p.getRotationVec(1f);
+        Vec3d start = p.getEyePos().add(look.multiply(1.3)).add(0, -0.2, 0);
+        Vfx.projectile(w, p.getId(), Vfx.P_MAGMA, start, look, 1.4f, 34, 1.8f);
+        Vfx.fov(p, 0.15f, 8);
+        Vfx.shake(w, p.getPos(), 0.3f, 6, 6);
+        sound(p, SoundEvents.ENTITY_BLAZE_SHOOT, 1.5f, 0.4f);
+        sound(p, SoundEvents.BLOCK_LAVA_POP, 2f, 0.5f);
+        simulate(p, w, start, look, 1.4f, 34, 1.8f, hit -> magmaImpact(p, w, hit, 5, 15f, 1.8f));
+        return true;
+    }
+
+    private static boolean eruption(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d c = p.getPos();
+        sound(p, SoundEvents.BLOCK_LAVA_POP, 2f, 0.6f);
+        sound(p, SoundEvents.ENTITY_BLAZE_SHOOT, 2f, 0.4f);
+        Vfx.shake(w, c, 0.5f, 30, 20);
+        for (int wave = 0; wave < 3; wave++) {
+            final double r0 = wave * 3.0, r1 = r0 + 3.5;
+            final int n = wave;
+            Scheduler.after(wave * 5, () -> {
+                if (!valid(p)) return;
+                ServerWorld ww = world(p);
+                Vfx.burst(ww, c, Vfx.UP, Vfx.B_ERUPTION, (float) r1);
+                Vfx.ring(ww, c.add(0, 0.1, 0), Vfx.UP, (float) r1, 0xFF4A10, 10, Vfx.S_FLAME);
+                Vfx.shake(ww, c, 0.6f, 8, 22);
+                sound(ww, c, SoundEvents.ENTITY_GENERIC_EXPLODE, 1.2f, 1.0f + n * 0.1f);
+                for (LivingEntity e : inRadius(ww, c, r1, p)) {
+                    if (e.getPos().distanceTo(c) < r0) continue;
+                    hurt(p, e, 9f, true);
+                    e.setOnFireFor(6);
+                    Vec3d out = e.getPos().subtract(c).multiply(1, 0, 1).normalize();
+                    push(e, out.multiply(0.4).add(0, 1.25, 0));
+                }
+            });
+        }
+        return true;
+    }
+
+    private static boolean meteorRain(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        BlockHitResult bh = rayBlock(p, eye, look, 45);
+        final Vec3d center = bh.getType() == HitResult.Type.MISS ? groundBelow(p, eye.add(look.multiply(30))) : bh.getPos();
+        Vfx.ring(w, center.add(0, 0.15, 0), Vfx.UP, 9f, 0xFF4A10, 30, Vfx.S_FLAME);
+        sound(p, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 1f, 0.6f);
+        for (int i = 0; i < 14; i++) {
+            Scheduler.after(6 + i * 3, () -> {
+                if (!valid(p)) return;
+                ServerWorld ww = world(p);
+                Random r = p.getRandom();
+                double a = r.nextDouble() * Math.PI * 2;
+                double d = Math.sqrt(r.nextDouble()) * 8;
+                Vec3d end = groundBelow(p, center.add(Math.cos(a) * d, 3, Math.sin(a) * d));
+                Vec3d start = end.add(8 + (r.nextDouble() - 0.5) * 6, 30, (r.nextDouble() - 0.5) * 6);
+                Vec3d dir = end.subtract(start).normalize();
+                float speed = 1.8f;
+                int life = (int) (start.distanceTo(end) / speed) + 4;
+                Vfx.projectile(ww, p.getId(), Vfx.P_MAGMA, start, dir, speed, life, 1.2f);
+                simulate(p, ww, start, dir, speed, life, 1.2f, hit -> magmaImpact(p, ww, hit, 3.5, 9f, 1.1f));
+                sound(ww, start, SoundEvents.ENTITY_BLAZE_SHOOT, 2f, 0.5f);
+            });
+        }
+        return true;
+    }
+
+    // ================================================================== GRAVITY
+
+    private static final int GRAVITY_COLOR = 0x9A6BFF;
+
+    private static boolean gravityCrush(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        BlockHitResult bh = rayBlock(p, eye, look, 32);
+        final Vec3d center = bh.getType() == HitResult.Type.MISS ? groundBelow(p, eye.add(look.multiply(24))) : bh.getPos();
+        final float r = 7f;
+        Vfx.press(w, center, r, GRAVITY_COLOR, 18);
+        sound(p, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 1f, 0.4f);
+        Scheduler.after(8, () -> {
+            ServerWorld ww = world(p);
+            for (LivingEntity e : inRadius(ww, center.add(0, 1, 0), r, p)) {
+                hurt(p, e, 13f, true);
+                Vec3d v = e.getVelocity();
+                e.setVelocity(v.x * 0.2, -3, v.z * 0.2);
+                e.velocityModified = true;
+                e.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 4));
+            }
+            Vfx.burst(ww, center, Vfx.UP, Vfx.B_GROUND_QUAKE, r);
+            Vfx.burst(ww, center, Vfx.UP, Vfx.B_GRAVITY, r);
+            Vfx.ring(ww, center.add(0, 0.1, 0), Vfx.UP, r + 2, GRAVITY_COLOR, 16, Vfx.S_DUST);
+            Vfx.impact(ww, center.add(0, 0.5, 0), 3f, 0xD9C2FF, 6);
+            Vfx.shake(ww, center, 1.1f, 18, 32);
+            sound(ww, center, SoundEvents.ENTITY_GENERIC_EXPLODE, 2f, 0.5f);
+            sound(ww, center, SoundEvents.BLOCK_ANVIL_LAND, 1.5f, 0.4f);
+        });
+        return true;
+    }
+
+    private static boolean gravityLift(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        List<LivingEntity> targets = cone(p, 20, 0.6);
+        if (targets.isEmpty()) {
+            p.sendMessage(Text.translatable("msg.dragonfruit.no_target").formatted(Formatting.GRAY), true);
+            return false;
+        }
+        for (LivingEntity t : targets) {
+            t.setVelocity(0, 1.25, 0);
+            t.velocityModified = true;
+            t.addStatusEffect(new StatusEffectInstance(StatusEffects.LEVITATION, 18, 3));
+            Vfx.orb(w, t.getPos(), 1.2f, GRAVITY_COLOR, 22, t.getId(), Vfx.ATTACH_CENTER, true, Vfx.S_GRAVITY);
+        }
+        sound(p, SoundEvents.ENTITY_SHULKER_SHOOT, 1.5f, 0.6f);
+        sound(p, SoundEvents.BLOCK_BEACON_POWER_SELECT, 1f, 0.5f);
+        Scheduler.after(22, () -> {
+            for (LivingEntity t : targets) {
+                if (!t.isAlive()) continue;
+                t.removeStatusEffect(StatusEffects.LEVITATION);
+                t.setVelocity(0, -3.5, 0);
+                t.velocityModified = true;
+                hurt(p, t, 8f, true);
+                Vfx.impact(w, t.getBoundingBox().getCenter(), 1.8f, 0xD9C2FF, 5);
+            }
+            sound(w, p.getPos(), SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 0.6f);
+        });
+        Scheduler.after(28, () -> {
+            for (LivingEntity t : targets) {
+                Vfx.burst(w, t.getPos(), Vfx.UP, Vfx.B_GRAVITY, 3f);
+                Vfx.shake(w, t.getPos(), 0.5f, 10, 20);
+            }
+        });
+        return true;
+    }
+
+    private static boolean meteorCall(ServerPlayerEntity p) {
+        ServerWorld w = world(p);
+        Vec3d eye = p.getEyePos();
+        Vec3d look = p.getRotationVec(1f);
+        BlockHitResult bh = rayBlock(p, eye, look, 64);
+        final Vec3d target = bh.getType() == HitResult.Type.MISS ? groundBelow(p, eye.add(look.multiply(40))) : bh.getPos();
+        Vec3d flat = new Vec3d(look.x, 0, look.z);
+        if (flat.lengthSquared() < 1.0E-4) flat = new Vec3d(1, 0, 0);
+        flat = flat.normalize();
+        Vec3d start = target.add(flat.multiply(-22)).add(0, 48, 0);
+        final int fall = 40;
+        Vfx.meteor(w, start, target, fall, 3.5f);
+        Vfx.ring(w, target.add(0, 0.15, 0), Vfx.UP, 10f, 0xFF5A1A, fall, Vfx.S_FLAME);
+        Vfx.press(w, target, 10f, GRAVITY_COLOR, fall);
+        sound(p, SoundEvents.ENTITY_WARDEN_SONIC_CHARGE, 2f, 0.4f);
+        Scheduler.after(fall / 2, () -> sound(w, target, SoundEvents.ENTITY_BLAZE_SHOOT, 3f, 0.3f));
+        Scheduler.after(fall, () -> {
+            for (LivingEntity e : inRadius(w, target, 10, p)) {
+                double d = e.getPos().distanceTo(target);
+                double k = Math.max(0.15, 1 - d / 12);
+                hurt(p, e, (float) (28 * k), true);
+                e.setOnFireFor(8);
+                Vec3d out = e.getPos().subtract(target).multiply(1, 0, 1).normalize();
+                push(e, out.multiply(1.6 * k).add(0, 1.2 * k, 0));
+            }
+            Vfx.burst(w, target, Vfx.UP, Vfx.B_FIRE_BIG, 3f);
+            Vfx.burst(w, target, Vfx.UP, Vfx.B_GROUND_QUAKE, 10f);
+            Vfx.burst(w, target, Vfx.UP, Vfx.B_MAGMA, 2f);
+            Vfx.impact(w, target.add(0, 1, 0), 8f, 0xFFC27A, 10);
+            Vfx.ring(w, target.add(0, 0.2, 0), Vfx.UP, 14f, 0xFF7A2A, 22, Vfx.S_DUST);
+            Vfx.orb(w, target, 6f, 0xFF7A2A, 14, -1, Vfx.ATTACH_NONE, false, Vfx.S_FLAME);
+            Vfx.shake(w, target, 2.5f, 40, 90);
+            Vfx.flash(w, target, 0.7f, 60);
+            sound(w, target, SoundEvents.ENTITY_GENERIC_EXPLODE, 4f, 0.5f);
+            sound(w, target, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 0.5f);
+            if (griefing(w)) placeFire(w, target, 4);
+        });
+        return true;
+    }
+
     // ================================================================== helpers
+
+    /** First solid surface straight below pos (within 40 blocks), else pos itself. */
+    static Vec3d groundBelow(ServerPlayerEntity p, Vec3d pos) {
+        BlockHitResult down = p.getWorld().raycast(new RaycastContext(pos, pos.add(0, -40, 0),
+                RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, p));
+        return down.getType() == HitResult.Type.MISS ? pos : down.getPos();
+    }
 
     static boolean valid(ServerPlayerEntity p) {
         return !p.isRemoved() && p.isAlive();

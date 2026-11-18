@@ -147,6 +147,39 @@ public final class VfxDecoder {
                 int duration = b.readVarInt();
                 return () -> CameraFx.kickFov(amount, duration);
             }
+            case Vfx.BOLT -> {
+                Vec3d from = vec(b), to = vec(b);
+                int color = b.readInt();
+                float width = b.readFloat();
+                int life = b.readVarInt();
+                long seed = b.readLong();
+                return () -> VfxManager.add(new BoltEffect(from, to, color, width, life, seed));
+            }
+            case Vfx.METEOR -> {
+                Vec3d start = vec(b), end = vec(b);
+                int fall = b.readVarInt();
+                float radius = b.readFloat();
+                return () -> VfxManager.add(new MeteorEffect(start, end, fall, radius));
+            }
+            case Vfx.IMPACT -> {
+                Vec3d p = vec(b);
+                float size = b.readFloat();
+                int color = b.readInt();
+                int life = b.readVarInt();
+                return () -> VfxManager.add(new ImpactEffect(p, size, color, life));
+            }
+            case Vfx.PRESS -> {
+                Vec3d c = vec(b);
+                float r = b.readFloat();
+                int color = b.readInt();
+                int life = b.readVarInt();
+                return () -> VfxManager.add(new PressEffect(c, r, color, life));
+            }
+            case Vfx.SPEEDLINES -> {
+                float intensity = b.readFloat();
+                int duration = b.readVarInt();
+                return () -> CameraFx.speedLines(intensity, duration);
+            }
             default -> {
                 return () -> { };
             }

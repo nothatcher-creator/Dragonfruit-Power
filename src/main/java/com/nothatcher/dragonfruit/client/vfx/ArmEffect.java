@@ -5,6 +5,7 @@ import com.nothatcher.dragonfruit.client.CameraFx;
 import com.nothatcher.dragonfruit.client.ClientPowerData;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -92,6 +93,15 @@ public class ArmEffect extends VfxEffect {
         }
     }
 
+    /** Gear Third: how inflated the arm is right now (0..1). */
+    private double inflation(double t) {
+        if (t < extend) return Gfx.easeOutCubic(t / extend);
+        t -= extend;
+        if (t < hold) return 1;
+        t -= hold;
+        return Gfx.clamp01(1 - t / retract);
+    }
+
     @Override
     public void render(MatrixStack ms, VertexConsumerProvider vcp, float td) {
         if (mc().world == null) return;
@@ -106,23 +116,43 @@ public class ArmEffect extends VfxEffect {
         Vec3d tip = start.add(full.multiply(reach));
 
         Identifier skin = pl.getSkinTexture();
-        RenderLayer layer = alpha >= 0.99f ? RenderLayer.getEntityCutoutNoCull(skin) : RenderLayer.getEntityTranslucent(skin);
-        VertexConsumer vc = vcp.getBuffer(layer);
         int light = WorldRenderer.getLightmapCoordinates(mc().world, BlockPos.ofFloored(start));
+        boolean slim = "slim".equals(pl.getModel());
+        Matrix4f m = ms.peek().getPositionMatrix();
+        Matrix3f nm = ms.peek().getNormalMatrix();
 
         float r = 1f, g = 1f, b = 1f;
         if (pl == mc().player && ClientPowerData.fruit == FruitType.RUBBER && ClientPowerData.buffActive()) {
             // Second Gear: flushed pink skin
-            r = 1f;
             g = 0.72f;
             b = 0.74f;
         }
-        drawArm(vc, ms.peek().getPositionMatrix(), ms.peek().getNormalMatrix(), "slim".equals(pl.getModel()),
-                start, tip, t, energy(t), light, r, g, b);
+
+        // motion after-images trailing the fist while it shoots out
+        if (t < extend && alpha >= 0.99f) {
+            VertexConsumer ghost = vcp.getBuffer(RenderLayer.getEntityTranslucent(skin));
+            for (int k = 1; k <= 2; k++) {
+                double tg = Math.max(0, t - k * 0.9);
+                double rg = reach(tg);
+                if (rg <= 0.001) continue;
+                drawArm(ghost, m, nm, slim, start, start.add(full.multiply(rg)), tg, energy(tg), light, r, g, b,
+                        k == 1 ? 0.35f : 0.16f, false);
+            }
+        }
+
+        RenderLayer layer = alpha >= 0.99f ? RenderLayer.getEntityCutoutNoCull(skin) : RenderLayer.getEntityTranslucent(skin);
+        drawArm(vcp.getBuffer(layer), m, nm, slim, start, tip, t, energy(t), light, r, g, b, alpha, false);
+
+        // sleeve / second skin layer, like the real player model
+        PlayerModelPart sleeve = side > 0 ? PlayerModelPart.RIGHT_SLEEVE : PlayerModelPart.LEFT_SLEEVE;
+        if (pl.isPartVisible(sleeve)) {
+            drawArm(vcp.getBuffer(RenderLayer.getEntityTranslucent(skin)), m, nm, slim, start, tip, t, energy(t), light,
+                    r, g, b, alpha, true);
+        }
     }
 
     private void drawArm(VertexConsumer vc, Matrix4f m, Matrix3f nm, boolean slim, Vec3d start, Vec3d tip, double t,
-                         double energy, int light, float r, float g, float b) {
+                         double energy, int light, float r, float g, float b, float a, boolean overlay) {
         Vec3d axis = tip.subtract(start);
         double len = axis.length();
         if (len < 0.02) return;
@@ -132,22 +162,26 @@ public class ArmEffect extends VfxEffect {
         u = u.normalize();
         Vec3d v = u.crossProduct(d).normalize();
 
-        double halfU = (slim ? 1.5 : 2.0) / 16.0 * thickness;
-        double halfV = 2.0 / 16.0 * thickness;
-        double amp = Math.min(0.55, 0.04 + 0.05 * Math.sqrt(len)) * energy;
-        double thin = 0.32 * Math.min(1.0, len / 10.0);
+        boolean giant = thickness > 1.6f;
+        double uniform = giant ? 1.0 : thickness;
+        double swell = giant ? (thickness - 1) * inflation(t) : 0;
+        double layerGrow = overlay ? 1.12 : 1.0;
+        double halfU = (slim ? 1.5 : 2.0) / 16.0 * uniform * layerGrow;
+        double halfV = 2.0 / 16.0 * uniform * layerGrow;
+        double amp = Math.min(0.55, 0.04 + 0.05 * Math.sqrt(len)) * energy * (giant ? 0.5 : 1);
+        double thin = 0.32 * Math.min(1.0, len / 10.0) * (giant ? 0.2 : 1);
 
-        // skin UV layout (pixels on a 64x64 skin)
+        // skin UV layout (pixels on a 64x64 skin); overlay = sleeve layer
         int w = slim ? 3 : 4;
-        int x0 = side > 0 ? 40 : 32;
-        int y0 = side > 0 ? 20 : 52;
-        int capY = side > 0 ? 16 : 48;
+        int x0 = side > 0 ? 40 : (overlay ? 48 : 32);
+        int y0 = side > 0 ? (overlay ? 36 : 20) : 52;
+        int capY = side > 0 ? (overlay ? 32 : 16) : 48;
         float[] faceX = {x0, x0 + 4, x0 + 4 + w, x0 + 8 + w, x0 + 8 + 2 * w}; // +u | +v(front) | -u | -v(back)
         float topX = x0 + 4, botX = x0 + 4 + w;
 
         // segment plan: shoulder piece, tiled middle pieces, hand piece
         double shoulderLen = Math.min(0.30, len * 0.25);
-        double handLen = Math.min(0.36, len * 0.30);
+        double handLen = Math.min(giant ? 0.36 + swell * 0.25 : 0.36, len * 0.30);
         double midLen = Math.max(0.0, len - shoulderLen - handLen);
         int mid = Math.max(1, (int) Math.round(midLen / 0.55));
         int segs = mid + 2;
@@ -170,21 +204,21 @@ public class ArmEffect extends VfxEffect {
 
         Vec3d[] prev = null;
         for (int i = 0; i < segs; i++) {
-            Vec3d[] ringA = prev != null ? prev : ringAt(start, axis, u, v, from[i] / len, t, amp, thin, halfU, halfV, len, handLen);
-            Vec3d[] ringB = ringAt(start, axis, u, v, to[i] / len, t, amp, thin, halfU, halfV, len, handLen);
-            side(vc, m, nm, ringA[1], ringA[0], ringB[0], ringB[1], faceX[1], faceX[2], vy0[i], vy1[i], v, light, r, g, b);          // front (+v)
-            side(vc, m, nm, ringA[0], ringA[3], ringB[3], ringB[0], faceX[0], faceX[1], vy0[i], vy1[i], u, light, r, g, b);          // +u side
-            side(vc, m, nm, ringA[3], ringA[2], ringB[2], ringB[3], faceX[3], faceX[4], vy0[i], vy1[i], v.negate(), light, r, g, b); // back (-v)
-            side(vc, m, nm, ringA[2], ringA[1], ringB[1], ringB[2], faceX[2], faceX[3], vy0[i], vy1[i], u.negate(), light, r, g, b); // -u side
-            if (i == 0) cap(vc, m, nm, ringA, topX, capY, w, d.negate(), light, r, g, b);
-            if (i == segs - 1) cap(vc, m, nm, ringB, botX, capY, w, d, light, r, g, b);
+            Vec3d[] ringA = prev != null ? prev : ringAt(start, axis, u, v, from[i] / len, t, amp, thin, halfU, halfV, len, handLen, swell);
+            Vec3d[] ringB = ringAt(start, axis, u, v, to[i] / len, t, amp, thin, halfU, halfV, len, handLen, swell);
+            side(vc, m, nm, ringA[1], ringA[0], ringB[0], ringB[1], faceX[1], faceX[2], vy0[i], vy1[i], v, light, r, g, b, a);          // front (+v)
+            side(vc, m, nm, ringA[0], ringA[3], ringB[3], ringB[0], faceX[0], faceX[1], vy0[i], vy1[i], u, light, r, g, b, a);          // +u side
+            side(vc, m, nm, ringA[3], ringA[2], ringB[2], ringB[3], faceX[3], faceX[4], vy0[i], vy1[i], v.negate(), light, r, g, b, a); // back (-v)
+            side(vc, m, nm, ringA[2], ringA[1], ringB[1], ringB[2], faceX[2], faceX[3], vy0[i], vy1[i], u.negate(), light, r, g, b, a); // -u side
+            if (i == 0) cap(vc, m, nm, ringA, topX, capY, w, d.negate(), light, r, g, b, a);
+            if (i == segs - 1) cap(vc, m, nm, ringB, botX, capY, w, d, light, r, g, b, a);
             prev = ringB;
         }
     }
 
     /** Cross-section corners at fraction s along the arm: [+u+v, -u+v, -u-v, +u-v]. */
     private static Vec3d[] ringAt(Vec3d start, Vec3d axis, Vec3d u, Vec3d v, double s, double t, double amp, double thin,
-                                  double halfU, double halfV, double len, double handLen) {
+                                  double halfU, double halfV, double len, double handLen, double swell) {
         double env = Math.sin(Math.PI * s);
         double ox = env * amp * Math.sin(t * 0.9 + s * 7.0);
         double oy = env * amp * 0.7 * Math.cos(t * 0.75 + s * 5.0);
@@ -192,6 +226,7 @@ public class ArmEffect extends VfxEffect {
         double scale = 1.0 - thin * env;
         double handStart = 1.0 - handLen / len;
         if (s > handStart) scale *= 1.0 + 0.22 * Gfx.clamp01((s - handStart) / Math.max(1.0E-4, 1.0 - handStart)); // fist bulge
+        if (swell > 0) scale *= 1.0 + swell * Math.pow(s, 1.3); // Gear Third: balloons toward the fist
         double hu = halfU * scale, hv = halfV * scale;
         return new Vec3d[]{
                 c.add(u.multiply(hu)).add(v.multiply(hv)),
@@ -202,25 +237,25 @@ public class ArmEffect extends VfxEffect {
     }
 
     private void side(VertexConsumer vc, Matrix4f m, Matrix3f nm, Vec3d a0, Vec3d a1, Vec3d b1, Vec3d b0,
-                      float ux0, float ux1, float vy0, float vy1, Vec3d n, int light, float r, float g, float b) {
-        vert(vc, m, nm, a0, ux0, vy0, n, light, r, g, b);
-        vert(vc, m, nm, a1, ux1, vy0, n, light, r, g, b);
-        vert(vc, m, nm, b1, ux1, vy1, n, light, r, g, b);
-        vert(vc, m, nm, b0, ux0, vy1, n, light, r, g, b);
+                      float ux0, float ux1, float vy0, float vy1, Vec3d n, int light, float r, float g, float b, float a) {
+        vert(vc, m, nm, a0, ux0, vy0, n, light, r, g, b, a);
+        vert(vc, m, nm, a1, ux1, vy0, n, light, r, g, b, a);
+        vert(vc, m, nm, b1, ux1, vy1, n, light, r, g, b, a);
+        vert(vc, m, nm, b0, ux0, vy1, n, light, r, g, b, a);
     }
 
     private void cap(VertexConsumer vc, Matrix4f m, Matrix3f nm, Vec3d[] ring, float ux, float uy, int w, Vec3d n,
-                     int light, float r, float g, float b) {
-        vert(vc, m, nm, ring[0], ux + w, uy, n, light, r, g, b);
-        vert(vc, m, nm, ring[1], ux, uy, n, light, r, g, b);
-        vert(vc, m, nm, ring[2], ux, uy + 4, n, light, r, g, b);
-        vert(vc, m, nm, ring[3], ux + w, uy + 4, n, light, r, g, b);
+                     int light, float r, float g, float b, float a) {
+        vert(vc, m, nm, ring[0], ux + w, uy, n, light, r, g, b, a);
+        vert(vc, m, nm, ring[1], ux, uy, n, light, r, g, b, a);
+        vert(vc, m, nm, ring[2], ux, uy + 4, n, light, r, g, b, a);
+        vert(vc, m, nm, ring[3], ux + w, uy + 4, n, light, r, g, b, a);
     }
 
     private void vert(VertexConsumer vc, Matrix4f m, Matrix3f nm, Vec3d p, float uPx, float vPx, Vec3d n, int light,
-                      float r, float g, float b) {
+                      float r, float g, float b, float a) {
         vc.vertex(m, (float) (p.x - Gfx.cam.x), (float) (p.y - Gfx.cam.y), (float) (p.z - Gfx.cam.z))
-                .color(r, g, b, alpha)
+                .color(r, g, b, a)
                 .texture(uPx / 64f, vPx / 64f)
                 .overlay(OverlayTexture.DEFAULT_UV)
                 .light(light)

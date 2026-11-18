@@ -75,6 +75,28 @@ public final class Gfx {
         }
     }
 
+    /** Sphere lit from one direction (cheap per-face shading), for solid-looking rocks. */
+    public static void shadedSphere(VertexConsumer vc, Matrix4f m, Vec3d c, double r, int rgb, float alpha, int lat, int lon, Vec3d light) {
+        Vec3d l = light.normalize();
+        for (int i = 0; i < lat; i++) {
+            double t0 = Math.PI * i / lat - Math.PI / 2;
+            double t1 = Math.PI * (i + 1) / lat - Math.PI / 2;
+            for (int j = 0; j < lon; j++) {
+                double p0 = Math.PI * 2 * j / lon;
+                double p1 = Math.PI * 2 * (j + 1) / lon;
+                Vec3d a = sp(c, r, t0, p0), b = sp(c, r, t0, p1), cc = sp(c, r, t1, p1), d = sp(c, r, t1, p0);
+                Vec3d n = a.add(b).add(cc).add(d).multiply(0.25).subtract(c).normalize();
+                double shade = 0.35 + 0.65 * Math.max(0, n.dotProduct(l));
+                // little craters: darken some faces
+                if (((i * 7 + j * 13) % 9) == 0) shade *= 0.7;
+                int rr = (int) Math.min(255, ((rgb >> 16) & 0xFF) * shade);
+                int gg = (int) Math.min(255, ((rgb >> 8) & 0xFF) * shade);
+                int bb = (int) Math.min(255, (rgb & 0xFF) * shade);
+                quad(vc, m, a, b, cc, d, argb((rr << 16) | (gg << 8) | bb, alpha));
+            }
+        }
+    }
+
     private static Vec3d sp(Vec3d c, double r, double theta, double phi) {
         double cos = Math.cos(theta);
         return c.add(r * cos * Math.cos(phi), r * Math.sin(theta), r * cos * Math.sin(phi));

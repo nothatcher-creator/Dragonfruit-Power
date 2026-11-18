@@ -169,6 +169,46 @@ public final class Particles {
                 for (int i = 0; i < 25; i++) add(ParticleTypes.END_ROD, pos, randDir(r).multiply(0.25));
                 add(ParticleTypes.FLASH, pos, Vec3d.ZERO);
             }
+            case Vfx.B_THUNDER -> {
+                for (int i = 0; i < 40 * s; i++) add(ParticleTypes.ELECTRIC_SPARK, pos, randDir(r).multiply(0.4 + r.nextDouble() * 0.6));
+                for (int i = 0; i < 12 * s; i++) add(ParticleTypes.END_ROD, pos, randDir(r).multiply(0.15));
+                for (int i = 0; i < 8 * s; i++) add(ParticleTypes.CLOUD, pos, randDir(r).multiply(0.2).multiply(1, 0.3, 1));
+                add(ParticleTypes.FLASH, pos, Vec3d.ZERO);
+                blockDust(w, pos, (int) (10 * s), 0.5, r);
+            }
+            case Vfx.B_MAGMA -> {
+                for (int i = 0; i < 60 * s; i++) add(ParticleTypes.FLAME, pos, randDir(r).multiply(0.1 + r.nextDouble() * 0.25 * s));
+                for (int i = 0; i < 20 * s; i++) add(ParticleTypes.LAVA, pos, Vec3d.ZERO);
+                for (int i = 0; i < 25 * s; i++) add(ParticleTypes.LARGE_SMOKE, pos.add(randDir(r).multiply(s)), new Vec3d(0, 0.08, 0));
+                for (int i = 0; i < 12 * s; i++) add(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.add(randDir(r).multiply(s)), new Vec3d(0, 0.05, 0));
+                add(ParticleTypes.EXPLOSION, pos, Vec3d.ZERO);
+                blockDust(w, pos, (int) (16 * s), 0.6, r);
+            }
+            case Vfx.B_ERUPTION -> {
+                int columns = (int) (6 * s);
+                for (int c = 0; c < columns; c++) {
+                    double a = Math.PI * 2 * c / columns + r.nextDouble() * 0.2;
+                    Vec3d base = pos.add(Math.cos(a) * s, 0.1, Math.sin(a) * s);
+                    BlockPos g = ground(w, base, 2, 4);
+                    if (g != null) base = new Vec3d(base.x, g.getY() + 1.02, base.z);
+                    for (int i = 0; i < 10; i++) {
+                        add(ParticleTypes.FLAME, base.add((r.nextDouble() - 0.5) * 0.6, 0, (r.nextDouble() - 0.5) * 0.6),
+                                new Vec3d(0, 0.45 + r.nextDouble() * 0.6, 0));
+                    }
+                    for (int i = 0; i < 3; i++) add(ParticleTypes.LAVA, base, Vec3d.ZERO);
+                    add(ParticleTypes.LARGE_SMOKE, base.add(0, 1.5, 0), new Vec3d(0, 0.15, 0));
+                    blockDust(w, base, 3, 0.6, r);
+                }
+            }
+            case Vfx.B_GRAVITY -> {
+                for (int i = 0; i < 50; i++) {
+                    double a = r.nextDouble() * Math.PI * 2;
+                    double rad = Math.sqrt(r.nextDouble()) * s;
+                    add(ParticleTypes.REVERSE_PORTAL, pos.add(Math.cos(a) * rad, 0.3, Math.sin(a) * rad), new Vec3d(0, -0.2, 0));
+                }
+                for (int i = 0; i < 20; i++) add(ParticleTypes.PORTAL, pos.add(0, 0.5, 0), randDir(r).multiply(0.8));
+                shockRing(pos.add(0, 0.3, 0), Gfx.UP, ParticleTypes.CLOUD, 30, 0.6);
+            }
             default -> { }
         }
     }
@@ -190,6 +230,8 @@ public final class Particles {
             case Vfx.S_FROST -> add(ParticleTypes.SNOWFLAKE, at, new Vec3d(0, 0.05, 0));
             case Vfx.S_LIGHT -> add(ParticleTypes.END_ROD, at, Vec3d.ZERO);
             case Vfx.S_QUAKE -> add(ParticleTypes.CLOUD, at, Vec3d.ZERO);
+            case Vfx.S_THUNDER -> add(ParticleTypes.ELECTRIC_SPARK, at, new Vec3d(0, 0.1, 0));
+            case Vfx.S_GRAVITY -> add(ParticleTypes.REVERSE_PORTAL, at, Vec3d.ZERO);
             default -> { }
         }
     }

@@ -5,8 +5,11 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [],
   "client": [
+    "client.CameraAccessor",
+    "client.CameraMixin",
     "client.GameRendererMixin",
-    "client.HeldItemRendererMixin"
+    "client.HeldItemRendererMixin",
+    "client.PlayerEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

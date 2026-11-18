@@ -48,6 +48,10 @@ public class AuraEffect extends VfxEffect {
                 }
                 case Vfx.A_FROST -> Particles.add(ParticleTypes.SNOWFLAKE, p, Vec3d.ZERO);
                 case Vfx.A_LIGHT -> Particles.add(ParticleTypes.END_ROD, p, Vec3d.ZERO);
+                case Vfx.A_THUNDER -> {
+                    Particles.add(ParticleTypes.ELECTRIC_SPARK, p, Particles.randDir(r).multiply(0.15));
+                    if (r.nextInt(6) == 0) Particles.add(ParticleTypes.END_ROD, p, Vec3d.ZERO);
+                }
                 default -> { }
             }
         }

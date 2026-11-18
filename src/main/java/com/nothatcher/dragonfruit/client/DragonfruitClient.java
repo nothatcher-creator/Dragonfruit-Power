@@ -30,6 +30,7 @@ public class DragonfruitClient implements ClientModInitializer {
     public static KeyBinding useKey;
     public static KeyBinding nextKey;
     public static KeyBinding prevKey;
+    public static KeyBinding camKey;
 
     private static double lastVelY;
     private static boolean wasOnGround = true;
@@ -39,6 +40,7 @@ public class DragonfruitClient implements ClientModInitializer {
         useKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.use", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.dragonfruit"));
         nextKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.next", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_C, "category.dragonfruit"));
         prevKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.prev", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "category.dragonfruit"));
+        camKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.dragonfruit.camera", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "category.dragonfruit"));
 
         ClientPlayNetworking.registerGlobalReceiver(Net.STATE, (client, handler, buf, responseSender) -> {
             int fruit = buf.readVarInt();
@@ -60,6 +62,7 @@ public class DragonfruitClient implements ClientModInitializer {
             ClientPowerData.reset();
             VfxManager.clear();
             CameraFx.reset();
+            PowerCam.reset();
         }));
     }
 
@@ -74,6 +77,7 @@ public class DragonfruitClient implements ClientModInitializer {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
+        while (camKey.wasPressed()) PowerCam.cycle();
         while (nextKey.wasPressed()) ClientPowerData.cycle(1);
         while (prevKey.wasPressed()) ClientPowerData.cycle(-1);
         while (useKey.wasPressed()) {

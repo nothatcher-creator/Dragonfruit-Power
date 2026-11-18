@@ -17,21 +17,23 @@ import java.util.function.Consumer;
  */
 public final class Vfx {
     public static final int ARM = 1, GATLING = 2, BEAM = 3, RING = 4, ORB = 5, SPIKES = 6, ICE_COFFIN = 7,
-            AIR_CRACK = 8, PROJECTILE = 9, FIREFLIES = 10, SHAKE = 11, FLASH = 12, AURA = 13, BURST = 14, FOV = 15;
+            AIR_CRACK = 8, PROJECTILE = 9, FIREFLIES = 10, SHAKE = 11, FLASH = 12, AURA = 13, BURST = 14, FOV = 15,
+            BOLT = 16, METEOR = 17, IMPACT = 18, PRESS = 19, SPEEDLINES = 20;
 
     // burst kinds (one-shot particle explosions)
     public static final int B_RUBBER_HIT = 0, B_FIRE_BIG = 1, B_FIRE_SMALL = 2, B_FLAME_PILLAR = 3, B_FROST = 4,
             B_ICE_SHATTER = 5, B_LIGHT = 6, B_LIGHT_SMALL = 7, B_QUAKE_LINE = 8, B_GROUND_QUAKE = 9, B_STEAM = 10,
-            B_AWAKEN = 11, B_BLOCK_HIT = 12;
+            B_AWAKEN = 11, B_BLOCK_HIT = 12, B_THUNDER = 13, B_MAGMA = 14, B_ERUPTION = 15, B_GRAVITY = 16;
 
     // aura kinds (particles following an entity)
-    public static final int A_STEAM = 0, A_FLAME = 1, A_FROST = 2, A_LIGHT = 3;
+    public static final int A_STEAM = 0, A_FLAME = 1, A_FROST = 2, A_LIGHT = 3, A_THUNDER = 4;
 
     // particle styles for beams / rings / orbs
-    public static final int S_NONE = 0, S_DUST = 1, S_FLAME = 2, S_FROST = 3, S_LIGHT = 4, S_QUAKE = 5;
+    public static final int S_NONE = 0, S_DUST = 1, S_FLAME = 2, S_FROST = 3, S_LIGHT = 4, S_QUAKE = 5,
+            S_THUNDER = 6, S_GRAVITY = 7;
 
     // projectile kinds
-    public static final int P_FIRE_FIST = 0, P_ICE_SPEAR = 1;
+    public static final int P_FIRE_FIST = 0, P_ICE_SPEAR = 1, P_MAGMA = 2;
 
     // orb attach modes
     public static final int ATTACH_NONE = 0, ATTACH_CENTER = 1, ATTACH_HAND = 2;
@@ -206,6 +208,57 @@ public final class Vfx {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeByte(FOV);
         buf.writeFloat(amount);
+        buf.writeVarInt(duration);
+        ServerPlayNetworking.send(player, Net.VFX, buf);
+    }
+
+    /** Jagged lightning bolt between two points (re-jags every couple of ticks). */
+    public static void bolt(ServerWorld w, Vec3d from, Vec3d to, int color, float width, int life, long seed) {
+        broadcast(w, to, BOLT, b -> {
+            vec(b, from);
+            vec(b, to);
+            b.writeInt(color);
+            b.writeFloat(width);
+            b.writeVarInt(life);
+            b.writeLong(seed);
+        });
+    }
+
+    /** Burning meteor falling from start to end over fallTicks. */
+    public static void meteor(ServerWorld w, Vec3d start, Vec3d end, int fallTicks, float radius) {
+        broadcast(w, end, METEOR, b -> {
+            vec(b, start);
+            vec(b, end);
+            b.writeVarInt(fallTicks);
+            b.writeFloat(radius);
+        });
+    }
+
+    /** Anime impact star (camera-facing spikes + flash). */
+    public static void impact(ServerWorld w, Vec3d pos, float size, int color, int life) {
+        broadcast(w, pos, IMPACT, b -> {
+            vec(b, pos);
+            b.writeFloat(size);
+            b.writeInt(color);
+            b.writeVarInt(life);
+        });
+    }
+
+    /** Gravity column pressing down on an area. */
+    public static void press(ServerWorld w, Vec3d center, float radius, int color, int life) {
+        broadcast(w, center, PRESS, b -> {
+            vec(b, center);
+            b.writeFloat(radius);
+            b.writeInt(color);
+            b.writeVarInt(life);
+        });
+    }
+
+    /** Full-screen anime speed lines, only for the player who used the move. */
+    public static void speedLines(ServerPlayerEntity player, float intensity, int duration) {
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeByte(SPEEDLINES);
+        buf.writeFloat(intensity);
         buf.writeVarInt(duration);
         ServerPlayNetworking.send(player, Net.VFX, buf);
     }

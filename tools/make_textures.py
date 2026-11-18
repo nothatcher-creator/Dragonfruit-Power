@@ -19,6 +19,12 @@ PAL = {
                 leaf='#d9a400', leafl='#ffe066', tip='#ffffff', accent='#fffbe0'),
  'quake':  dict(out='#4b463b', dark='#9d9686', mid='#d8d2c2', light='#f1ede2', hi='#ffffff',
                 leaf='#6e8a5a', leafl='#9cbf83', tip='#f4ffe8', accent='#4b463b'),
+ 'thunder':dict(out='#14284a', dark='#2b4f8f', mid='#4f86d6', light='#8fc2ff', hi='#ffffff',
+                leaf='#e8d43a', leafl='#fff27a', tip='#ffffff', accent='#fff36b'),
+ 'magma':  dict(out='#1a0a06', dark='#3a1a12', mid='#5e2818', light='#8a3a1c', hi='#ff9a3a',
+                leaf='#c42a00', leafl='#ff6a1a', tip='#ffd24a', accent='#ff6a1a'),
+ 'gravity':dict(out='#1a0f33', dark='#3b2470', mid='#6b45c4', light='#9a74ff', hi='#e2d6ff',
+                leaf='#2a1a52', leafl='#5a3aa8', tip='#d6c2ff', accent='#14092a'),
 }
 
 CX, CY, RX, RY = 7.6, 9.6, 5.3, 5.7
@@ -76,6 +82,23 @@ def frame(name, f):
             if inside(x,y): px[x,y] = p['accent']
         if f % 2 == 0:
             for x,y in [(9,9),(8,8)]: px[x,y] = (255,255,255,255)
+    if name == 'thunder':
+        bolt = [(9,5),(8,6),(8,7),(7,8),(8,9),(9,9),(8,10),(7,11),(7,12)]
+        for i,(x,y) in enumerate(bolt):
+            if inside(x,y): px[x,y] = p['accent'] if (f % 2 == 0 or i % 2 == 0) else p['hi']
+    if name == 'magma':
+        cracks = [(5,8),(6,9),(7,9),(8,10),(9,11),(10,11),(9,7),(10,8),(6,12),(7,13),(11,9)]
+        glow = [p['accent'], p['hi'], p['tip'], p['hi']][f]
+        for x,y in cracks:
+            if inside(x,y): px[x,y] = glow
+    if name == 'gravity':
+        cx, cy = 8, 10
+        for y in range(16):
+            for x in range(16):
+                if inside(x,y,-1.0):
+                    d = math.hypot(x-cx, y-cy)
+                    if abs(d - (1 + f*0.8)) < 0.5: px[x,y] = mix(px[x,y], p['hi'], 0.6)
+        if inside(cx,cy): px[cx,cy] = p['accent']; px[cx-1,cy] = p['accent']
     if name == 'flame':
         for y in range(16):
             for x in range(16):
@@ -121,7 +144,7 @@ for i,n in enumerate(['flame','ice','light','quake']):
 icon.save(sys.argv[2])
 
 # preview sheet for review
-prev = Image.new('RGBA', (5*16*8 + 40, 4*16*8 + 30), (40,40,48,255))
+prev = Image.new('RGBA', (len(PAL)*136 + 16, 4*16*8 + 30), (40,40,48,255))
 for c,name in enumerate(PAL):
     for f in range(4):
         prev.alpha_composite(frame(name,f).resize((128,128), Image.NEAREST), (8 + c*136, 8 + f*132))

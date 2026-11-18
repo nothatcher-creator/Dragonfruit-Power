@@ -15,6 +15,7 @@ public enum FruitType {
             new Ability("pistol", 18),
             new Ability("rocket", 50),
             new Ability("gatling", 150),
+            new Ability("gear_third", 220),
             new Ability("second_gear", 600)),
 
     FLAME("flame", 0xFF7A1A,
@@ -36,7 +37,22 @@ public enum FruitType {
     QUAKE("quake", 0xF4F1E4,
             new Ability("quake_punch", 60),
             new Ability("ground_quake", 160),
-            new Ability("quake_bubble", 300));
+            new Ability("quake_bubble", 300)),
+
+    THUNDER("thunder", 0x8FD8FF,
+            new Ability("lightning_strike", 50),
+            new Ability("thunder_dash", 60),
+            new Ability("thunder_storm", 240)),
+
+    MAGMA("magma", 0xE0461A,
+            new Ability("magma_fist", 70),
+            new Ability("eruption", 180),
+            new Ability("meteor_rain", 280)),
+
+    GRAVITY("gravity", 0x9A6BFF,
+            new Ability("gravity_crush", 120),
+            new Ability("gravity_lift", 140),
+            new Ability("meteor_call", 400));
 
     public record Ability(String id, int cooldown) {}
 

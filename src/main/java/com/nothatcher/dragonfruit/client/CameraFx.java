@@ -12,6 +12,8 @@ public final class CameraFx {
     private static int fovHoldTicks;
     private static float flash, prevFlash;
     private static int clock;
+    private static float speedLines;
+    private static int speedLinesLeft, speedLinesDuration;
 
     private CameraFx() {}
 
@@ -38,8 +40,29 @@ public final class CameraFx {
         flash = Math.min(1f, Math.max(flash, amount));
     }
 
+    public static void speedLines(float intensity, int duration) {
+        speedLines = Math.max(speedLines * speedLinesFraction(0), intensity);
+        speedLinesDuration = Math.max(1, duration);
+        speedLinesLeft = speedLinesDuration;
+    }
+
+    private static float speedLinesFraction(float td) {
+        if (speedLinesLeft <= 0) return 0;
+        return Math.max(0, (speedLinesLeft - td) / speedLinesDuration);
+    }
+
+    /** 0..1 strength of the anime speed lines overlay. */
+    public static float speedLinesAlpha(float td) {
+        return speedLines * speedLinesFraction(td);
+    }
+
+    public static float fovKickAmount() {
+        return fovKick;
+    }
+
     public static void tick() {
         clock++;
+        if (speedLinesLeft > 0) speedLinesLeft--;
         if (shakeLeft > 0) shakeLeft--;
         if (fovHoldTicks > 0) {
             fovHoldTicks--;
@@ -58,6 +81,7 @@ public final class CameraFx {
         fovKick = 0;
         fovHoldTicks = 0;
         flash = prevFlash = 0;
+        speedLinesLeft = 0;
     }
 
     private static float currentShake(float td) {
