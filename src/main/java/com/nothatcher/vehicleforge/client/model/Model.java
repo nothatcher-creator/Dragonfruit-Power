@@ -24,7 +24,9 @@ public final class Model {
         /** forklift forks: slide up and down */
         FORKS,
         /** only drawn while the vehicle's special ability is on (UFO beam, time machine charge) */
-        ABILITY
+        ABILITY,
+        /** excavator / crane arm: swings with the house (round the vehicle's turret point) and lifts with the view; param = lowest angle */
+        BOOM
     }
 
     public static final class Quad {

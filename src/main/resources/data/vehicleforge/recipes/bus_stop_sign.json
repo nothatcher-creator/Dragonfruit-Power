@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "B",
+    "I",
+    "I"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:blue_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:bus_stop_sign",
+    "count": 1
+  }
+}

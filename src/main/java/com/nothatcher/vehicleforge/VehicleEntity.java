@@ -112,6 +112,10 @@ public class VehicleEntity extends Entity {
     public int abilityTicks;
     /** server: time machine trail, newest first: x, y, z, yaw every half second */
     public final ArrayDeque<double[]> timeHistory = new ArrayDeque<>();
+    /** server: what this crane is holding or this tow truck is towing */
+    public Entity carried;
+    /** server: the crane or tow truck holding this vehicle (its own physics pause) */
+    public VehicleEntity carriedBy;
 
     // remote interpolation
     private int lerpTicks;
@@ -286,6 +290,56 @@ public class VehicleEntity extends Entity {
         return new ItemStack(ModRegistry.ITEMS.get(type.id));
     }
 
+    /**
+     * The hitbox covers the whole vehicle, bumper to bumper, turned with the vehicle (as the box around the rotated
+     * footprint). Blocks, players, mobs and other vehicles all collide with the full length.
+     */
+    @Override
+    protected Box calculateBoundingBox() {
+        if (type == null) return super.calculateBoundingBox();
+        return footprint(getX(), getY(), getZ(), getYaw());
+    }
+
+    public Box footprint(double x, double y, double z, float yaw) {
+        float s = scaleNow > 0 ? scaleNow : 1f;
+        double hw = type.width * 0.5 * s;
+        double f = Math.max(type.frontZ * s, hw), r = Math.min(type.rearZ * s, -hw);
+        double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, minZ = Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
+        double rad = Math.toRadians(yaw), c = Math.cos(rad), sn = Math.sin(rad);
+        for (int i = 0; i < 4; i++) {
+            double lx = (i & 1) == 0 ? hw : -hw, lz = (i & 2) == 0 ? f : r;
+            double wx = lx * c - lz * sn, wz = lx * sn + lz * c;
+            minX = Math.min(minX, wx);
+            maxX = Math.max(maxX, wx);
+            minZ = Math.min(minZ, wz);
+            maxZ = Math.max(maxZ, wz);
+        }
+        return new Box(x + minX, y, z + minZ, x + maxX, y + type.height * s, z + maxZ);
+    }
+
+    /** Turn by delta degrees unless the longer footprint would swing into a wall (kerbs it can climb don't count). */
+    private void turn(float delta) {
+        if (delta == 0) return;
+        float old = getYaw();
+        setYaw(old + delta);
+        Box nb = calculateBoundingBox();
+        double lift = Math.min(1.05, getStepHeight() * 0.9 + 0.05);
+        Box test = nb.contract(0.12, 0, 0.12).offset(0, lift, 0);
+        boolean free = true;
+        for (VoxelShape shape : getWorld().getBlockCollisions(this, test)) {
+            if (!shape.isEmpty()) {
+                free = false;
+                break;
+            }
+        }
+        if (free) {
+            setBoundingBox(nb);
+        } else {
+            setYaw(old);
+            yawDelta = 0;
+        }
+    }
+
     @Override
     public Box getVisibilityBoundingBox() {
         return getBoundingBox().expand(type.category == Category.TRAIN ? 30 : 8, 8, type.category == Category.TRAIN ? 30 : 8);
@@ -337,6 +391,13 @@ public class VehicleEntity extends Entity {
     public Vec3d seatPos(int index) {
         if (index < type.seats.size()) {
             Vec3d s = type.seats.get(index).multiply(scaleNow);
+            LivingEntity drv = getControllingPassenger();
+            if (type.seatTurns && index == 0 && drv != null) {
+                // the operator's cab swings round with the house, which follows where they look
+                double a = Math.toRadians(-MathHelper.wrapDegrees(drv.getHeadYaw() - getYaw()));
+                double px = type.turret.x, pz = type.turret.z, dx = s.x - px, dz = s.z - pz;
+                s = new Vec3d(px + dx * Math.cos(a) + dz * Math.sin(a), s.y, pz - dx * Math.sin(a) + dz * Math.cos(a));
+            }
             float pitch = type.flies() ? getPitch() : 0;
             return getPos().add(rotate(s.x, s.y, s.z, getYaw(), pitch));
         }
@@ -368,7 +429,7 @@ public class VehicleEntity extends Entity {
         double out = type.width / 2 + 0.8;
         Vec3d[] tries = {
                 seat.add(left.multiply(out)), seat.subtract(left.multiply(out)),
-                getPos().add(forward().multiply(-(type.width + 1.5))), getPos().add(0, type.height + 0.2, 0)
+                toWorld(0, 0, type.rearZ - 1.2), toWorld(0, 0, type.frontZ + 1.2), getPos().add(0, type.height + 0.2, 0)
         };
         for (Vec3d t : tries) {
             Vec3d ground = new Vec3d(t.x, Math.max(getY(), t.y - 1.5), t.z);
@@ -568,9 +629,11 @@ public class VehicleEntity extends Entity {
             default -> type.weapon == VehicleType.Weapon.BOOST && abilityOn();
         };
         if (type.weapon == VehicleType.Weapon.MOWER && abilityOn()) rotorSpin += 50f;
-        if (type.weapon == VehicleType.Weapon.FORKS) forkHeight += ((abilityOn() ? 2.0f : 0f) - forkHeight) * 0.08f;
+        if (type.weapon == VehicleType.Weapon.FORKS) forkHeight += ((abilityOn() ? type.lift : 0f) - forkHeight) * 0.08f;
+        if (type.weapon == VehicleType.Weapon.BLADE) forkHeight += ((abilityOn() ? 0f : type.lift) - forkHeight) * 0.1f;
 
         updateGearbox();
+        setBoundingBox(calculateBoundingBox());
         if (getWorld().isClient) {
             updateBody();
             long t = getWorld().getTimeOfDay() % 24000L;
@@ -685,8 +748,21 @@ public class VehicleEntity extends Entity {
             case MOWER -> {
                 if (abilityOn() && age % 2 == 0) Weapons.mowTick(this);
             }
-            case BOOST -> {
+            case BOOST, DIG -> {
                 if (abilityTicks > 0 && --abilityTicks == 0) setAbility(false);
+            }
+            case BLADE -> {
+                if (abilityOn() && measuredSpeed > 0.02f) Weapons.bladeTick(this);
+            }
+            case PAVE -> {
+                if (abilityOn()) Weapons.paveTick(this);
+            }
+            case CRANE, TOW -> {
+                if (carried != null) {
+                    if (getControllingPassenger() == null || carried.isRemoved() || carried.squaredDistanceTo(this) > 400) Weapons.release(this);
+                    else if (type.weapon == VehicleType.Weapon.CRANE) Weapons.craneTick(this);
+                    else Weapons.towTick(this);
+                }
             }
             default -> { }
         }
@@ -748,6 +824,10 @@ public class VehicleEntity extends Entity {
     // ------------------------------------------------------------ physics
 
     private void physics() {
+        if (carriedBy != null) {
+            if (carriedBy.isRemoved() || carriedBy.carried != this) carriedBy = null;
+            else return;
+        }
         boolean driven = getControllingPassenger() != null && getWorld().isClient;
         boolean fwd = driven && InputState.forward, back = driven && InputState.back;
         boolean left = driven && InputState.left, right = driven && InputState.right;
@@ -796,7 +876,7 @@ public class VehicleEntity extends Entity {
     private void steer(float steer) {
         float grip = MathHelper.clamp(Math.abs(speed) / 0.25f, 0, 1);
         yawDelta = -steer * type.turn * grip * Math.signum(speed);
-        setYaw(getYaw() + yawDelta);
+        turn(yawDelta);
     }
 
     private enum Surface { ROAD, SOFT, SNOW, MUD, ICE }
@@ -885,7 +965,7 @@ public class VehicleEntity extends Entity {
         float high = 1f - 0.4f * Math.min(1f, Math.abs(speed) / Math.max(0.3f, type.maxSpeed));
         float tyreGrip = onGround || floating ? 1f : 0.15f;
         yawDelta = -steerInput * type.turn * low * high * tyreGrip * (drift ? 1.7f : 1f) * Math.signum(speed);
-        setYaw(getYaw() + yawDelta);
+        turn(yawDelta);
 
         f = forward();
         left = leftVec();

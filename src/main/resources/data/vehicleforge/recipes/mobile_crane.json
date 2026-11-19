@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  L",
+    "IYI",
+    "CCC"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:chain"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "Y": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:mobile_crane",
+    "count": 1
+  }
+}

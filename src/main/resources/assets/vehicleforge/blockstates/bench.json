@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/bench"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/bench",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/bench",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/bench",
+      "y": 270
+    }
+  }
+}

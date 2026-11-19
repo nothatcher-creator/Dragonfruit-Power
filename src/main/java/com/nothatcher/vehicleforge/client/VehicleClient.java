@@ -308,6 +308,11 @@ public class VehicleClient implements ClientModInitializer {
             case MOWER: return "mower";
             case FORKS: return "forklift";
             case COMPACTOR: return "garbage";
+            case DIG: return "dig";
+            case BLADE: return "blade";
+            case PAVE: return "pave";
+            case CRANE: return "crane";
+            case TOW: return "tow";
             default: break;
         }
         if (t.category == Category.ANIMAL) return "animal";

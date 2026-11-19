@@ -85,6 +85,12 @@ public final class VehicleModels {
             case "snowmobile" -> snowmobile();
             case "hovercraft" -> hovercraft();
             case "hot_air_balloon" -> balloon();
+            case "excavator" -> excavator();
+            case "bulldozer" -> bulldozer();
+            case "wheel_loader" -> loader();
+            case "road_roller" -> roller();
+            case "mobile_crane" -> crane();
+            case "tow_truck" -> towTruck();
             default -> sedan();
         };
     }
@@ -1881,5 +1887,201 @@ public final class VehicleModels {
         b.cyl(0, 4.4, 0, 'y', 0.9, 2.4, 1.2, 16, Mat.BALLOON, null);
         sphere(b, 0, 7.6, 0, 3.5, 3.4, 10, 16, (i, j) -> i < 2 ? Mat.PAINT : Mat.BALLOON);
         return b.build();
+    }
+
+    // ================================================================ wave 4: construction
+
+    private static void tracks(Builder b, double xIn, double xOut, double z0, double z1, double h) {
+        b.pair(xIn, 0.0, z0, xOut, h, z1, Mat.TREAD);
+        double r = h / 2;
+        for (int sd = -1; sd <= 1; sd += 2) {
+            double x = sd * (xIn + xOut) / 2;
+            b.cyl(x - (xOut - xIn) / 2 * sd, r, z0, 'x', r, r, sd * (xOut - xIn), 10, Mat.TREAD, Mat.METAL);
+            b.cyl(x - (xOut - xIn) / 2 * sd, r, z1, 'x', r, r, sd * (xOut - xIn), 10, Mat.TREAD, Mat.METAL);
+        }
+        b.pair(xIn - 0.02, h * 0.25, z0 + 0.2, xIn, h * 0.75, z1 - 0.2, Mat.METAL);
+    }
+
+    private static Model excavator() {
+        Builder b = Model.builder();
+        tracks(b, 0.75, 1.3, -1.9, 1.9, 0.8);
+        b.box(-0.75, 0.3, -1.4, 0.75, 0.75, 1.4, Mat.METAL);
+        b.cyl(0, 0.75, 0, 'y', 0.65, 0.65, 0.25, 14, Mat.METAL, Mat.METAL);              // slew ring
+        // the house swings round with the operator's view
+        b.group(Kind.TURRET, 0, 1.0, 0, 0, false);
+        b.box(-1.15, 1.0, -1.7, 1.15, 1.15, 1.1, Mat.METAL);                            // deck
+        b.box(-1.15, 1.15, -1.7, 0.1, 2.1, 0.4, Mat.PAINT);                             // engine housing
+        b.box(-1.2, 1.0, -2.2, 1.2, 2.0, -1.7, Mat.PAINT_DARK);                         // counterweight
+        b.pair(1.0, 1.2, -2.21, 1.15, 1.35, -2.18, Mat.TAILLIGHT);
+        b.cyl(-0.8, 2.1, -1.2, 'y', 0.07, 0.07, 0.6, 6, Mat.SMOKESTACK, Mat.BLACK);
+        b.box(-1.15, 1.6, 0.4, -1.12, 1.8, 0.6, Mat.GRILLE);
+        // cab
+        b.box(0.15, 1.15, -0.45, 1.15, 2.75, -0.4, Mat.PAINT);
+        b.pane(1.15, 0.15, 1.15, 1.1, 1.15, 0.15, 2.65, 1.08, Mat.GLASS);
+        b.sidePane(1.15, 1.15, 2.65, -0.4, 1.1, -0.4, 1.1, Mat.GLASS);
+        b.sidePane(0.15, 1.15, 2.65, -0.4, 1.1, -0.4, 1.1, Mat.GLASS);
+        b.box(0.12, 2.65, -0.45, 1.18, 2.78, 1.12, Mat.PAINT);
+        b.pair(0.13, 1.15, 1.05, 0.17, 2.7, 1.12, Mat.BLACK);
+        b.seat(0.55, 1.55, 0.3, 0.5, Mat.BLACK);
+        b.box(0.25, 1.4, 0.45, 0.35, 1.75, 0.55, Mat.BLACK);                           // joysticks
+        b.box(0.75, 1.4, 0.45, 0.85, 1.75, 0.55, Mat.BLACK);
+        b.box(0.3, 2.3, 1.05, 0.5, 2.42, 1.12, Mat.HEADLIGHT);
+        b.box(0.12, 2.78, 0.2, 0.32, 2.9, 0.4, Mat.INDICATOR);                          // beacon
+        // boom, stick and bucket: lift and lower as you look up and down
+        b.group(Kind.BOOM, -0.3, 1.6, 1.0, 50, false);
+        b.hull(-0.5, -0.1, 0.9, 1.4, 1.45, -0.48, -0.12, 2.8, 3.3, 3.3, Mat.PAINT, Mat.PAINT);
+        b.hull(-0.48, -0.12, 3.8, 4.2, 1.3, -0.48, -0.12, 2.9, 3.3, 3.35, Mat.PAINT, Mat.PAINT);
+        b.hull(-0.34, -0.26, 1.2, 1.4, 1.2, -0.34, -0.26, 2.2, 2.4, 2.7, Mat.CHROME, Mat.CHROME);   // ram
+        b.box(-0.75, 0.6, 3.8, 0.15, 1.3, 4.5, Mat.METAL);                               // bucket
+        b.box(-0.75, 1.3, 3.75, 0.15, 1.4, 4.0, Mat.METAL);
+        b.box(-0.75, 0.52, 4.42, 0.15, 0.62, 4.62, Mat.STEEL);                           // teeth
+        b.body();
+        return b.build();
+    }
+
+    private static Model bulldozer() {
+        Builder b = Model.builder();
+        tracks(b, 0.8, 1.3, -2.0, 1.6, 0.85);
+        b.box(-0.8, 0.4, -2.1, 0.8, 1.5, 1.8, Mat.PAINT);
+        b.box(-0.7, 1.5, 0.3, 0.7, 2.0, 1.8, Mat.PAINT);                                 // engine hood
+        b.box(-0.6, 0.7, 1.8, 0.6, 1.9, 1.85, Mat.GRILLE);
+        b.cyl(0.4, 2.0, 1.2, 'y', 0.07, 0.07, 0.8, 6, Mat.SMOKESTACK, Mat.BLACK);
+        b.pair(0.75, 1.5, -1.95, 0.85, 3.0, -1.85, Mat.BLACK);                           // cab posts
+        b.pair(0.75, 1.5, -0.1, 0.85, 3.0, 0.0, Mat.BLACK);
+        b.box(-0.9, 2.95, -2.05, 0.9, 3.08, 0.05, Mat.PAINT);
+        b.pane(0.78, -0.78, 1.5, 0.0, 0.78, -0.78, 2.95, -0.02, Mat.GLASS);
+        b.sidePane(0.8, 1.9, 2.95, -1.85, -0.1, -1.85, -0.1, Mat.GLASS);
+        b.sidePane(-0.8, 1.9, 2.95, -1.85, -0.1, -1.85, -0.1, Mat.GLASS);
+        b.seat(0, 1.65, -1.0, 0.6, Mat.BLACK);
+        b.box(-0.6, 1.5, -0.4, 0.6, 1.9, -0.1, Mat.DASH);
+        b.pair(0.4, 2.75, 0.03, 0.6, 2.9, 0.08, Mat.HEADLIGHT);
+        b.box(-0.2, 3.08, -1.2, 0.2, 3.2, -0.8, Mat.INDICATOR);
+        b.box(-0.15, 0.2, -2.8, 0.15, 1.2, -2.1, Mat.METAL);                             // ripper
+        b.box(-0.12, 0.0, -2.9, 0.12, 0.3, -2.7, Mat.STEEL);
+        b.group(Kind.FORKS, 0, 0, 0, 0, false);                                           // blade (raised when off)
+        b.pair(0.85, 0.5, 1.6, 1.0, 0.8, 2.7, Mat.METAL);
+        b.box(-1.45, 0.0, 2.7, 1.45, 1.3, 2.95, Mat.PAINT);
+        b.box(-1.45, 0.0, 2.9, 1.45, 0.15, 3.02, Mat.STEEL);
+        b.pair(0.3, 0.9, 1.9, 0.4, 1.6, 2.7, Mat.CHROME);
+        b.body();
+        return b.build();
+    }
+
+    private static Model loader() {
+        Builder b = Model.builder();
+        b.box(-0.9, 0.7, -2.7, 0.9, 1.9, -0.3, Mat.PAINT);                               // rear frame / engine
+        b.box(-0.8, 0.8, -2.72, 0.8, 1.7, -2.7, Mat.GRILLE);
+        b.box(-0.6, 0.7, -0.3, 0.6, 1.3, 1.5, Mat.PAINT);                                // front frame
+        b.pair(0.5, 0.85, -2.74, 0.75, 1.05, -2.7, Mat.TAILLIGHT);
+        b.cyl(-0.5, 1.9, -2.0, 'y', 0.07, 0.07, 0.9, 6, Mat.SMOKESTACK, Mat.BLACK);
+        b.box(-0.75, 1.9, -1.0, 0.75, 2.0, 0.45, Mat.METAL);                             // cab floor
+        b.pane(0.75, -0.75, 2.0, 0.45, 0.75, -0.75, 3.35, 0.4, Mat.GLASS);
+        b.pane(0.75, -0.75, 2.0, -1.0, 0.75, -0.75, 3.35, -1.0, Mat.GLASS);
+        b.sidePane(0.75, 2.0, 3.35, -1.0, 0.45, -1.0, 0.45, Mat.GLASS);
+        b.sidePane(-0.75, 2.0, 3.35, -1.0, 0.45, -1.0, 0.45, Mat.GLASS);
+        b.pair(0.7, 2.0, 0.38, 0.78, 3.4, 0.47, Mat.BLACK);
+        b.pair(0.7, 2.0, -1.05, 0.78, 3.4, -0.97, Mat.BLACK);
+        b.box(-0.8, 3.35, -1.1, 0.8, 3.48, 0.5, Mat.PAINT);
+        b.box(-0.2, 3.48, -0.5, 0.2, 3.6, -0.2, Mat.INDICATOR);
+        b.seat(0, 2.3, -0.25, 0.55, Mat.BLACK);
+        b.steeringWheel(0, 2.75, 0.2, 0.18, 45);
+        b.pair(0.3, 3.2, 0.48, 0.55, 3.3, 0.52, Mat.HEADLIGHT);
+        b.group(Kind.FORKS, 0, 0, 0, 0, false);                                           // bucket arms
+        b.pair(0.55, 0.9, 0.8, 0.7, 1.2, 2.6, Mat.METAL);
+        b.box(-1.25, 0.1, 2.5, 1.25, 1.0, 2.62, Mat.METAL);
+        b.box(-1.25, 0.1, 2.5, 1.25, 0.2, 3.25, Mat.METAL);
+        b.pair(1.15, 0.2, 2.5, 1.25, 0.9, 3.2, Mat.METAL);
+        b.box(-1.25, 0.05, 3.15, 1.25, 0.15, 3.32, Mat.STEEL);
+        b.body();
+        b.wheel(1.05, 0.75, 1.5, 0.75, 0.55, true);
+        b.wheel(-1.05, 0.75, 1.5, 0.75, 0.55, true);
+        b.wheel(1.05, 0.75, -1.6, 0.75, 0.55, false);
+        b.wheel(-1.05, 0.75, -1.6, 0.75, 0.55, false);
+        return b.build();
+    }
+
+    private static Model roller() {
+        Builder b = Model.builder();
+        b.wheel(0, 0.7, 1.4, 0.7, 1.9, true);                                            // front drum
+        b.pair(0.98, 0.6, 1.0, 1.08, 1.6, 1.8, Mat.PAINT);
+        b.box(-1.08, 1.5, 0.9, 1.08, 1.7, 1.9, Mat.PAINT);
+        b.box(-0.85, 0.5, -2.0, 0.85, 1.6, 0.6, Mat.PAINT);                             // engine body
+        b.box(-0.8, 0.6, -2.02, 0.8, 1.4, -2.0, Mat.GRILLE);
+        b.box(-0.6, 1.6, -1.2, 0.6, 1.75, 0.3, Mat.METAL);                               // platform
+        b.seat(0, 1.75, -0.6, 0.55, Mat.BLACK);
+        b.box(-0.04, 1.6, -0.15, 0.04, 2.05, -0.05, Mat.BLACK);
+        b.steeringWheel(0, 2.1, -0.1, 0.2, 40);
+        b.pair(0.65, 1.75, -1.3, 0.72, 3.0, -1.22, Mat.BLACK);                           // canopy
+        b.pair(0.65, 1.75, 0.3, 0.72, 3.0, 0.38, Mat.BLACK);
+        b.box(-0.85, 3.0, -1.4, 0.85, 3.1, 0.5, Mat.PAINT);
+        b.box(-0.2, 3.1, -0.6, 0.2, 3.22, -0.3, Mat.INDICATOR);
+        b.pair(0.4, 1.3, 1.9, 0.7, 1.45, 1.93, Mat.HEADLIGHT);
+        b.pair(0.5, 1.2, -2.03, 0.75, 1.35, -2.0, Mat.TAILLIGHT);
+        b.cyl(-0.5, 1.6, -1.6, 'y', 0.06, 0.06, 0.7, 6, Mat.SMOKESTACK, Mat.BLACK);
+        b.wheel(0.85, 0.55, -1.5, 0.55, 0.5, false);
+        b.wheel(-0.85, 0.55, -1.5, 0.55, 0.5, false);
+        return b.build();
+    }
+
+    private static Model crane() {
+        Builder b = Model.builder();
+        double w = 1.25;
+        b.box(-1.2, 0.7, -4.6, 1.2, 1.3, 4.1, Mat.PAINT);                                // carrier
+        // cab
+        b.box(-w, 1.1, 3.0, w, 1.25, 4.6, Mat.METAL);
+        b.box(-w, 1.25, 4.5, w, 1.8, 4.6, Mat.PAINT);
+        b.pane(w - 0.05, -w + 0.05, 1.8, 4.58, w - 0.05, -w + 0.05, 2.8, 4.52, Mat.GLASS);
+        b.box(-w, 2.8, 3.0, w, 3.0, 4.6, Mat.PAINT);
+        b.pair(w - 0.1, 1.25, 3.0, w, 1.8, 4.6, Mat.PAINT);
+        b.sidePane(w - 0.05, 1.8, 2.8, 3.1, 4.5, 3.1, 4.5, Mat.GLASS);
+        b.sidePane(-w + 0.05, 1.8, 2.8, 3.1, 4.5, 3.1, 4.5, Mat.GLASS);
+        b.box(-w, 1.25, 3.0, w, 2.8, 3.1, Mat.PAINT);
+        b.box(-0.9, 0.8, 4.6, 0.9, 1.15, 4.64, Mat.GRILLE);
+        b.pair(0.8, 0.85, 4.6, 1.15, 1.05, 4.65, Mat.HEADLIGHT);
+        b.seat(0.5, 1.6, 3.6, 0.6, Mat.SEAT);
+        b.seat(-0.5, 1.6, 3.6, 0.6, Mat.SEAT);
+        b.dashboard(w - 0.1, -w + 0.1, 1.75, 4.3, 0.5);
+        b.steeringWheel(0.5, 1.95, 4.05, 0.22, 55);
+        b.pair(1.2, 0.6, -3.7, 1.7, 0.8, -3.3, Mat.METAL);                               // outriggers
+        b.pair(1.2, 0.6, 2.4, 1.7, 0.8, 2.8, Mat.METAL);
+        b.pair(1.55, 0.0, -3.75, 1.85, 0.6, -3.25, Mat.METAL);
+        b.pair(1.55, 0.0, 2.35, 1.85, 0.6, 2.85, Mat.METAL);
+        b.pair(0.9, 0.9, -4.62, 1.15, 1.15, -4.6, Mat.TAILLIGHT);
+        // house + boom swing and lift with the operator's view
+        b.group(Kind.TURRET, 0, 1.9, -1.8, 0, false);
+        b.box(-1.1, 1.3, -3.6, 1.1, 2.4, -0.6, Mat.PAINT);
+        b.box(-1.15, 1.3, -4.5, 1.15, 2.3, -3.6, Mat.PAINT_DARK);                        // counterweight
+        b.box(0.6, 1.4, -1.5, 1.1, 2.6, -0.6, Mat.GLASS);
+        b.box(-0.2, 2.4, -2.6, 0.2, 2.5, -1.0, Mat.INDICATOR);
+        b.group(Kind.BOOM, 0, 2.2, -1.0, 5, false);
+        b.box(-0.38, 1.95, -1.6, 0.38, 2.45, 5.0, Mat.PAINT);
+        b.box(-0.3, 2.0, 5.0, 0.3, 2.4, 8.5, Mat.YELLOW);
+        b.box(-0.22, 2.05, 8.5, 0.22, 2.35, 10.4, Mat.PAINT);
+        b.cyl(0, 2.2, 10.4, 'x', 0.25, 0.25, 0.2, 10, Mat.METAL, Mat.METAL);              // sheave
+        b.box(-0.03, -0.4, 10.4, 0.03, 2.2, 10.46, Mat.BLACK);                           // cable
+        b.box(-0.22, -0.9, 10.22, 0.22, -0.4, 10.64, Mat.YELLOW);                        // hook block
+        b.box(-0.06, -1.2, 10.37, 0.06, -0.9, 10.49, Mat.STEEL);
+        b.body();
+        for (double z : new double[]{3.2, 1.8, -1.6, -3.0}) {
+            b.wheel(1.05, 0.6, z, 0.6, 0.4, z > 0);
+            b.wheel(-1.05, 0.6, z, 0.6, 0.4, z > 0);
+        }
+        return b.build();
+    }
+
+    private static Model towTruck() {
+        Model m = pickup();
+        Builder b = Model.builder();
+        b.pair(0.6, 1.0, -2.6, 0.7, 2.4, -2.4, Mat.PAINT_DARK);                          // A-frame
+        b.box(-0.7, 2.3, -2.6, 0.7, 2.45, -2.4, Mat.PAINT_DARK);
+        b.hull(-0.08, 0.08, -2.55, -2.45, 2.35, -0.08, 0.08, -3.4, -3.3, 1.2, Mat.PAINT_DARK, Mat.PAINT_DARK);   // boom
+        b.box(-0.03, 0.55, -3.38, 0.03, 1.2, -3.32, Mat.BLACK);
+        b.box(-0.6, 0.3, -3.7, 0.6, 0.45, -3.0, Mat.METAL);                              // wheel lift
+        b.pair(0.45, 0.3, -3.7, 0.6, 0.6, -3.55, Mat.METAL);
+        b.box(-0.8, 1.6, 0.6, 0.8, 1.68, 0.9, Mat.BLACK);                                // light bar
+        b.pair(0.1, 1.68, 0.62, 0.75, 1.8, 0.88, Mat.INDICATOR);
+        Model extra = b.build();
+        m.groups.addAll(extra.groups);
+        return m;
     }
 }

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S  ",
+    "IYI",
+    "CCC"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:iron_shovel"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "Y": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:bulldozer",
+    "count": 1
+  }
+}

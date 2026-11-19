@@ -1,6 +1,6 @@
 # Vehicle Forge
 
-A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 59 drivable vehicles, all with modeled interiors, working gauges, engine sounds and particles, plus a city world type and road blocks.
+A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 65 drivable vehicles, all with modeled interiors, working gauges, engine sounds and particles, plus a city world type and road blocks.
 
 ## Vehicles
 
@@ -15,13 +15,15 @@ A Fabric 1.20.1 mod (Loader 0.16.9+, Fabric API 0.92.2+) that adds 59 drivable v
 
 | Wave 2 | Police car, taxi, hatchback, SUV, muscle car, vintage roadster, limo, ATV, ambulance, city bus, school bus, dump truck, tractor, monster truck, scooter, APC, airliner, jet ski, submarine, diesel locomotive, bullet train |
 | Wave 3 | Go-kart, golf cart, ice cream truck, garbage truck, cement mixer, forklift, snowmobile, hovercraft, hot air balloon |
+| Construction | Excavator (digs where you look), bulldozer (clears land), wheel loader, road roller (lays asphalt), mobile crane (lifts mobs and cars), tow truck |
 | Weird | Riding ostrich, time machine (jumps 30 s back in time), shrink car (makes you tiny), UFO with tractor beam, flying carpet, hamster ball, rocket shopping cart, riding lawn mower |
 
 ## City world
 
 Create a world with World Type **Vehicle Forge City**: 4-lane roads with parking lanes, lane lines, crosswalks, stop lines,
 street lamps, working traffic lights, manholes, storm drains, hydrants, downtown towers, apartments, houses, parks,
-parking lots and gas stations. All the road blocks are in the "City Blocks" creative tab.
+parking lots and gas stations, rivers with bridges and boats, a landmark supertall, stadiums, hospitals, fire and
+police stations, schools, rowhouses, an industrial district and construction sites with tower cranes. All the road blocks are in the "City Blocks" creative tab.
 
 ## Controls
 

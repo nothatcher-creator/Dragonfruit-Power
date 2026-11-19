@@ -15,7 +15,9 @@ public final class VehicleType {
     public enum Weapon {
         NONE, TANK_CANNON, ROCKET_SALVO, MACHINE_GUN, AIR_ROCKETS, WATER_CANNON,
         /** wave 3 specials */
-        TIME_JUMP, SHRINK, TRACTOR_BEAM, BOOST, MOWER, COMPACTOR, FORKS
+        TIME_JUMP, SHRINK, TRACTOR_BEAM, BOOST, MOWER, COMPACTOR, FORKS,
+        /** construction: excavator digs, bulldozer/loader clear land, roller paves, crane lifts, tow truck tows */
+        DIG, BLADE, PAVE, CRANE, TOW
     }
 
     public enum Horn { CAR, TRUCK, BIKE_BELL, TRAIN, BOAT, OSTRICH, ICE_CREAM }
@@ -41,6 +43,10 @@ public final class VehicleType {
     public boolean offroad;
     /** hovercraft: slides everywhere, full speed on water; snowmobile: grips and runs fast on snow and ice */
     public boolean hover, snow;
+    /** forklift fork / bulldozer blade / loader bucket travel */
+    public float lift = 2.0f;
+    /** the driver's seat swings round with the turret (excavator cab) */
+    public boolean seatTurns;
     /** minutes of running at full speed on one tank (0 = needs no fuel) */
     public float endurance = 20f;
     /** roof gun pivot (local) and barrel length, for ground machine guns */
@@ -109,6 +115,16 @@ public final class VehicleType {
     VehicleType carriage(String model, float start) {
         this.carriageModel = model;
         this.carriageStart = start;
+        return this;
+    }
+
+    VehicleType lift(float h) {
+        this.lift = h;
+        return this;
+    }
+
+    VehicleType seatTurns() {
+        this.seatTurns = true;
         return this;
     }
 

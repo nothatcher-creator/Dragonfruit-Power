@@ -68,6 +68,10 @@ public final class CityBlocks {
             box(0, 0, 5, 16, 15, 11), false));
     public static final Block FIRE_HYDRANT = reg("fire_hydrant", new FacingShapeBlock(metal().mapColor(MapColor.RED),
             VoxelShapes.union(box(4, 0, 4, 12, 2, 12), box(5, 2, 5, 11, 12, 11), box(6, 12, 6, 10, 14, 10)), false));
+    public static final Block BENCH = reg("bench", new FacingShapeBlock(prop().mapColor(MapColor.OAK_TAN),
+            VoxelShapes.union(box(0, 5, 2, 16, 7, 12), box(0, 7, 11, 16, 15, 13), box(1, 0, 3, 3, 5, 11), box(13, 0, 3, 15, 5, 11)), false));
+    public static final Block BUS_STOP_SIGN = reg("bus_stop_sign", new FacingShapeBlock(metal(),
+            VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(2, 9, 7.5, 14, 16, 8.5)), false));
     public static final Block TRASH_BIN = reg("trash_bin", new FacingShapeBlock(metal().mapColor(MapColor.DARK_GREEN),
             box(3, 0, 3, 13, 14, 13), false));
 

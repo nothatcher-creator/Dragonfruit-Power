@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SY ",
+    "III",
+    "C C"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:iron_shovel"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "Y": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:wheel_loader",
+    "count": 1
+  }
+}

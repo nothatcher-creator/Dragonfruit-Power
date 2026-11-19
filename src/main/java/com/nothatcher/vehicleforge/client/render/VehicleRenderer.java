@@ -311,6 +311,15 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 ms.translate(-px, -py, -pz);
             }
             case FORKS -> ms.translate(0, MathHelper.lerp(td, e.prevForkHeight, e.forkHeight), 0);
+            case BOOM -> {
+                float tx = (float) e.type.turret.x, ty = (float) e.type.turret.y, tz = (float) e.type.turret.z;
+                ms.translate(tx, ty, tz);
+                ms.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-aimYaw));
+                ms.translate(-tx, -ty, -tz);
+                ms.translate(px, py, pz);
+                ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.clamp(aimPitch, -60, g.param)));
+                ms.translate(-px, -py, -pz);
+            }
             case FLAME -> {
                 float f = 0.85f + 0.3f * (float) Math.abs(Math.sin(e.age * 1.7 + rotor));
                 ms.translate(px, py, pz);

@@ -87,6 +87,15 @@ for y in range(16):
         g2 = 70 + (12 if x % 3 == 0 else 0) + rnd.randint(-3, 3); px[x, y] = (34, g2, 46, 255)
 T['trash_bin'] = bi
 bt = noisy((30, 60, 40), 3); d = ImageDraw.Draw(bt); d.rectangle([4, 4, 11, 11], fill=(12, 12, 12, 255)); T['trash_bin_top'] = bt
+bw = Image.new('RGBA', (16, 16)); px = bw.load()
+for y in range(16):
+    for x in range(16):
+        v = 150 + (10 if y % 4 == 0 else 0) + rnd.randint(-6, 6); px[x, y] = (v, int(v * 0.72), int(v * 0.45), 255)
+T['bench_wood'] = bw
+bs = Image.new('RGBA', (16, 16), (30, 90, 170, 255)); d = ImageDraw.Draw(bs)
+d.rectangle([0, 0, 15, 15], outline=(240, 240, 240, 255)); d.rectangle([3, 4, 12, 10], fill=(240, 240, 240, 255))
+d.rectangle([4, 5, 11, 7], fill=(30, 90, 170, 255)); d.point((5, 11), fill=(240, 240, 240, 255)); d.point((10, 11), fill=(240, 240, 240, 255))
+T['bus_sign'] = bs
 for k, im in T.items(): im.save(os.path.join(TEX, k + '.png'))
 
 def tex(n): return 'vehicleforge:block/' + n
@@ -199,7 +208,16 @@ model('trash_bin', {"parent": "minecraft:block/block", "textures": {"particle": 
                  el([2.5, 13, 2.5], [13.5, 14, 13.5], {"north": "#b", "south": "#b", "east": "#b", "west": "#b", "down": "#b", "up": "#t"})]})
 facing_state('trash_bin'); item('trash_bin'); loot('trash_bin')
 
-names = ['asphalt', 'asphalt_white_line', 'asphalt_yellow_line', 'asphalt_double_yellow_line', 'asphalt_crosswalk', 'manhole_cover', 'storm_drain',
+model('bench', {"parent": "minecraft:block/block", "textures": {"particle": tex('bench_wood'), "w": tex('bench_wood'), "m": M},
+    "elements": [el([0, 5, 2], [16, 7, 12], allf("#w")), el([0, 8, 11], [16, 15, 12.5], allf("#w")),
+                 el([1, 0, 3], [3, 5, 5], allf("#m")), el([1, 0, 9], [3, 8, 11], allf("#m")),
+                 el([13, 0, 3], [15, 5, 5], allf("#m")), el([13, 0, 9], [15, 8, 11], allf("#m"))]})
+facing_state('bench'); item('bench'); loot('bench')
+model('bus_stop_sign', {"parent": "minecraft:block/block", "textures": {"particle": M, "m": M, "s": tex('bus_sign')},
+    "elements": [el([7, 0, 7], [9, 16, 9], allf("#m")), el([2, 9, 7.5], [14, 16, 8.5], {"north": "#s", "south": "#s", "east": "#m", "west": "#m", "up": "#m", "down": "#m"})]})
+facing_state('bus_stop_sign'); item('bus_stop_sign'); loot('bus_stop_sign')
+
+names = ['bench', 'bus_stop_sign', 'asphalt', 'asphalt_white_line', 'asphalt_yellow_line', 'asphalt_double_yellow_line', 'asphalt_crosswalk', 'manhole_cover', 'storm_drain',
          'sidewalk', 'sidewalk_slab', 'curb', 'lamp_post', 'street_lamp', 'traffic_light', 'traffic_cone', 'road_barrier', 'roadblock', 'fire_hydrant', 'trash_bin']
 wj(os.path.join(RES, 'data/minecraft/tags/blocks/mineable/pickaxe.json'), {"replace": False, "values": ["vehicleforge:" + n for n in names] + ["vehicleforge:rv_door"]})
 wj(os.path.join(RES, 'data/minecraft/tags/blocks/slabs.json'), {"replace": False, "values": ["vehicleforge:sidewalk_slab", "vehicleforge:curb"]})

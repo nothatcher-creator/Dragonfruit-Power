@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " Y ",
+    "III",
+    "SCC"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:smooth_stone"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "Y": {
+      "item": "minecraft:yellow_dye"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:road_roller",
+    "count": 1
+  }
+}

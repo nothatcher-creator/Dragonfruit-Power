@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
+    "vehicleforge:bench",
+    "vehicleforge:bus_stop_sign",
     "vehicleforge:asphalt",
     "vehicleforge:asphalt_white_line",
     "vehicleforge:asphalt_yellow_line",

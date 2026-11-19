@@ -82,6 +82,25 @@ public final class Weapons {
                 compact(v, driver);
                 return;
             }
+            case DIG -> {
+                dig(v, driver);
+                return;
+            }
+            case BLADE, PAVE -> {
+                v.setAbility(!v.abilityOn());
+                String key = t.weapon == VehicleType.Weapon.PAVE ? "paving" : t == VehicleTypes.LOADER ? "bucket" : "blade";
+                driver.sendMessage(Text.translatable("msg.vehicleforge." + key + (v.abilityOn() ? "_on" : "_off")).formatted(Formatting.YELLOW), true);
+                return;
+            }
+            case CRANE, TOW -> {
+                if (v.carried != null) {
+                    release(v);
+                    driver.sendMessage(Text.translatable("msg.vehicleforge.released").formatted(Formatting.YELLOW), true);
+                } else {
+                    grab(v, driver);
+                }
+                return;
+            }
             default -> { }
         }
         if (t.weapon == VehicleType.Weapon.WATER_CANNON) {
@@ -409,5 +428,166 @@ public final class Weapons {
         }
         v.serverWorldSound("compactor", 2f, 1f);
         driver.sendMessage(Text.translatable("msg.vehicleforge.collected", n).formatted(Formatting.GREEN), true);
+    }
+
+    // ---------------------------------------------------- construction
+
+    /** blocks a machine may scoop or push: earth, sand, gravel, snow, plants and trees, never buildings or roads */
+    private static boolean earthy(net.minecraft.block.BlockState st) {
+        if (st.isAir() || st.hasBlockEntity()) return false;
+        net.minecraft.block.Block b = st.getBlock();
+        return st.isIn(BlockTags.DIRT) || st.isIn(BlockTags.SAND) || st.isIn(BlockTags.SNOW) || st.isIn(BlockTags.LEAVES)
+                || st.isIn(BlockTags.LOGS) || st.isIn(BlockTags.FLOWERS) || st.isIn(BlockTags.BASE_STONE_OVERWORLD)
+                || b == net.minecraft.block.Blocks.GRAVEL || b == net.minecraft.block.Blocks.CLAY || b == net.minecraft.block.Blocks.COBBLESTONE
+                || b == net.minecraft.block.Blocks.DIRT_PATH || b == net.minecraft.block.Blocks.FARMLAND
+                || b instanceof net.minecraft.block.PlantBlock || b instanceof net.minecraft.block.TallPlantBlock;
+    }
+
+    private static boolean litter(net.minecraft.block.BlockState st) {
+        return st.isIn(BlockTags.LEAVES) || st.getBlock() instanceof net.minecraft.block.PlantBlock
+                || st.getBlock() instanceof net.minecraft.block.TallPlantBlock || st.isOf(net.minecraft.block.Blocks.SNOW);
+    }
+
+    /** Excavator: scoop out a 2x2 bite of earth or stone wherever the operator is looking (up to 9 blocks away). */
+    private static void dig(VehicleEntity v, ServerPlayerEntity driver) {
+        if (v.abilityTicks > 0) return;
+        ServerWorld w = (ServerWorld) v.getWorld();
+        Vec3d eye = driver.getEyePos();
+        Vec3d end = eye.add(driver.getRotationVec(1f).multiply(9));
+        BlockHitResult hit = w.raycast(new RaycastContext(eye, end, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, driver));
+        if (hit.getType() != HitResult.Type.BLOCK) return;
+        BlockPos p = hit.getBlockPos();
+        net.minecraft.util.math.Direction right = driver.getHorizontalFacing().rotateYClockwise();
+        int dug = 0;
+        for (BlockPos bp : new BlockPos[]{p, p.up(), p.offset(right), p.offset(right).up()}) {
+            net.minecraft.block.BlockState st = w.getBlockState(bp);
+            if (!earthy(st) || st.getHardness(w, bp) < 0) continue;
+            w.breakBlock(bp, !litter(st), driver);
+            dug++;
+        }
+        if (dug > 0) {
+            v.setAbility(true);
+            v.abilityTicks = 10;
+            w.playSound(null, p, net.minecraft.sound.SoundEvents.BLOCK_GRAVEL_BREAK, net.minecraft.sound.SoundCategory.BLOCKS, 1.5f, 0.7f);
+        }
+    }
+
+    /** Bulldozer / loader: clear earth, plants and trees in front of the blade while driving. */
+    public static void bladeTick(VehicleEntity v) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        double hw = v.type.width / 2;
+        int y0 = net.minecraft.util.math.MathHelper.floor(v.getY() + 0.1);
+        boolean any = false;
+        for (double lx = -hw; lx <= hw + 0.01; lx += 0.5) {
+            Vec3d at = v.toWorld(lx, 0, v.type.frontZ + 0.4);
+            for (int dy = 0; dy <= 2; dy++) {
+                BlockPos bp = BlockPos.ofFloored(at.x, y0 + dy, at.z);
+                net.minecraft.block.BlockState st = w.getBlockState(bp);
+                if (!earthy(st) || st.getHardness(w, bp) < 0 || st.getHardness(w, bp) > 2.5f) continue;
+                w.breakBlock(bp, !litter(st) && w.random.nextInt(3) == 0);
+                any = true;
+            }
+        }
+        if (any && v.age % 5 == 0) w.playSound(null, v.getX(), v.getY(), v.getZ(), net.minecraft.sound.SoundEvents.BLOCK_ROOTED_DIRT_BREAK,
+                net.minecraft.sound.SoundCategory.BLOCKS, 1.2f, 0.6f);
+    }
+
+    /** Road roller: lay asphalt on earth, gravel and stone under the drum, and flatten the plants on top. */
+    public static void paveTick(VehicleEntity v) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        double hw = v.type.width / 2 - 0.1;
+        int yFeet = net.minecraft.util.math.MathHelper.floor(v.getY() + 0.05);
+        for (double lx = -hw; lx <= hw + 0.01; lx += 0.5) {
+            Vec3d at = v.toWorld(lx, 0, v.type.frontZ - 0.9);
+            BlockPos feet = BlockPos.ofFloored(at.x, yFeet, at.z);
+            BlockPos below = feet.down();
+            if (litter(w.getBlockState(feet))) w.breakBlock(feet, false);
+            net.minecraft.block.BlockState st = w.getBlockState(below);
+            if (earthy(st) && !st.isIn(BlockTags.LEAVES) && !st.isIn(BlockTags.LOGS) && !(st.getBlock() instanceof net.minecraft.block.PlantBlock)) {
+                w.setBlockState(below, com.nothatcher.vehicleforge.block.CityBlocks.ASPHALT.getDefaultState());
+                if (v.age % 3 == 0) w.spawnParticles(ParticleTypes.SMOKE, below.getX() + 0.5, below.getY() + 1.1, below.getZ() + 0.5, 2, 0.3, 0.05, 0.3, 0.01);
+            }
+        }
+    }
+
+    /** where the crane hook hangs: the boom swings and lifts with the operator's view */
+    private static Vec3d hookPos(VehicleEntity v, LivingEntity driver) {
+        float yaw = driver.getHeadYaw();
+        float pitch = net.minecraft.util.math.MathHelper.clamp(driver.getPitch(), -60, 5);
+        Vec3d pivot = v.toWorld(v.type.turret.x, v.type.turret.y + 0.3, v.type.turret.z);
+        return pivot.add(Vec3d.fromPolar(pitch, yaw).multiply(v.type.barrelLen)).add(0, -2.6, 0);
+    }
+
+    private static void grab(VehicleEntity v, ServerPlayerEntity driver) {
+        ServerWorld w = (ServerWorld) v.getWorld();
+        Entity best = null;
+        double bestD = Double.MAX_VALUE;
+        if (v.type.weapon == VehicleType.Weapon.CRANE) {
+            Vec3d hook = hookPos(v, driver);
+            for (Entity e : w.getOtherEntities(v, new Box(hook, hook).expand(3.5), e -> !(e instanceof PlayerEntity)
+                    && e.getRootVehicle() != v && (e instanceof LivingEntity || e instanceof net.minecraft.entity.ItemEntity
+                    || (e instanceof VehicleEntity ve && !ve.hasPassengers())))) {
+                double d = e.squaredDistanceTo(hook);
+                if (d < bestD) {
+                    bestD = d;
+                    best = e;
+                }
+            }
+        } else {
+            Vec3d rear = v.toWorld(0, 0.5, v.type.rearZ);
+            for (VehicleEntity e : w.getEntitiesByClass(VehicleEntity.class, new Box(rear, rear).expand(6, 3, 6), e -> e != v && !e.hasPassengers())) {
+                double d = e.squaredDistanceTo(rear);
+                if (d < bestD) {
+                    bestD = d;
+                    best = e;
+                }
+            }
+        }
+        if (best == null) {
+            driver.sendMessage(Text.translatable(v.type.weapon == VehicleType.Weapon.CRANE ? "msg.vehicleforge.nothing_hook" : "msg.vehicleforge.nothing_tow")
+                    .formatted(Formatting.GRAY), true);
+            return;
+        }
+        v.carried = best;
+        if (best instanceof VehicleEntity ve) ve.carriedBy = v;
+        w.playSound(null, best.getX(), best.getY(), best.getZ(), net.minecraft.sound.SoundEvents.BLOCK_CHAIN_PLACE, net.minecraft.sound.SoundCategory.NEUTRAL, 1.5f, 0.8f);
+        driver.sendMessage(Text.translatable(v.type.weapon == VehicleType.Weapon.CRANE ? "msg.vehicleforge.hooked" : "msg.vehicleforge.towing",
+                best.getDisplayName()).formatted(Formatting.GREEN), true);
+    }
+
+    public static void release(VehicleEntity v) {
+        if (v.carried instanceof VehicleEntity ve && ve.carriedBy == v) ve.carriedBy = null;
+        if (v.carried != null) v.carried.setVelocity(Vec3d.ZERO);
+        v.carried = null;
+    }
+
+    /** Crane: the load hangs under the hook and follows the boom. */
+    public static void craneTick(VehicleEntity v) {
+        LivingEntity driver = v.getControllingPassenger();
+        Entity c = v.carried;
+        if (driver == null || c == null) return;
+        Vec3d hook = hookPos(v, driver);
+        Vec3d target = new Vec3d(hook.x, hook.y - c.getHeight() - 0.3, hook.z);
+        Vec3d now = c.getPos();
+        Vec3d next = now.add(target.subtract(now).multiply(0.35));
+        if (c instanceof VehicleEntity) c.refreshPositionAndAngles(next.x, next.y, next.z, c.getYaw(), 0);
+        else c.setPosition(next.x, next.y, next.z);
+        c.setVelocity(Vec3d.ZERO);
+        c.velocityModified = true;
+        c.fallDistance = 0;
+    }
+
+    /** Tow truck: the towed vehicle follows the hitch, nose up to the truck. */
+    public static void towTick(VehicleEntity v) {
+        if (!(v.carried instanceof VehicleEntity t)) return;
+        Vec3d hitch = v.toWorld(0, 0, v.type.rearZ);
+        double dx = hitch.x - t.getX(), dz = hitch.z - t.getZ();
+        double len = Math.max(0.01, Math.sqrt(dx * dx + dz * dz));
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        double back = t.type.frontZ + 0.5;
+        double nx = hitch.x - dx / len * back, nz = hitch.z - dz / len * back;
+        t.refreshPositionAndAngles(nx, v.getY(), nz, yaw, 0);
+        t.setVelocity(Vec3d.ZERO);
+        t.velocityModified = true;
     }
 }

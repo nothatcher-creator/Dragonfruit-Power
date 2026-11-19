@@ -210,7 +210,7 @@ public final class VehicleTypes {
             .speed(0.65f, 0.013f, 2.6f).health(180f).paint(0xF2F2F2).camera(11f).horn(Horn.TRUCK).sound("engine_truck").len(4.5, -4.3).step(1.1f).gears(8));
     public static final VehicleType FORKLIFT = add(new VehicleType("forklift", Category.TRUCK, 1.4f, 2.4f)
             .seat(0, 0.85, -0.5)
-            .speed(0.4f, 0.025f, 6f).health(80f).paint(0xF2B90F).camera(5.5f).horn(Horn.TRUCK).sound("engine_electric").weapon(Weapon.FORKS).len(1.9, -1.2).gears(0));
+            .speed(0.4f, 0.025f, 6f).health(80f).paint(0xF2B90F).camera(5.5f).horn(Horn.TRUCK).sound("engine_electric").weapon(Weapon.FORKS).len(2.4, -1.2).gears(0));
     public static final VehicleType SNOWMOBILE = add(new VehicleType("snowmobile", Category.CAR, 1.3f, 1.3f)
             .seat(0, 0.45, -0.3).seat(0, 0.5, -0.8)
             .speed(1.1f, 0.045f, 5f).health(40f).paint(0x1E88E5).camera(5.5f).sound("engine_bike").len(1.5, -1.4).snow().gears(0));
@@ -220,6 +220,33 @@ public final class VehicleTypes {
     public static final VehicleType BALLOON = add(new VehicleType("hot_air_balloon", Category.BALLOON, 2.4f, 3.0f)
             .seat(0.45, 0.0, 0.45).seat(-0.45, 0.0, 0.45).seat(0.45, 0.0, -0.45).seat(-0.45, 0.0, -0.45)
             .speed(0.2f, 0.01f, 1.2f).health(60f).paint(0xD32F2F).camera(14f).sound("burner").len(1.2, -1.2).endurance(30));
+
+
+    // ============================================================ wave 4: construction
+    public static final VehicleType EXCAVATOR = add(new VehicleType("excavator", Category.TRUCK, 2.6f, 3.0f)
+            .seat(0.55, 1.15, 0.3)
+            .speed(0.3f, 0.02f, 3f).health(220f).paint(0xF2A900).camera(10f).horn(Horn.TRUCK).sound("engine_tank")
+            .weapon(Weapon.DIG).turret(0, 1.0, 0, 4.6).seatTurns().len(2.2, -2.2).offroad().step(1.2f).gears(0));
+    public static final VehicleType BULLDOZER = add(new VehicleType("bulldozer", Category.TRUCK, 2.6f, 3.1f)
+            .seat(0, 1.25, -1.0)
+            .speed(0.35f, 0.02f, 3f).health(240f).paint(0xF2A900).camera(10f).horn(Horn.TRUCK).sound("engine_tank")
+            .weapon(Weapon.BLADE).lift(0.6f).len(3.0, -2.4).offroad().step(1.3f).gears(0));
+    public static final VehicleType LOADER = add(new VehicleType("wheel_loader", Category.TRUCK, 2.6f, 3.5f)
+            .seat(0, 1.9, -0.25)
+            .speed(0.5f, 0.022f, 3.4f).health(200f).paint(0xF2A900).camera(10f).horn(Horn.TRUCK).sound("engine_truck")
+            .weapon(Weapon.BLADE).lift(1.8f).len(3.3, -2.7).offroad().step(1.2f).gears(4));
+    public static final VehicleType ROLLER = add(new VehicleType("road_roller", Category.TRUCK, 2.2f, 3.1f)
+            .seat(0, 1.35, -0.6)
+            .speed(0.25f, 0.015f, 3f).health(180f).paint(0xF2A900).camera(8f).horn(Horn.TRUCK).sound("engine_truck")
+            .weapon(Weapon.PAVE).len(2.2, -2.1).step(1.1f).gears(0));
+    public static final VehicleType CRANE = add(new VehicleType("mobile_crane", Category.TRUCK, 2.6f, 3.4f)
+            .seat(0.5, 1.2, 3.6).seat(-0.5, 1.2, 3.6)
+            .speed(0.55f, 0.012f, 2.4f).health(260f).paint(0xF2C200).camera(14f).horn(Horn.TRUCK).sound("engine_truck")
+            .weapon(Weapon.CRANE).turret(0, 1.9, -1.8, 11.4).len(4.8, -4.6).step(1.1f).gears(8));
+    public static final VehicleType TOW = add(new VehicleType("tow_truck", Category.TRUCK, 2.0f, 2.6f)
+            .seat(0.42, 0.55, 0.6).seat(-0.42, 0.55, 0.6)
+            .speed(0.95f, 0.028f, 3.6f).health(120f).paint(0xF57C00).camera(8f).horn(Horn.TRUCK).sound("engine_truck")
+            .weapon(Weapon.TOW).len(2.85, -3.7).offroad().gears(5));
 
     /** adds rows of seats: pairs at x = +-x, starting at z0 going back 1.1 per row */
     private static VehicleType rows(VehicleType t, double x, double y, double z0, int count) {

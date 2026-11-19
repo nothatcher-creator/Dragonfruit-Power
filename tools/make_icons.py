@@ -163,6 +163,19 @@ def make(name, paint, kind):
         d.rectangle([0,9,15,11], fill=(34,34,34,255)); d.rectangle([1,7,13,9], fill=p); d.rectangle([7,5,11,7], fill=GLS); d.ellipse([0,1,6,7], outline=dark(p,0.6)); d.line([(3,2),(3,6)], fill=(60,60,60,255))
     elif kind == 'balloon':
         d.ellipse([2,0,13,10], fill=p); d.line([(5,1),(5,9)], fill=(250,210,40,255)); d.line([(10,1),(10,9)], fill=(250,210,40,255)); d.line([(5,10),(6,12)], fill=BLK); d.line([(10,10),(9,12)], fill=BLK); d.rectangle([6,12,9,15], fill=(176,130,70,255))
+    elif kind == 'excavator':
+        d.rectangle([0,10,9,12], fill=(40,40,42,255)); d.rectangle([1,6,8,10], fill=p); d.rectangle([5,3,8,6], fill=GLS); d.line([(8,7),(12,2)], fill=p, width=2); d.line([(12,2),(14,8)], fill=p, width=2); d.rectangle([12,8,15,11], fill=(90,95,102,255))
+    elif kind == 'dozer':
+        d.rectangle([2,10,11,12], fill=(40,40,42,255)); d.rectangle([3,6,10,10], fill=p); d.rectangle([4,2,8,6], outline=BLK); d.rectangle([5,3,7,5], fill=GLS); d.rectangle([12,6,14,12], fill=p); d.line([(10,9),(12,9)], fill=(90,95,102,255))
+    elif kind == 'loader':
+        d.rectangle([1,6,8,10], fill=p); d.rectangle([2,2,6,6], fill=GLS); d.line([(8,8),(12,5)], fill=(90,95,102,255), width=2); d.polygon([(11,4),(15,4),(15,8),(12,8)], fill=(90,95,102,255)); wheel(d,3,12,2); wheel(d,10,12,2)
+    elif kind == 'roller':
+        d.ellipse([9,7,15,13], fill=(110,112,118,255), outline=BLK); d.rectangle([1,6,9,10], fill=p); d.rectangle([3,2,7,6], outline=BLK); wheel(d,3,12,2)
+    elif kind == 'crane':
+        d.rectangle([0,8,12,11], fill=p); d.rectangle([12,6,15,11], fill=p); d.rectangle([13,7,14,8], fill=GLS); d.line([(3,7),(13,0)], fill=(242,194,0,255), width=2); d.line([(13,1),(13,5)], fill=BLK); d.point((13,6), fill=YEL)
+        wheel(d,2,12,1); wheel(d,5,12,1); wheel(d,10,12,1); wheel(d,13,12,1)
+    elif kind == 'tow':
+        d.rectangle([6,6,14,10], fill=p); d.rectangle([9,4,13,6], fill=p); d.rectangle([10,5,12,6], fill=GLS); d.line([(6,5),(3,9)], fill=(60,60,60,255), width=1); d.line([(3,9),(3,11)], fill=BLK); d.line([(1,11),(5,11)], fill=(90,95,102,255)); d.point((11,3), fill=(255,150,20,255)); wheel(d,7,12); wheel(d,13,12)
     img.save(os.path.join(ITEM, name + '.png'))
 specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('sports_car','#E0301E','sports'),('pickup_truck','#3C6E3A','pickup'),
  ('van','#F2F2F2','van'),('semi_truck','#B0122A','semi'),('fire_truck','#C81E1E','fire'),('bicycle','#2A9DF4','bicycle'),('motorbike','#262626','motorbike'),
@@ -177,7 +190,8 @@ specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('spo
  ('ostrich','#2A2422','ostrich'),('chrono_car','#2A1E3C','chrono'),('shrink_car','#3EC1D3','shrinkcar'),('ufo','#9AA4B0','ufo'),('flying_carpet','#8E1B3A','carpet'),
  ('hamster_ball','#F0A030','hamster'),('rocket_cart','#B0B4BA','cart'),('lawn_mower','#C62828','mower'),('go_kart','#2E7D32','kart'),('golf_cart','#F4F4F0','golf'),
  ('ice_cream_truck','#F8C8DC','van'),('garbage_truck','#2E7D32','garbage'),('cement_mixer','#E8E8E8','mixer'),('forklift','#F2B90F','forklift'),('snowmobile','#1E88E5','snowmobile'),
- ('hovercraft','#E65100','hovercraft'),('hot_air_balloon','#D32F2F','balloon')]
+ ('hovercraft','#E65100','hovercraft'),('hot_air_balloon','#D32F2F','balloon'),
+ ('excavator','#F2A900','excavator'),('bulldozer','#F2A900','dozer'),('wheel_loader','#F2A900','loader'),('road_roller','#F2A900','roller'),('mobile_crane','#F2C200','crane'),('tow_truck','#F57C00','tow')]
 for s in specs: make(*s)
 door = Image.new('RGBA', (16,16), (120,84,48,255)); dd = ImageDraw.Draw(door)
 dd.rectangle([0,0,15,15], outline=(70,48,28,255)); dd.rectangle([3,2,12,7], fill=(150,210,240,255)); dd.rectangle([11,9,12,10], fill=(220,200,80,255)); door.save(os.path.join(BLOCK, 'rv_door.png'))
@@ -186,7 +200,7 @@ for i, n in enumerate(['sports_car','helicopter','tank','rv']):
     im = Image.open(os.path.join(ITEM, n + '.png')).resize((60,60), Image.NEAREST)
     icon.alpha_composite(im, (4 + (i % 2) * 62, 4 + (i // 2) * 62))
 icon.save(os.path.join(ROOT, 'icon.png'))
-prev = Image.new('RGBA', (11*68+8, 6*68+8), (50,50,58,255))
+prev = Image.new('RGBA', (11*68+8, 7*68+8), (50,50,58,255))
 for i, s in enumerate(specs): prev.alpha_composite(Image.open(os.path.join(ITEM, s[0] + '.png')).resize((64,64), Image.NEAREST), (6 + (i%11)*68, 6 + (i//11)*68))
 prev.save('/tmp/vicons.png'); print('icons ok')
 

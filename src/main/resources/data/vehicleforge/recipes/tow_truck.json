@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "H  ",
+    "III",
+    "C C"
+  ],
+  "key": {
+    "H": {
+      "item": "minecraft:chain"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:tow_truck",
+    "count": 1
+  }
+}
