@@ -1233,13 +1233,13 @@ public final class CityGen {
                 parkAt("school_bus", 45.5, 18, BASE, 180f, 0.5, bx, bz, 2, x0, z0);
             }
             case WAREHOUSE -> {
-                for (int n = 0; n < 5; n++) park(n % 2 == 0 ? "semi_truck" : "van", 7.5 + 9 * n, 5.5, BASE, 180f, 0.5, bx, bz, n, x0, z0);
+                for (int n = 0; n < 5; n++) parkAt(n % 2 == 0 ? "semi_truck" : "van", 7.5 + 9 * n, 5.5, BASE, 180f, 0.5, bx, bz, n, x0, z0);
                 parkAt("forklift", 12, 22, BASE, 90f, 0.7, bx, bz, 7, x0, z0);
                 parkAt("forklift", 34, 29, BASE, -90f, 0.5, bx, bz, 8, x0, z0);
             }
             case CONTAINERS -> {
                 for (int j = 0; j < 5; j++) for (int i = 0; i < 4; i++)
-                    park(i % 2 == 0 ? "forklift" : "semi_truck", 8 + 12 * i, 3 + 9 * j + 7.5, BASE, -90f, 0.2, bx, bz, j * 4 + i, x0, z0);
+                    parkAt(i % 2 == 0 ? "forklift" : "semi_truck", 8 + 12 * i, 3 + 9 * j + 7.5, BASE, -90f, 0.2, bx, bz, j * 4 + i, x0, z0);
             }
             case CONSTRUCTION -> {
                 parkAt("excavator", 40, 20, BASE, 90f, 0.95, bx, bz, 1, x0, z0);
@@ -1259,7 +1259,7 @@ public final class CityGen {
                             case 1, 2 -> "speedboat";
                             default -> "jet_ski";
                         };
-                        park(id, 8 + 12 * i, side == 0 ? 12 : 39, WATER_TOP + 0.5, side == 0 ? 90f : -90f, 0.35, bx, bz, salt, x0, z0);
+                        parkAt(id, 8 + 12 * i, side == 0 ? 12 : 39, WATER_TOP + 0.5, side == 0 ? 90f : -90f, 0.35, bx, bz, salt, x0, z0);
                     }
                 }
             }
