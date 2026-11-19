@@ -113,6 +113,8 @@ public final class CityGen {
 
     private final StructureWorldAccess w;
     private final long seed;
+    /** which loot table the building being generated fills its cupboards from (vehicleforge:city/<loot>) */
+    private String loot = "office";
     private final BlockPos.Mutable pos = new BlockPos.Mutable();
 
     CityGen(StructureWorldAccess world, long seed) {
@@ -139,6 +141,15 @@ public final class CityGen {
     private void set(int x, int y, int z, BlockState s) {
         pos.set(x, y, z);
         w.setBlockState(pos, s, Block.NOTIFY_LISTENERS);
+    }
+
+    /** a cupboard (barrel) or chest that fills itself from vehicleforge:city/<kind> the first time it's opened */
+    private void container(int x, int y, int z, String kind, boolean chest) {
+        BlockState st = chest ? Blocks.CHEST.getDefaultState() : Blocks.BARREL.getDefaultState();
+        set(x, y, z, st);
+        pos.set(x, y, z);
+        BlockPos at = pos.toImmutable();
+        LootableContainerBlockEntity.setLootTable(w, w.getRandom(), at, new net.minecraft.util.Identifier("vehicleforge", "city/" + kind));
     }
 
     private boolean isAir(int x, int y, int z) {
@@ -347,6 +358,7 @@ public final class CityGen {
             set(x, GROUND, z, towers || walkway ? PLAZA : Blocks.GRASS_BLOCK.getDefaultState());
             return;
         }
+        loot = towers ? "office" : "apartment";
         building(x, z, ox + 2, oz + 2, ox + 23, oz + 23, floors, STYLES[style], front, roof, every, 2);
     }
 
@@ -359,6 +371,7 @@ public final class CityGen {
                 return;
             }
             int floors = 22 + hash(bx, bz, 9) % 24;
+            loot = "office";
             int style = TOWER_STYLES[hash(bx, bz, 10) % TOWER_STYLES.length];
             building(x, z, ox + 3, oz + 3, ox + 48, oz + 48, floors, STYLES[style], Direction.NORTH,
                     rnd(bx, bz, 11) < 0.5f ? Roof.SPIRE : Roof.HELIPAD, 5 + hash(bx, bz, 12) % 4, 3);
@@ -373,6 +386,7 @@ public final class CityGen {
             set(x, GROUND, z, (lx + lz) % 2 == 0 ? PLAZA : Blocks.POLISHED_DIORITE.getDefaultState());
             return;
         }
+        loot = "office";
         building(x, z, ox + 2, oz + 2, ox + 49, oz + 49, 55, STYLES[8], Direction.NORTH, Roof.SPIRE, 9, 4);
     }
 
@@ -431,6 +445,11 @@ public final class CityGen {
             } else if (floorRow) {
                 s = Math.floorMod(x + z * 3, 7) == 0 ? LIGHT : INNER_FLOOR;
             } else {
+                // cupboards and chests against the walls on every floor
+                boolean nearWall = x == bx0 + 1 || x == bx1 - 1 || z == bz0 + 1 || z == bz1 - 1;
+                if (rel % 4 == 1 && nearWall && rnd(x * 7 + rel, z, 90) < 0.045f) {
+                    container(x, y, z, rel < 4 && st.shopFront ? "shop" : loot, rnd(x, z * 3 + rel, 91) < 0.4f);
+                }
                 continue;
             }
             set(x, y, z, s);
@@ -546,6 +565,7 @@ public final class CityGen {
     private void gas(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 30 && lx <= 43 && lz >= 28 && lz <= 39) {                  // shop
+            loot = "shop";
             building(x, z, ox + 30, oz + 28, ox + 43, oz + 39, 1, STYLES[6], Direction.NORTH, false);
             if (lx == 32 && lz == 30) {
                 set(x, BASE + 1, z, Blocks.BARREL.getDefaultState());
@@ -666,6 +686,9 @@ public final class CityGen {
         } else {
             set(x, BASE + 4, z, a == (a0 + a1) / 2 && c == (c0 + c1) / 2 ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
             if (a == a0 + 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.CRAFTING_TABLE.getDefaultState());
+            if (a == a0 + 1 && c == c0 + 1) container(x, BASE + 1, z, "house", false);
+            if (a == a1 - 1 && c == c0 + 1) container(x, BASE + 1, z, "house", true);
+            if (a == a0 + 2 && c == c1 - 1) container(x, BASE + 1, z, "house", false);
             if (a == a1 - 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.BOOKSHELF.getDefaultState());
         }
     }
@@ -771,6 +794,7 @@ public final class CityGen {
     private void hospital(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 4 && lx <= 47 && lz >= 10 && lz <= 41) {
+            loot = "hospital";
             building(x, z, ox + 4, oz + 10, ox + 47, oz + 41, 9, STYLES[15], Direction.NORTH, Roof.HELIPAD, 0, 0);
             if (z == oz + 10) {                                              // big red cross on the front
                 double cxl = x - (ox + 25.5);
@@ -793,6 +817,7 @@ public final class CityGen {
     private void fireStation(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 8 && lx <= 43 && lz >= 14 && lz <= 37) {
+            loot = "fire_station";
             building(x, z, ox + 8, oz + 14, ox + 43, oz + 37, 2, STYLES[17], Direction.NORTH, Roof.PLAIN, 0, 0);
             if (lz == 14) {
                 int b = lx - 11;
@@ -813,6 +838,7 @@ public final class CityGen {
     private void police(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 6 && lx <= 45 && lz >= 16 && lz <= 41) {
+            loot = "police";
             building(x, z, ox + 6, oz + 16, ox + 45, oz + 41, 3, STYLES[16], Direction.NORTH, Roof.PLAIN, 0, 0);
             if (z == oz + 16 && x >= ox + 22 && x <= ox + 29) set(x, BASE + 5, z, Blocks.BLUE_CONCRETE.getDefaultState());
             return;
@@ -828,6 +854,7 @@ public final class CityGen {
     private void school(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 4 && lx <= 31 && lz >= 6 && lz <= 29) {
+            loot = "school";
             building(x, z, ox + 4, oz + 6, ox + 31, oz + 29, 3, STYLES[4], Direction.NORTH, Roof.PLAIN, 0, 0);
             return;
         }
@@ -901,6 +928,7 @@ public final class CityGen {
             Style st = STYLES[ROW_STYLES[id % ROW_STYLES.length]];
             int floors = 3 + (id >>> 4) % 2;
             Roof roof = (id >>> 6) % 5 == 0 ? Roof.WATER_TOWER : (id >>> 6) % 5 == 1 ? Roof.GARDEN : Roof.PLAIN;
+            loot = "house";
             building(x, z, hx0, north ? oz + 2 : oz + 38, hx1, north ? oz + 13 : oz + 49, floors, st, north ? Direction.NORTH : Direction.SOUTH, roof, 0, 0);
             return;
         }
@@ -942,7 +970,11 @@ public final class CityGen {
         int rx = x - x0, rz = z - z0;
         if (rz >= 8 && rz % 7 < 2 && rx % 12 > 1 && rx % 12 < 10) {
             int h = 1 + hash(x, z, 24) % 4;
-            for (int y = BASE; y < BASE + h; y++) set(x, y, z, (hash(x, y * 31 + z, 25) % 3 == 0 ? Blocks.BARREL : Blocks.OAK_PLANKS).getDefaultState());
+            for (int y = BASE; y < BASE + h; y++) {
+                int k = hash(x, y * 31 + z, 25) % 9;
+                if (k == 0) container(x, y, z, "warehouse", false);
+                else set(x, y, z, (k < 3 ? Blocks.BARREL : Blocks.OAK_PLANKS).getDefaultState());
+            }
         }
     }
 
@@ -995,6 +1027,8 @@ public final class CityGen {
         } else if (Math.floorMod(x, 11) == 5 && Math.floorMod(z, 7) == 3) {
             for (int y = BASE; y < BASE + 3; y++) set(x, y, z, Blocks.IRON_BLOCK.getDefaultState());     // machines
             set(x, BASE + 3, z, Blocks.PISTON.getDefaultState());
+        } else if (!edge && Math.floorMod(x, 11) == 2 && Math.floorMod(z, 13) == 6) {
+            container(x, BASE, z, "warehouse", false);
         }
         // sawtooth roof with north-facing glazing
         if (saw == 4) {
@@ -1091,8 +1125,13 @@ public final class CityGen {
         if (dd < 6) for (int y = BASE; y < BASE + (int) (4 - dd * 0.7); y++) set(x, y, z, Blocks.DIRT.getDefaultState());
         double dg = Math.sqrt((lx - 10.0) * (lx - 10.0) + (lz - 44.0) * (lz - 44.0));
         if (dg < 5) for (int y = BASE; y < BASE + (int) (3 - dg * 0.6); y++) set(x, y, z, Blocks.GRAVEL.getDefaultState());
-        if (lx >= 38 && lx <= 47 && lz >= 26 && lz <= 29) {
-            for (int y = BASE; y < BASE + 3; y++) set(x, y, z, (lz == 26 && y == BASE + 1 && lx % 3 == 0) ? Blocks.GLASS.getDefaultState() : Blocks.WHITE_CONCRETE.getDefaultState());
+        if (lx == 42 && lz == 28) {
+            container(x, BASE, z, "construction", true);
+            for (int y = BASE + 1; y < BASE + 3; y++) set(x, y, z, AIR);
+        } else if (lx >= 38 && lx <= 47 && lz >= 26 && lz <= 29) {
+            boolean inside = lx > 38 && lx < 47 && lz > 26 && lz < 29;
+            for (int y = BASE; y < BASE + 3; y++) set(x, y, z, inside ? AIR : (lz == 26 && y == BASE + 1 && lx % 3 == 0) ? Blocks.GLASS.getDefaultState() : Blocks.WHITE_CONCRETE.getDefaultState());
+            if (inside) set(x, BASE + 3, z, Blocks.WHITE_CONCRETE.getDefaultState());
         }
         if (lx == 36 && lz == 28) {
             set(x, BASE, z, Blocks.BLUE_CONCRETE.getDefaultState());
