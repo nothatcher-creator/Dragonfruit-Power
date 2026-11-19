@@ -292,5 +292,8 @@
   "hud.vehicleforge.controls.blade": "[%1$s] Blade/bucket down/up  [%2$s] Horn",
   "hud.vehicleforge.controls.pave": "[%1$s] Paving on/off  [%2$s] Horn",
   "hud.vehicleforge.controls.crane": "Look to swing/lift the boom  [%1$s] Hook/release",
-  "hud.vehicleforge.controls.tow": "[%1$s] Hook/release the car behind  [%2$s] Horn"
+  "hud.vehicleforge.controls.tow": "[%1$s] Hook/release the car behind  [%2$s] Horn",
+  "block.vehicleforge.garage_door": "Garage Door (3x3)",
+  "msg.vehicleforge.wrecked": "It's a burnt-out wreck. Fix it up with iron ingots (or search it).",
+  "msg.vehicleforge.wreck_fixed": "Good as new... well, it runs. Fill it up with fuel."
 }

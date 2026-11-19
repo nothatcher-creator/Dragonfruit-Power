@@ -29,6 +29,8 @@ import net.minecraft.world.StructureWorldAccess;
  */
 public final class CityGen {
     static final int CELL = 81, C = 29, R0 = 3, R1 = 26, GROUND = 63, BASE = 64;
+    /** with the Outbreak mod installed the city is a few weeks into the end of the world: wrecks everywhere */
+    static final boolean OVERRUN = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("outbreak");
 
     enum Kind {
         TOWERS, APARTMENTS, PARKING, PARK, GAS, HOUSES,
@@ -107,6 +109,13 @@ public final class CityGen {
             "sedan", "sedan", "hatchback", "hatchback", "suv", "suv", "taxi", "pickup_truck", "classic_cruiser",
             "muscle_car", "van", "sports_car", "police_car", "limousine", "vintage_roadster"
     };
+    private static final String[] GARAGE_CARS = {
+            "sedan", "sedan", "hatchback", "suv", "muscle_car", "sports_car", "classic_cruiser", "vintage_roadster", "hatchback"
+    };
+    private static final String[] WRECKS = {
+            "sedan", "sedan", "hatchback", "hatchback", "suv", "taxi", "pickup_truck", "van", "police_car", "ambulance", "sports_car", "school_bus"
+    };
+    private static final int[] BURNT = {0x2A2622, 0x3A2A20, 0x5A3A26, 0x4A4440, 0x6B4A30};
     private static final int[] CAR_COLORS = {
             0xF2F2F2, 0x1A1A1E, 0x8E949A, 0xB7BCC2, 0xA01C1C, 0x1E3F8A, 0x2C5E3A, 0x6B4A2E, 0xC8A040, 0x5C6E80, 0x8A1E4A, 0xE07020
     };
@@ -640,8 +649,19 @@ public final class CityGen {
             case WEST -> z == amid && x < l.hx0;
             default -> z == amid && x > l.hx1;
         };
-        boolean drive = l.alongX ? (px >= 14 && (l.face == Direction.NORTH ? z <= l.hz1 : z >= l.hz0))
-                : (pz >= 14 && (l.face == Direction.WEST ? x <= l.hx1 : x >= l.hx0));
+        boolean drive;
+        if (hasGarage(l)) {
+            int g0 = (l.alongX ? l.hx1 : l.hz1) - 3, g1 = g0 + 2;
+            drive = switch (l.face) {
+                case NORTH -> x >= g0 && x <= g1 && z < l.hz0;
+                case SOUTH -> x >= g0 && x <= g1 && z > l.hz1;
+                case WEST -> z >= g0 && z <= g1 && x < l.hx0;
+                default -> z >= g0 && z <= g1 && x > l.hx1;
+            };
+        } else {
+            drive = l.alongX ? (px >= 14 && (l.face == Direction.NORTH ? z <= l.hz1 : z >= l.hz0))
+                    : (pz >= 14 && (l.face == Direction.WEST ? x <= l.hx1 : x >= l.hx0));
+        }
         if (walk) set(x, GROUND, z, WALK);
         else if (drive) set(x, GROUND, z, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
         else if (rnd(x, z, 13) < 0.03f) set(x, BASE, z, FLOWERS[hash(x, z, 14) % FLOWERS.length]);
@@ -657,15 +677,32 @@ public final class CityGen {
         Direction up = fromLow <= fromHigh ? (l.alongX ? Direction.SOUTH : Direction.EAST) : (l.alongX ? Direction.NORTH : Direction.WEST);
         set(x, roofY, z, hs.stairs.getDefaultState().with(StairsBlock.FACING, up));
         boolean inA = a >= a0 && a <= a1, inC = c >= c0 && c <= c1;
+        // attached garage: a 3-wide bay at the high-a end with a roll-up door facing the street
+        boolean garage = hasGarage(l);
+        int g0 = a1 - 3, g1 = a1 - 1, gw = a1 - 4;
+        boolean frontLow = l.face == Direction.NORTH || l.face == Direction.WEST;
+        int back = frontLow ? c1 - 1 : c0 + 1;
+        boolean bay = garage && a >= g0 && a <= g1;
+        if (bay && c == (frontLow ? c0 - 1 : c1 + 1)) set(x, GROUND, z, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
         if (!(inA && inC)) return;
-        set(x, GROUND, z, hs.floor);
-        set(x, BASE, z, hs.floor);
         boolean edgeA = a == a0 || a == a1, edgeC = c == c0 || c == c1;
+        set(x, GROUND, z, bay ? Blocks.SMOOTH_STONE.getDefaultState() : hs.floor);
+        set(x, BASE, z, bay && !edgeC ? AIR : hs.floor);
         if (edgeA || edgeC) {
             boolean frontWall = switch (l.face) {
                 case NORTH, WEST -> c == c0;
                 default -> c == c1;
             };
+            if (bay && frontWall) {
+                Direction.Axis axis = l.alongX ? Direction.Axis.X : Direction.Axis.Z;
+                for (int r = 0; r < 3; r++) {
+                    set(x, BASE + r, z, CityBlocks.GARAGE_DOOR.getDefaultState().with(com.nothatcher.vehicleforge.block.GarageDoorBlock.AXIS, axis)
+                            .with(com.nothatcher.vehicleforge.block.GarageDoorBlock.PART, (a - g0) + 3 * r));
+                }
+                set(x, BASE + 3, z, hs.wall);
+                set(x, BASE + 4, z, hs.wall);
+                return;
+            }
             int amid = (a0 + a1) / 2;
             boolean door = frontWall && a == amid && !edgeA;
             int wallAlong = edgeC ? a : c;
@@ -683,14 +720,42 @@ public final class CityGen {
             }
             if (edgeA) for (int y = BASE + 4; y < roofY; y++) set(x, y, z, hs.wall);   // gable ends
             else set(x, BASE + 4, z, hs.wall);
+        } else if (garage && a == gw) {
+            // wall between the house and the garage, with a door through it (one step down into the garage)
+            int cm = (c0 + c1) / 2;
+            Direction toGarage = l.alongX ? Direction.EAST : Direction.SOUTH;
+            for (int y = BASE; y <= BASE + 3; y++) {
+                if (c == cm && y == BASE) continue;
+                if (c == cm && y <= BASE + 2) {
+                    set(x, y, z, hs.door.getDefaultState().with(DoorBlock.FACING, toGarage)
+                            .with(DoorBlock.HALF, y == BASE + 1 ? DoubleBlockHalf.LOWER : DoubleBlockHalf.UPPER));
+                } else {
+                    set(x, y, z, hs.wall);
+                }
+            }
+            set(x, BASE + 4, z, hs.floor);
+        } else if (bay) {
+            int cm = (c0 + c1) / 2;
+            set(x, BASE + 4, z, a == g0 + 1 && c == cm ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
+            if (a == g1 && c == back) container(x, BASE, z, "garage", true);
+            if (a == g0 && c == back) set(x, BASE, z, Blocks.CRAFTING_TABLE.getDefaultState());
         } else {
             set(x, BASE + 4, z, a == (a0 + a1) / 2 && c == (c0 + c1) / 2 ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
             if (a == a0 + 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.CRAFTING_TABLE.getDefaultState());
             if (a == a0 + 1 && c == c0 + 1) container(x, BASE + 1, z, "house", false);
-            if (a == a1 - 1 && c == c0 + 1) container(x, BASE + 1, z, "house", true);
             if (a == a0 + 2 && c == c1 - 1) container(x, BASE + 1, z, "house", false);
-            if (a == a1 - 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.BOOKSHELF.getDefaultState());
+            if (garage) {
+                if (a == gw - 1 && c == back) container(x, BASE + 1, z, "house", true);
+            } else {
+                if (a == a1 - 1 && c == c0 + 1) container(x, BASE + 1, z, "house", true);
+                if (a == a1 - 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.BOOKSHELF.getDefaultState());
+            }
         }
+    }
+
+    /** three houses in four have an attached garage */
+    private boolean hasGarage(Lot l) {
+        return hash(l.ox, l.oz, 61) % 4 != 0;
     }
 
 
@@ -1240,6 +1305,23 @@ public final class CityGen {
                     for (int lj = 0; lj < 3; lj++) {
                         if (li == 1 && lj == 1) continue;
                         Lot l = lot(bx, bz, li, lj);
+                        if (hasGarage(l)) {
+                            boolean frontLow = l.face == Direction.NORTH || l.face == Direction.WEST;
+                            double a = (l.alongX ? l.hx1 : l.hz1) - 2 + 0.5;
+                            double cmid = (l.alongX ? (l.hz0 + l.hz1) : (l.hx0 + l.hx1)) / 2.0 + 0.5 + (frontLow ? -0.5 : 0.5);
+                            double gx = l.alongX ? a : cmid, gz = l.alongX ? cmid : a;
+                            float nose = switch (l.face) {      // parked nose-in
+                                case NORTH -> 0f;
+                                case SOUTH -> 180f;
+                                case WEST -> -90f;
+                                default -> 90f;
+                            };
+                            if (inChunk(gx, gz, x0, z0) && rnd(l.ox, l.oz, 62) < 0.7f) {
+                                int h = hash(l.ox, l.oz, 63);
+                                spawnType(gx, GROUND + 1, gz, nose, GARAGE_CARS[h % GARAGE_CARS.length], h, false);
+                            }
+                            continue;
+                        }
                         double cx, cz;
                         float yaw;
                         if (l.alongX) {
@@ -1304,6 +1386,7 @@ public final class CityGen {
             }
             default -> { }
         }
+        if (OVERRUN && kind(bx, bz) != Kind.RIVER) roadWrecks(bx, bz, x0, z0);
         // kerbside parking lanes, driving on the right (none on the bridges)
         for (int i = 0; i < 16; i++) {
             int z = z0 + i, x = x0 + i;
@@ -1327,10 +1410,43 @@ public final class CityGen {
     }
 
     private void spawn(double x, double z, float yaw, int h) {
-        spawnType(x, BASE, z, yaw, PARKED[h % PARKED.length], h);
+        spawnType(x, BASE, z, yaw, PARKED[h % PARKED.length], h, OVERRUN && (h >>> 13) % 100 < 35);
     }
 
     private void spawnType(double x, double y, double z, float yaw, String id, int h) {
+        spawnType(x, y, z, yaw, id, h, OVERRUN && (h >>> 13) % 100 < 25);
+    }
+
+    /** abandoned and crashed cars across the roads, and the odd pile-up at a junction */
+    private void roadWrecks(int bx, int bz, int x0, int z0) {
+        int bxs = bx * CELL, bzs = bz * CELL;
+        for (int i = 0; i < 4; i++) {
+            if (rnd(bx * 7 + i, bz, 70) < 0.6f) {          // north-south road
+                double along = bzs + C + 3 + rnd(bx * 7 + i, bz, 71) * (CELL - C - 8);
+                double lane = bxs + 5 + rnd(bx, bz * 7 + i, 72) * 18;
+                float yaw = (rnd(bx, bz * 7 + i, 73) < 0.5f ? 0f : 180f) + (rnd(bx, bz * 7 + i, 74) - 0.5f) * 130f;
+                int h = hash(bx * 7 + i, bz, 75);
+                if (inChunk(lane, along, x0, z0)) spawnType(lane, BASE, along, yaw, WRECKS[h % WRECKS.length], h, true);
+            }
+            if (rnd(bx, bz * 7 + i, 76) < 0.6f) {          // east-west road
+                double along = bxs + C + 3 + rnd(bx, bz * 7 + i, 77) * (CELL - C - 8);
+                double lane = bzs + 5 + rnd(bx * 7 + i, bz, 78) * 18;
+                float yaw = (rnd(bx * 7 + i, bz, 79) < 0.5f ? 90f : -90f) + (rnd(bx * 7 + i, bz, 80) - 0.5f) * 130f;
+                int h = hash(bx, bz * 7 + i, 81);
+                if (inChunk(along, lane, x0, z0)) spawnType(along, BASE, lane, yaw, WRECKS[h % WRECKS.length], h, true);
+            }
+        }
+        if (rnd(bx, bz, 82) < 0.3f) {                         // pile-up in the junction
+            int n = 2 + hash(bx, bz, 83) % 3;
+            for (int k = 0; k < n; k++) {
+                double px = bxs + 8 + rnd(bx, bz * 5 + k, 84) * 13, pz = bzs + 8 + rnd(bx * 5 + k, bz, 85) * 13;
+                int h = hash(bx * 5 + k, bz * 3, 86);
+                if (inChunk(px, pz, x0, z0)) spawnType(px, BASE, pz, rnd(bx, bz, 87 + k) * 360f, WRECKS[h % WRECKS.length], h, true);
+            }
+        }
+    }
+
+    private void spawnType(double x, double y, double z, float yaw, String id, int h, boolean wreck) {
         EntityType<VehicleEntity> type = ModRegistry.ENTITY_TYPES.get(id);
         if (type == null) return;
         VehicleEntity v = type.create(w.toServerWorld());
@@ -1340,6 +1456,12 @@ public final class CityGen {
                 || v.type.category == com.nothatcher.vehicleforge.VehicleType.Category.TRUCK && !id.equals("van") && !id.equals("pickup_truck");
         if (!livery) v.setPaint(CAR_COLORS[(h >>> 5) % CAR_COLORS.length]);
         v.setFuel(0.2f + ((h >>> 9) % 70) / 100f);
+        if (wreck) {
+            v.setWreck(true);
+            if ((h >>> 3) % 3 != 0) v.setPaint(BURNT[(h >>> 7) % BURNT.length]);
+            v.setHealth(v.type.health * 0.15f);
+            v.setFuel(0f);
+        }
         w.spawnEntity(v);
     }
 }

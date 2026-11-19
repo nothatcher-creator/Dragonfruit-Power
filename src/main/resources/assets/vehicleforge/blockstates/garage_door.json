@@ -1,0 +1,130 @@
+{
+  "variants": {
+    "axis=x,open=false,part=0": {
+      "model": "vehicleforge:block/garage_door"
+    },
+    "axis=x,open=true,part=0": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=1": {
+      "model": "vehicleforge:block/garage_door_handle"
+    },
+    "axis=x,open=true,part=1": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=2": {
+      "model": "vehicleforge:block/garage_door"
+    },
+    "axis=x,open=true,part=2": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=3": {
+      "model": "vehicleforge:block/garage_door"
+    },
+    "axis=x,open=true,part=3": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=4": {
+      "model": "vehicleforge:block/garage_door"
+    },
+    "axis=x,open=true,part=4": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=5": {
+      "model": "vehicleforge:block/garage_door"
+    },
+    "axis=x,open=true,part=5": {
+      "model": "vehicleforge:block/garage_door_open"
+    },
+    "axis=x,open=false,part=6": {
+      "model": "vehicleforge:block/garage_door_window"
+    },
+    "axis=x,open=true,part=6": {
+      "model": "vehicleforge:block/garage_door_roll"
+    },
+    "axis=x,open=false,part=7": {
+      "model": "vehicleforge:block/garage_door_window"
+    },
+    "axis=x,open=true,part=7": {
+      "model": "vehicleforge:block/garage_door_roll"
+    },
+    "axis=x,open=false,part=8": {
+      "model": "vehicleforge:block/garage_door_window"
+    },
+    "axis=x,open=true,part=8": {
+      "model": "vehicleforge:block/garage_door_roll"
+    },
+    "axis=z,open=false,part=0": {
+      "model": "vehicleforge:block/garage_door",
+      "y": 90
+    },
+    "axis=z,open=true,part=0": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=1": {
+      "model": "vehicleforge:block/garage_door_handle",
+      "y": 90
+    },
+    "axis=z,open=true,part=1": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=2": {
+      "model": "vehicleforge:block/garage_door",
+      "y": 90
+    },
+    "axis=z,open=true,part=2": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=3": {
+      "model": "vehicleforge:block/garage_door",
+      "y": 90
+    },
+    "axis=z,open=true,part=3": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=4": {
+      "model": "vehicleforge:block/garage_door",
+      "y": 90
+    },
+    "axis=z,open=true,part=4": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=5": {
+      "model": "vehicleforge:block/garage_door",
+      "y": 90
+    },
+    "axis=z,open=true,part=5": {
+      "model": "vehicleforge:block/garage_door_open",
+      "y": 90
+    },
+    "axis=z,open=false,part=6": {
+      "model": "vehicleforge:block/garage_door_window",
+      "y": 90
+    },
+    "axis=z,open=true,part=6": {
+      "model": "vehicleforge:block/garage_door_roll",
+      "y": 90
+    },
+    "axis=z,open=false,part=7": {
+      "model": "vehicleforge:block/garage_door_window",
+      "y": 90
+    },
+    "axis=z,open=true,part=7": {
+      "model": "vehicleforge:block/garage_door_roll",
+      "y": 90
+    },
+    "axis=z,open=false,part=8": {
+      "model": "vehicleforge:block/garage_door_window",
+      "y": 90
+    },
+    "axis=z,open=true,part=8": {
+      "model": "vehicleforge:block/garage_door_roll",
+      "y": 90
+    }
+  }
+}

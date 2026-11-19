@@ -75,6 +75,8 @@ public final class CityBlocks {
     public static final Block TRASH_BIN = reg("trash_bin", new FacingShapeBlock(metal().mapColor(MapColor.DARK_GREEN),
             box(3, 0, 3, 13, 14, 13), false));
 
+    public static final Block GARAGE_DOOR = reg("garage_door", new GarageDoorBlock(metal().mapColor(MapColor.WHITE).strength(4f, 8f)));
+
     private CityBlocks() {}
 
     private static Block reg(String id, Block b) {

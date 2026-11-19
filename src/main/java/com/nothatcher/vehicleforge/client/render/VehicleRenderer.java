@@ -50,6 +50,13 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
             ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees(MathHelper.lerp(td, e.prevBodyPitch, e.bodyPitch)));
             ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.lerp(td, e.prevBodyRoll, e.bodyRoll)));
         }
+        if (e.isWreck()) {
+            // flat tyres and a broken axle: sitting low and lopsided
+            int h = e.getUuid().hashCode();
+            ms.translate(0, -0.14, 0);
+            ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(((h & 7) - 3.5f) * 1.2f));
+            ms.multiply(RotationAxis.POSITIVE_X.rotationDegrees((((h >> 3) & 7) - 3.5f) * 0.8f));
+        }
         float scale = MathHelper.lerp(td, e.prevScale, e.scaleNow);
         if (scale != 1f) ms.scale(scale, scale, scale);
         float wobble = e.getWobble() - td;
@@ -99,6 +106,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         boolean rightOn = blink && (hazard || (e.steerVisual < -0.3f && e.engineRunning()));
         boolean reversing = e.gear < 0 && e.engineRunning();
         boolean ability = e.abilityOn();
+        boolean wreck = e.isWreck();
 
         for (Mat.Layer layer : Mat.Layer.values()) {
             VertexConsumer vc = vcp.getBuffer(switch (layer) {
@@ -141,12 +149,23 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                             lamp = 0.6f;
                         }
                     }
+                    if (wreck && ql == Mat.Layer.GLOW) ql = Mat.Layer.SOLID;      // dead lamps
                     if (ql != layer) continue;
+                    int qh = wreck ? System.identityHashCode(q) * 0x9E3779B1 : 0;
+                    if (wreck && layer == Mat.Layer.GLASS && (qh >>> 28) < 11) continue;   // most of the glass is smashed
                     float r = lamp, gr = lamp, b = lamp;
                     if (q.mat.tint > 0) {
                         r = pr * q.mat.tint;
                         gr = pg * q.mat.tint;
                         b = pb * q.mat.tint;
+                    }
+                    if (wreck) {
+                        // soot and rust, patchy per panel
+                        float soot = 0.35f + ((qh >>> 20) & 15) / 15f * 0.35f;
+                        float rust = ((qh >>> 12) & 3) == 0 ? 1f : 0f;
+                        r = r * soot + rust * 0.22f;
+                        gr = gr * soot * 0.9f + rust * 0.09f;
+                        b = b * soot * 0.8f;
                     }
                     int l = layer == Mat.Layer.GLOW ? FULL_BRIGHT : light;
                     for (int i = 0; i < 4; i++) {

@@ -71,6 +71,8 @@ public class VehicleEntity extends Entity {
     private static final TrackedData<Boolean> ABILITY = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     /** shrink car: target size (1 = normal) */
     private static final TrackedData<Float> SCALE = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    /** a burnt-out wreck: won't start or drive until it's been fully repaired with iron ingots */
+    private static final TrackedData<Boolean> WRECK = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     /** Client hook (engine sounds etc.), set by the client mod. */
     public static Consumer<VehicleEntity> clientTickHook = e -> { };
@@ -145,6 +147,15 @@ public class VehicleEntity extends Entity {
         dataTracker.startTracking(FUEL, -1f);
         dataTracker.startTracking(ABILITY, false);
         dataTracker.startTracking(SCALE, 1f);
+        dataTracker.startTracking(WRECK, false);
+    }
+
+    public boolean isWreck() {
+        return dataTracker.get(WRECK);
+    }
+
+    public void setWreck(boolean w) {
+        dataTracker.set(WRECK, w);
     }
 
     public boolean abilityOn() {
@@ -192,7 +203,7 @@ public class VehicleEntity extends Entity {
 
     /** someone is in the driver's seat and the tank isn't dry */
     public boolean engineRunning() {
-        return getControllingPassenger() != null && hasFuel();
+        return getControllingPassenger() != null && hasFuel() && !isWreck();
     }
 
     public int getPaint() {
@@ -251,6 +262,7 @@ public class VehicleEntity extends Entity {
             scaleNow = prevScale = nbt.getFloat("Scale");
         }
         interiorId = nbt.contains("Interior") ? nbt.getInt("Interior") : -1;
+        dataTracker.set(WRECK, nbt.getBoolean("Wreck"));
     }
 
     @Override
@@ -258,6 +270,7 @@ public class VehicleEntity extends Entity {
         nbt.putInt("Paint", dataTracker.get(PAINT));
         nbt.putFloat("Health", dataTracker.get(HEALTH));
         nbt.putInt("Carriages", dataTracker.get(CARRIAGES));
+        if (isWreck()) nbt.putBoolean("Wreck", true);
         nbt.putFloat("Fuel", dataTracker.get(FUEL));
         nbt.putFloat("Scale", dataTracker.get(SCALE));
         nbt.putInt("Interior", interiorId);
@@ -480,8 +493,12 @@ public class VehicleEntity extends Entity {
         }
         if (stack.isOf(Items.IRON_INGOT) && getHealth() < type.health && type.category != Category.ANIMAL) {
             if (!getWorld().isClient) {
-                setHealth(Math.min(type.health, getHealth() + type.health * 0.2f));
+                setHealth(Math.min(type.health, getHealth() + type.health * (isWreck() ? 0.1f : 0.2f)));
                 getWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_ANVIL_USE, SoundCategory.NEUTRAL, 0.6f, 1.3f);
+                if (isWreck() && getHealth() >= type.health) {
+                    setWreck(false);
+                    player.sendMessage(Text.translatable("msg.vehicleforge.wreck_fixed").formatted(Formatting.GREEN), true);
+                } else
                 player.sendMessage(Text.translatable("msg.vehicleforge.repaired", Math.round(getHealth() / type.health * 100)).formatted(Formatting.GREEN), true);
                 if (!player.getAbilities().creativeMode) stack.decrement(1);
             }
@@ -492,6 +509,10 @@ public class VehicleEntity extends Entity {
                 dataTracker.set(CARRIAGES, getCarriages() + 1);
                 if (!player.getAbilities().creativeMode) stack.decrement(1);
             }
+            return ActionResult.success(getWorld().isClient);
+        }
+        if (isWreck()) {
+            if (!getWorld().isClient) player.sendMessage(Text.translatable("msg.vehicleforge.wrecked").formatted(Formatting.GRAY), true);
             return ActionResult.success(getWorld().isClient);
         }
         if (!getWorld().isClient) return player.startRiding(this) ? ActionResult.CONSUME : ActionResult.PASS;
@@ -514,7 +535,9 @@ public class VehicleEntity extends Entity {
 
     /** drop = broken up by a player (gives the item back); otherwise it's a wreck and goes up in flames */
     private void destroy(boolean drop, boolean quiet) {
-        if (drop) {
+        if (drop && isWreck()) {
+            dropStack(new ItemStack(Items.IRON_INGOT, 1 + random.nextInt(3)));   // scrap, not a free car
+        } else if (drop) {
             dropStack(new ItemStack(ModRegistry.ITEMS.get(type.id)));
         } else if (!quiet) {
             getWorld().createExplosion(this, getX(), getY() + 0.5, getZ(), 2.5f, World.ExplosionSourceType.NONE);
@@ -574,6 +597,11 @@ public class VehicleEntity extends Entity {
         }
         super.tick();
         if (getWobble() > 0 && !getWorld().isClient) dataTracker.set(WOBBLE, getWobble() - 1);
+        // some wrecks are still smouldering
+        if (isWreck() && getWorld().isClient && Math.floorMod(getId(), 3) == 0 && random.nextInt(5) == 0) {
+            Vec3d at = toWorld((random.nextFloat() - 0.5f) * type.width * 0.6f, type.height * 0.6, type.frontZ * 0.6f);
+            getWorld().addParticle(random.nextInt(4) == 0 ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, at.x, at.y, at.z, 0, 0.04, 0);
+        }
 
         if (isLogicalSideForUpdatingMovement()) {
             lerpTicks = 0;
