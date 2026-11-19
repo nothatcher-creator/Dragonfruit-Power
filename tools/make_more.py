@@ -311,7 +311,7 @@ def box(f, t):
 json.dump({'parent': 'block/block', 'textures': {'particle': 'outbreak:block/trash_bag', 't': 'outbreak:block/trash_bag'},
            'elements': [box([3, 0, 3], [13, 8, 13]), box([4, 8, 4], [12, 9.5, 12]), box([6.5, 9.5, 6.5], [9.5, 11.5, 9.5])]},
           open(f'{BM}/trash_bag.json', 'w'), indent=1)
-json.dump({'variants': {'': [{'model': 'outbreak:block/trash_bag', 'y': y} for y in (0, 30, 60, 90)]}}, open(f'{BS}/trash_bag.json', 'w'), indent=1)
+json.dump({'variants': {'': [{'model': 'outbreak:block/trash_bag', 'y': y} for y in (0, 90, 180, 270)]}}, open(f'{BS}/trash_bag.json', 'w'), indent=1)
 json.dump({'parent': 'outbreak:block/trash_bag'}, open(f'{MD}/trash_bag.json', 'w'), indent=1)
 
 # ---------- item models ----------
@@ -366,6 +366,7 @@ lang.update({
     'msg.outbreak.area_crawling': 'You can hear them everywhere. This area is crawling.',
     'msg.outbreak.area_busy': 'Plenty of shuffling and moaning nearby.',
     'msg.outbreak.area_thinning': 'Only a few left around here.',
+    'key.outbreak.fog': 'Toggle eerie fog', 'msg.outbreak.fog_on': 'Fog on', 'msg.outbreak.fog_off': 'Fog off',
     'msg.outbreak.area_quiet': 'Quiet. You\'ve cleared most of this area.',
 })
 json.dump(lang, open(LP, 'w'), indent=1)

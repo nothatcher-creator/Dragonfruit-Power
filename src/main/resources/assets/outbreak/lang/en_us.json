@@ -133,5 +133,8 @@
  "msg.outbreak.area_crawling": "You can hear them everywhere. This area is crawling.",
  "msg.outbreak.area_busy": "Plenty of shuffling and moaning nearby.",
  "msg.outbreak.area_thinning": "Only a few left around here.",
+ "key.outbreak.fog": "Toggle eerie fog",
+ "msg.outbreak.fog_on": "Fog on",
+ "msg.outbreak.fog_off": "Fog off",
  "msg.outbreak.area_quiet": "Quiet. You've cleared most of this area."
 }

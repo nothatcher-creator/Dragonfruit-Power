@@ -27,7 +27,8 @@ import org.lwjgl.glfw.GLFW;
 
 public class OutbreakClient implements ClientModInitializer {
     private static final Identifier SCOPE = new Identifier("textures/misc/spyglass_scope.png");
-    public static KeyBinding RELOAD, SHOVE, ACTIONS;
+    public static KeyBinding RELOAD, SHOVE, ACTIONS, FOG;
+    public static boolean fogOn = true;
     private static boolean ctrlWasDown;
     // timed action progress, from the server
     private static long progressStart, progressEnd;
@@ -38,6 +39,7 @@ public class OutbreakClient implements ClientModInitializer {
         RELOAD = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.reload", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.outbreak"));
         SHOVE = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.shove", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.outbreak"));
         ACTIONS = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.actions", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, "category.outbreak"));
+        FOG = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.fog", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category.outbreak"));
         for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
@@ -50,6 +52,10 @@ public class OutbreakClient implements ClientModInitializer {
                     mc.player.swingHand(Hand.MAIN_HAND);
                     ClientPlayNetworking.send(Outbreak.SHOVE, PacketByteBufs.empty());
                 }
+            }
+            while (FOG.wasPressed()) {
+                fogOn = !fogOn;
+                if (mc.player != null) mc.player.sendMessage(Text.translatable(fogOn ? "msg.outbreak.fog_on" : "msg.outbreak.fog_off"), true);
             }
             while (ACTIONS.wasPressed()) {
                 if (mc.currentScreen == null) ActionMenuScreen.open(mc);

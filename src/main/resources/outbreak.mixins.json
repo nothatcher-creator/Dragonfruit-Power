@@ -9,7 +9,8 @@
   ],
   "client": [
     "client.ClientPlayerFovMixin",
-    "client.PlayerRendererMixin"
+    "client.PlayerRendererMixin",
+    "client.FogMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -7,15 +7,15 @@
    },
    {
     "model": "outbreak:block/trash_bag",
-    "y": 30
-   },
-   {
-    "model": "outbreak:block/trash_bag",
-    "y": 60
-   },
-   {
-    "model": "outbreak:block/trash_bag",
     "y": 90
+   },
+   {
+    "model": "outbreak:block/trash_bag",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/trash_bag",
+    "y": 270
    }
   ]
  }
