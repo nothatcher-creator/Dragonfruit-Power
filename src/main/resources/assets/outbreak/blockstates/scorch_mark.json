@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/scorch_mark",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/scorch_mark",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/scorch_mark",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/scorch_mark",
+    "y": 270
+   }
+  ]
+ }
+}

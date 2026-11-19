@@ -52,5 +52,32 @@
    }
   ],
   "subtitle": "subtitles.outbreak.empty_click"
+ },
+ "silenced_fire": {
+  "sounds": [
+   {
+    "name": "outbreak:silenced_fire",
+    "attenuation_distance": 24
+   }
+  ],
+  "subtitle": "subtitles.outbreak.silenced_fire"
+ },
+ "revolver_fire": {
+  "sounds": [
+   {
+    "name": "outbreak:revolver_fire",
+    "attenuation_distance": 96
+   }
+  ],
+  "subtitle": "subtitles.outbreak.revolver_fire"
+ },
+ "sniper_fire": {
+  "sounds": [
+   {
+    "name": "outbreak:sniper_fire",
+    "attenuation_distance": 96
+   }
+  ],
+  "subtitle": "subtitles.outbreak.sniper_fire"
  }
 }

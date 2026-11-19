@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/litter",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/litter",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/litter",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/litter",
+    "y": 270
+   }
+  ]
+ }
+}

@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.AxeItem;
 import net.minecraft.item.FoodComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -24,6 +25,7 @@ public final class OutbreakItems {
     public static final Item AMMO_9MM = reg("ammo_9mm", new Item(new Item.Settings()));
     public static final Item AMMO_SHELLS = reg("ammo_shells", new Item(new Item.Settings()));
     public static final Item AMMO_RIFLE = reg("ammo_rifle", new Item(new Item.Settings()));
+    public static final Item AMMO_MAGNUM = reg("ammo_magnum", new Item(new Item.Settings()));
 
     // guns: sound, ammo, mag, interval, reload, pellets, damage, spread, range, recoil, noise, auto, scope
     public static final GunItem PISTOL = reg("pistol", new GunItem(new Item.Settings(), "pistol_fire", () -> AMMO_9MM,
@@ -36,6 +38,16 @@ public final class OutbreakItems {
             5, 24, 50, 1, 19f, 0.6f, 140, 7f, 80, false, true));
     public static final GunItem ASSAULT_RIFLE = reg("assault_rifle", new GunItem(new Item.Settings(), "rifle_fire", () -> AMMO_RIFLE,
             30, 3, 45, 1, 7.5f, 1.9f, 90, 1.5f, 72, true, false));
+    public static final GunItem SILENCED_PISTOL = reg("silenced_pistol", new GunItem(new Item.Settings(), "silenced_fire", () -> AMMO_9MM,
+            12, 6, 34, 1, 6f, 1.6f, 50, 1.6f, 10, false, false));
+    public static final GunItem REVOLVER = reg("revolver", new GunItem(new Item.Settings(), "revolver_fire", () -> AMMO_MAGNUM,
+            6, 9, 55, 1, 13f, 1.1f, 70, 5f, 56, false, false));
+    public static final GunItem DOUBLE_BARREL = reg("double_barrel", new GunItem(new Item.Settings(), "shotgun_fire", () -> AMMO_SHELLS,
+            2, 6, 40, 9, 3.2f, 6.5f, 22, 8f, 64, false, false));
+    public static final GunItem SNIPER_RIFLE = reg("sniper_rifle", new GunItem(new Item.Settings(), "sniper_fire", () -> AMMO_RIFLE,
+            5, 30, 65, 1, 30f, 0.5f, 220, 9f, 96, false, true));
+    public static final GunItem LIGHT_MACHINE_GUN = reg("light_machine_gun", new GunItem(new Item.Settings(), "rifle_fire", () -> AMMO_RIFLE,
+            100, 2, 110, 1, 6.5f, 3.2f, 90, 1.3f, 80, true, false));
 
     // melee
     public static final Item BASEBALL_BAT = reg("baseball_bat", new SwordItem(ToolMaterials.WOOD, 4, -2.7f, new Item.Settings().maxDamage(160)));
@@ -43,12 +55,36 @@ public final class OutbreakItems {
     public static final Item CROWBAR = reg("crowbar", new SwordItem(ToolMaterials.IRON, 2, -2.5f, new Item.Settings().maxDamage(700)));
     public static final Item MACHETE = reg("machete", new SwordItem(ToolMaterials.IRON, 4, -2.3f, new Item.Settings().maxDamage(380)));
     public static final Item SLEDGEHAMMER = reg("sledgehammer", new SwordItem(ToolMaterials.IRON, 8, -3.3f, new Item.Settings().maxDamage(300)));
+    public static final Item FIRE_AXE = reg("fire_axe", new AxeItem(ToolMaterials.IRON, 7f, -3.1f, new Item.Settings().maxDamage(450)));
+    public static final Item KITCHEN_KNIFE = reg("kitchen_knife", new SwordItem(ToolMaterials.IRON, 0, -1.4f, new Item.Settings().maxDamage(140)));
+    public static final Item FRYING_PAN = reg("frying_pan", new SwordItem(ToolMaterials.IRON, 2, -2.6f, new Item.Settings().maxDamage(500)));
+    public static final Item GOLF_CLUB = reg("golf_club", new SwordItem(ToolMaterials.IRON, 2, -2.5f, new Item.Settings().maxDamage(240)));
+    public static final Item HOCKEY_STICK = reg("hockey_stick", new SwordItem(ToolMaterials.WOOD, 4, -2.6f, new Item.Settings().maxDamage(190)));
+    public static final Item PIPE_WRENCH = reg("pipe_wrench", new SwordItem(ToolMaterials.IRON, 3, -2.8f, new Item.Settings().maxDamage(650)));
+    public static final Item POLICE_BATON = reg("police_baton", new SwordItem(ToolMaterials.IRON, 1, -2.0f, new Item.Settings().maxDamage(420)));
+    public static final Item CLAW_HAMMER = reg("claw_hammer", new SwordItem(ToolMaterials.IRON, 1, -2.4f, new Item.Settings().maxDamage(380)));
 
     // armour
     public static final Item POLICE_VEST = reg("police_vest", new ArmorItem(OutbreakArmor.POLICE, ArmorItem.Type.CHESTPLATE, new Item.Settings()));
     public static final Item MILITARY_VEST = reg("military_vest", new ArmorItem(OutbreakArmor.MILITARY, ArmorItem.Type.CHESTPLATE, new Item.Settings()));
     public static final Item MILITARY_HELMET = reg("military_helmet", new ArmorItem(OutbreakArmor.MILITARY, ArmorItem.Type.HELMET, new Item.Settings()));
     public static final Item RIOT_HELMET = reg("riot_helmet", new ArmorItem(OutbreakArmor.RIOT, ArmorItem.Type.HELMET, new Item.Settings()));
+
+    // clothes
+    public static final Item BEANIE = clothes("beanie", ArmorItem.Type.HELMET, 80, 1, 0, false);
+    public static final Item BASEBALL_CAP = clothes("baseball_cap", ArmorItem.Type.HELMET, 80, 1, 0, false);
+    public static final Item HARD_HAT = clothes("hard_hat", ArmorItem.Type.HELMET, 220, 2, 0.5f, false);
+    public static final Item FIREFIGHTER_HELMET = clothes("firefighter_helmet", ArmorItem.Type.HELMET, 260, 2, 1f, false);
+    public static final Item GAS_MASK = clothes("gas_mask", ArmorItem.Type.HELMET, 160, 1, 0, false);
+    public static final Item HOODIE = clothes("hoodie", ArmorItem.Type.CHESTPLATE, 140, 2, 0, false);
+    public static final Item LEATHER_JACKET = clothes("leather_jacket", ArmorItem.Type.CHESTPLATE, 260, 3, 0, true);
+    public static final Item FIREFIGHTER_JACKET = clothes("firefighter_jacket", ArmorItem.Type.CHESTPLATE, 300, 4, 1f, false);
+    public static final Item HI_VIS_VEST = clothes("hi_vis_vest", ArmorItem.Type.CHESTPLATE, 100, 1, 0, false);
+    public static final Item JEANS = clothes("jeans", ArmorItem.Type.LEGGINGS, 200, 2, 0, false);
+    public static final Item CARGO_PANTS = clothes("cargo_pants", ArmorItem.Type.LEGGINGS, 200, 2, 0, false);
+    public static final Item FIREFIGHTER_PANTS = clothes("firefighter_pants", ArmorItem.Type.LEGGINGS, 280, 3, 1f, false);
+    public static final Item SNEAKERS = clothes("sneakers", ArmorItem.Type.BOOTS, 120, 1, 0, false);
+    public static final Item WORK_BOOTS = clothes("work_boots", ArmorItem.Type.BOOTS, 260, 2, 0, true);
 
     // medical
     public static final Item BANDAGE = reg("bandage", new MedItem(new Item.Settings().maxCount(16), MedItem.Kind.BANDAGE));
@@ -73,6 +109,10 @@ public final class OutbreakItems {
 
     private OutbreakItems() {}
 
+    private static Item clothes(String name, ArmorItem.Type type, int durability, int protection, float toughness, boolean leather) {
+        return reg(name, new ArmorItem(new Clothing(name, durability, protection, toughness, leather), type, new Item.Settings()));
+    }
+
     private static <T extends Item> T reg(String name, T item) {
         Registry.register(Registries.ITEM, Outbreak.id(name), item);
         ALL.add(item);
@@ -85,6 +125,7 @@ public final class OutbreakItems {
                 .displayName(Text.translatable("itemGroup.outbreak"))
                 .entries((ctx, entries) -> {
                     for (Item i : ALL) entries.add(i instanceof GunItem g ? g.loaded() : new ItemStack(i));
+                    for (net.minecraft.block.Block b : OutbreakBlocks.ALL) entries.add(new ItemStack(b));
                 })
                 .build();
         Registry.register(Registries.ITEM_GROUP, Outbreak.id("outbreak"), group);

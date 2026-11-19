@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/blood_splatter",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/blood_splatter",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/blood_splatter",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/blood_splatter",
+    "y": 270
+   }
+  ]
+ }
+}

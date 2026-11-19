@@ -1,11 +1,14 @@
 package com.nothatcher.outbreak;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -30,9 +33,12 @@ public class Outbreak implements ModInitializer {
     public static final Logger LOG = LoggerFactory.getLogger("Outbreak");
 
     public static GameRules.Key<GameRules.BooleanRule> ZOMBIES, DAYLIGHT, INFECTION;
-    public static GameRules.Key<GameRules.IntRule> CAP, SPRINTERS;
+    public static GameRules.Key<GameRules.IntRule> CAP, SPRINTERS, AREA_POP;
 
     public static final Identifier RELOAD = id("reload");
+    public static final Identifier SHOVE = id("shove");
+    public static final Identifier ACTION = id("action");
+    public static final Identifier PROGRESS = id("progress");
     public static final RegistryKey<net.minecraft.entity.damage.DamageType> INFECTION_DAMAGE =
             RegistryKey.of(RegistryKeys.DAMAGE_TYPE, id("infection"));
 
@@ -51,21 +57,30 @@ public class Outbreak implements ModInitializer {
         ZOMBIES = GameRuleRegistry.register("outbreakZombies", GameRules.Category.SPAWNING, GameRuleFactory.createBooleanRule(true));
         DAYLIGHT = GameRuleRegistry.register("outbreakDaylightZombies", GameRules.Category.MOBS, GameRuleFactory.createBooleanRule(true));
         INFECTION = GameRuleRegistry.register("outbreakInfection", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
-        CAP = GameRuleRegistry.register("outbreakZombieCap", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(70, 0, 400));
-        SPRINTERS = GameRuleRegistry.register("outbreakSprinterPercent", GameRules.Category.MOBS, GameRuleFactory.createIntRule(8, 0, 100));
+        CAP = GameRuleRegistry.register("outbreakMaxZombies", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(30, 0, 400));
+        SPRINTERS = GameRuleRegistry.register("outbreakSprinterChance", GameRules.Category.MOBS, GameRuleFactory.createIntRule(3, 0, 100));
+        AREA_POP = GameRuleRegistry.register("outbreakAreaPopulation", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(60, 1, 2000));
 
-        for (String s : new String[]{"pistol_fire", "shotgun_fire", "rifle_fire", "smg_fire", "reload", "empty_click"}) {
+        for (String s : new String[]{"pistol_fire", "shotgun_fire", "rifle_fire", "smg_fire", "silenced_fire", "revolver_fire", "sniper_fire", "reload", "empty_click"}) {
             Identifier sid = id(s);
             SOUNDS.put(s, Registry.register(Registries.SOUND_EVENT, sid, SoundEvent.of(sid)));
         }
         OutbreakEffects.register();
+        OutbreakBlocks.register();
         OutbreakItems.register();
         LootInjector.register();
 
         ServerTickEvents.END_WORLD_TICK.register(w -> {
             ZombieSpawner.tick(w);
             Noise.vehicleNoise(w);
+            Actions.tick(w);
         });
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+            if (entity instanceof ZombieEntity && entity.getWorld() instanceof ServerWorld sw)
+                Population.of(sw).onKill(sw, entity.getBlockPos());
+        });
+        ServerPlayNetworking.registerGlobalReceiver(SHOVE, (server, player, handler, buf, sender) -> server.execute(() -> Shove.shove(player)));
+        ServerPlayNetworking.registerGlobalReceiver(ACTION, (server, player, handler, buf, sender) -> Actions.receive(server, player, buf));
         ServerPlayNetworking.registerGlobalReceiver(RELOAD, (server, player, handler, buf, sender) -> server.execute(() -> {
             ItemStack st = player.getMainHandStack();
             if (st.getItem() instanceof GunItem gun) gun.reload(player, st);

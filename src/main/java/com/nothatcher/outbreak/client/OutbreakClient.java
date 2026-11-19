@@ -2,35 +2,77 @@ package com.nothatcher.outbreak.client;
 
 import com.nothatcher.outbreak.GunItem;
 import com.nothatcher.outbreak.Outbreak;
+import com.nothatcher.outbreak.OutbreakBlocks;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class OutbreakClient implements ClientModInitializer {
     private static final Identifier SCOPE = new Identifier("textures/misc/spyglass_scope.png");
-    public static KeyBinding RELOAD;
+    public static KeyBinding RELOAD, SHOVE, ACTIONS;
+    private static boolean ctrlWasDown;
+    // timed action progress, from the server
+    private static long progressStart, progressEnd;
+    private static Text progressLabel = Text.empty();
 
     @Override
     public void onInitializeClient() {
         RELOAD = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.reload", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.outbreak"));
+        SHOVE = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.shove", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.outbreak"));
+        ACTIONS = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.actions", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, "category.outbreak"));
+        for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
+
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (RELOAD.wasPressed()) {
                 if (mc.player != null && mc.player.getMainHandStack().getItem() instanceof GunItem)
                     ClientPlayNetworking.send(Outbreak.RELOAD, PacketByteBufs.empty());
             }
+            while (SHOVE.wasPressed()) {
+                if (mc.player != null && !mc.player.hasVehicle()) {
+                    mc.player.swingHand(Hand.MAIN_HAND);
+                    ClientPlayNetworking.send(Outbreak.SHOVE, PacketByteBufs.empty());
+                }
+            }
+            while (ACTIONS.wasPressed()) {
+                if (mc.currentScreen == null) ActionMenuScreen.open(mc);
+            }
+            // Ctrl opens the menu too, as long as you're standing still (Ctrl + walking is still sprint)
+            long win = mc.getWindow().getHandle();
+            boolean ctrl = InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_LEFT_CONTROL) || InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_RIGHT_CONTROL);
+            if (ctrl && !ctrlWasDown && mc.currentScreen == null && mc.player != null
+                    && mc.player.input.movementForward == 0 && mc.player.input.movementSideways == 0) {
+                ActionMenuScreen.open(mc);
+            }
+            ctrlWasDown = ctrl;
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Outbreak.PROGRESS, (client, handler, buf, sender) -> {
+            int ticks = buf.readVarInt();
+            String key = buf.readString(), arg = buf.readString();
+            client.execute(() -> {
+                if (client.world == null) return;
+                long now = client.world.getTime();
+                progressStart = now;
+                progressEnd = ticks <= 0 ? 0 : now + ticks;
+                progressLabel = arg.isEmpty() ? Text.translatable(key) : Text.translatable(key, Text.translatable(arg));
+            });
         });
         HudRenderCallback.EVENT.register(OutbreakClient::hud);
     }
@@ -43,10 +85,20 @@ public class OutbreakClient implements ClientModInitializer {
 
     private static void hud(DrawContext ctx, float tickDelta) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player == null || mc.options.hudHidden) return;
+        if (mc.player == null || mc.world == null || mc.options.hudHidden) return;
+        int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
+        // timed action
+        if (progressEnd > 0) {
+            float now = mc.world.getTime() + tickDelta;
+            float f = Math.min(1f, (now - progressStart) / Math.max(1f, progressEnd - progressStart));
+            if (now > progressEnd + 10) progressEnd = 0;
+            int bw = 100, x = w / 2 - bw / 2, y = h / 2 + 14;
+            ctx.fill(x - 1, y - 1, x + bw + 1, y + 6, 0xC0000000);
+            ctx.fill(x, y, x + (int) (bw * f), y + 5, 0xFF7FBF4F);
+            ctx.drawCenteredTextWithShadow(mc.textRenderer, progressLabel, w / 2, y + 8, 0xFFE8E8E8);
+        }
         ItemStack st = mc.player.getMainHandStack();
         if (!(st.getItem() instanceof GunItem gun)) return;
-        int w = ctx.getScaledWindowWidth(), h = ctx.getScaledWindowHeight();
         if (scoped(mc.player)) {
             int size = Math.min(w, h);
             int x = (w - size) / 2, y = (h - size) / 2;
@@ -67,7 +119,7 @@ public class OutbreakClient implements ClientModInitializer {
         ctx.drawText(mc.textRenderer, text, x, y, mag == 0 ? 0xFF5050 : 0xF0E0B0, true);
         if (mag == 0 && spare == 0) {
             String none = "NO AMMO";
-            ctx.drawText(mc.textRenderer, none, w / 2 - mc.textRenderer.getWidth(none) / 2, h / 2 + 12, 0xFF5050, true);
+            ctx.drawText(mc.textRenderer, none, w / 2 - mc.textRenderer.getWidth(none) / 2, h / 2 + 30, 0xFF5050, true);
         }
     }
 

@@ -34,10 +34,15 @@ public class BackpackItem extends Item {
     public TypedActionResult<ItemStack> use(World w, PlayerEntity p, Hand hand) {
         ItemStack st = p.getStackInHand(hand);
         if (!w.isClient) {
-            w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, SoundCategory.PLAYERS, 0.8f, 0.9f);
-            p.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, pl) -> new Handler(syncId, inv, st, hand), st.getName()));
+            open(p, st, hand == Hand.MAIN_HAND ? p.getInventory().selectedSlot : 40);
         }
         return TypedActionResult.success(st, w.isClient);
+    }
+
+    /** open the bag sitting in inventory slot {@code slot} (0-35, or 40 for the offhand) */
+    public static void open(PlayerEntity p, ItemStack st, int slot) {
+        p.getWorld().playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, SoundCategory.PLAYERS, 0.8f, 0.9f);
+        p.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, inv, pl) -> new Handler(syncId, inv, st, slot), st.getName()));
     }
 
     @Override
@@ -81,29 +86,28 @@ public class BackpackItem extends Item {
 
     static class Handler extends GenericContainerScreenHandler {
         private final ItemStack bag;
-        private final Hand hand;
+        private final int invSlot;
         private final SimpleInventory inv;
-        private final int heldIndex, selected;
+        private final int heldIndex;
 
-        Handler(int syncId, PlayerInventory pinv, ItemStack bag, Hand hand) {
-            this(syncId, pinv, bag, hand, load(bag));
+        Handler(int syncId, PlayerInventory pinv, ItemStack bag, int invSlot) {
+            this(syncId, pinv, bag, invSlot, load(bag));
         }
 
-        private Handler(int syncId, PlayerInventory pinv, ItemStack bag, Hand hand, SimpleInventory inv) {
+        private Handler(int syncId, PlayerInventory pinv, ItemStack bag, int invSlot, SimpleInventory inv) {
             super(ScreenHandlerType.GENERIC_9X3, syncId, pinv, inv, 3);
             this.bag = bag;
-            this.hand = hand;
+            this.invSlot = invSlot;
             this.inv = inv;
-            this.selected = pinv.selectedSlot;
-            // container 0-26, player main 27-53, hotbar 54-62 (the offhand isn't shown)
-            this.heldIndex = hand == Hand.MAIN_HAND ? 54 + pinv.selectedSlot : -1;
+            // container 0-26, player main (inv 9-35) at 27-53, hotbar (inv 0-8) at 54-62; the offhand isn't shown
+            this.heldIndex = invSlot < 9 ? 54 + invSlot : invSlot < 36 ? 27 + (invSlot - 9) : -1;
             inv.addListener(i -> save(inv, bag));
         }
 
         @Override
         public void onSlotClick(int slot, int button, SlotActionType action, PlayerEntity player) {
-            if (slot == heldIndex && heldIndex >= 0) return; // don't let the open bag be moved
-            if (action == SlotActionType.SWAP && ((hand == Hand.MAIN_HAND && button == selected) || (hand == Hand.OFF_HAND && button == 40))) return;
+            if (heldIndex >= 0 && slot == heldIndex) return; // don't let the open bag be moved
+            if (action == SlotActionType.SWAP && button == invSlot) return;
             super.onSlotClick(slot, button, action, player);
             // no bags inside bags
             for (int i = 0; i < inv.size(); i++) {
@@ -117,7 +121,7 @@ public class BackpackItem extends Item {
 
         @Override
         public boolean canUse(PlayerEntity player) {
-            return player.getStackInHand(hand) == bag;
+            return player.getInventory().getStack(invSlot) == bag;
         }
 
         @Override

@@ -49,3 +49,9 @@ save('reload', seq(1.0, [(0.0, click(0, 0.05, 900, 0.8)), (0.12, lp(rng.standard
                          (0.45, click(0, 0.05, 1300, 1.0)), (0.62, click(0, 0.05, 700, 0.9)), (0.7, click(0, 0.06, 1800, 1.0))]), 0.7)
 save('empty_click', seq(0.15, [(0.0, click(0, 0.05, 2200, 1.0))]), 0.6)
 print('sounds ok')
+
+# wave 2
+shot('silenced_fire', 0.35, 0.15, 0.5, 220, 0.15, 0.012, 0.05, 0.06)
+shot('revolver_fire', 1.1, 1.1, 1.5, 120, 0.8, 0.04, 0.45, 0.32)
+shot('sniper_fire', 2.2, 2.0, 1.5, 80, 1.0, 0.05, 0.9, 0.8)
+print('more sounds ok')
