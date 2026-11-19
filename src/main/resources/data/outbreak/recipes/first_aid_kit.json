@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "LBL",
+  "BRB",
+  "LBL"
+ ],
+ "key": {
+  "L": {
+   "item": "minecraft:leather"
+  },
+  "B": {
+   "item": "outbreak:bandage"
+  },
+  "R": {
+   "item": "minecraft:red_dye"
+  }
+ },
+ "result": {
+  "item": "outbreak:first_aid_kit",
+  "count": 1
+ }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "outbreak",
+  "version": "${version}",
+  "name": "Outbreak",
+  "description": "Survival horror for Vehicle Forge cities (works on its own too): zombie hordes that don't burn in daylight and come to gunfire and engine noise, infectious bites, guns, ammo, melee weapons, armour, medicine, food and backpacks looted from every house and building.",
+  "authors": ["Bradley (nothatcher-creator)"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/outbreak/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.nothatcher.outbreak.Outbreak"],
+    "client": ["com.nothatcher.outbreak.client.OutbreakClient"]
+  },
+  "mixins": ["outbreak.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "vehicleforge": "*"
+  }
+}

@@ -1,0 +1,132 @@
+package com.nothatcher.outbreak;
+
+import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
+import net.minecraft.item.Item;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.LootTable;
+import net.minecraft.loot.entry.EmptyEntry;
+import net.minecraft.loot.entry.ItemEntry;
+import net.minecraft.loot.function.SetCountLootFunction;
+import net.minecraft.loot.function.SetNbtLootFunction;
+import net.minecraft.loot.provider.number.UniformLootNumberProvider;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Identifier;
+
+import static com.nothatcher.outbreak.OutbreakItems.*;
+
+/**
+ * Puts Outbreak gear into containers: every Vehicle Forge city loot table (houses, apartments, shops, police,
+ * hospitals, fire stations, schools, offices, warehouses, construction sites) and vanilla village houses, dungeons,
+ * mineshafts, outposts and shipwrecks. Works without Vehicle Forge too.
+ */
+public final class LootInjector {
+    private LootInjector() {}
+
+    /** a pool builder: entries are (item, weight, min, max); emptyWeight leaves some rolls with nothing */
+    private static final class P {
+        final LootPool.Builder b;
+
+        P(float minRolls, float maxRolls, int emptyWeight) {
+            b = LootPool.builder().rolls(UniformLootNumberProvider.create(minRolls, maxRolls));
+            if (emptyWeight > 0) b.with(EmptyEntry.builder().weight(emptyWeight));
+        }
+
+        P add(Item item, int weight, int min, int max) {
+            var e = ItemEntry.builder(item).weight(weight);
+            if (max > 1) e.apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(min, max)));
+            b.with(e);
+            return this;
+        }
+
+        P gun(GunItem gun, int weight) {
+            NbtCompound n = new NbtCompound();
+            n.putInt("Ammo", Math.max(1, gun.mag / 3));
+            b.with(ItemEntry.builder(gun).weight(weight).apply(SetNbtLootFunction.builder(n)));
+            return this;
+        }
+
+        void into(LootTable.Builder t) {
+            t.pool(b);
+        }
+    }
+
+    private static P food(float lo, float hi, int empty) {
+        return new P(lo, hi, empty).add(CANNED_BEANS, 10, 1, 3).add(CANNED_SOUP, 10, 1, 3).add(CHIPS, 12, 1, 4)
+                .add(ENERGY_BAR, 8, 1, 3).add(BOTTLED_WATER, 10, 1, 4);
+    }
+
+    private static P meds(float lo, float hi, int empty) {
+        return new P(lo, hi, empty).add(BANDAGE, 14, 1, 4).add(PAINKILLERS, 8, 1, 3).add(ANTIBIOTICS, 3, 1, 2).add(FIRST_AID_KIT, 2, 1, 1);
+    }
+
+    private static P homeDefence(int empty) {
+        return new P(1, 1, empty).add(BASEBALL_BAT, 10, 1, 1).add(CROWBAR, 6, 1, 1).add(MACHETE, 3, 1, 1)
+                .gun(PISTOL, 4).gun(SHOTGUN, 2).gun(HUNTING_RIFLE, 1)
+                .add(AMMO_9MM, 6, 4, 14).add(AMMO_SHELLS, 4, 2, 8).add(AMMO_RIFLE, 3, 2, 6).add(BACKPACK, 3, 1, 1);
+    }
+
+    public static void register() {
+        LootTableEvents.MODIFY.register((resources, loot, id, table, source) -> {
+            if (!source.isBuiltin()) return;
+            String ns = id.getNamespace(), path = id.getPath();
+            if (ns.equals("vehicleforge") && path.startsWith("city/")) city(path.substring(5), table);
+            else if (ns.equals(Identifier.DEFAULT_NAMESPACE)) vanilla(path, table);
+        });
+    }
+
+    private static void city(String kind, LootTable.Builder t) {
+        switch (kind) {
+            case "house", "apartment" -> {
+                food(1, 3, 4).into(t);
+                meds(0, 1, 6).into(t);
+                homeDefence(18).into(t);
+            }
+            case "shop" -> {
+                food(2, 5, 2).into(t);
+                new P(0, 1, 10).add(BACKPACK, 4, 1, 1).add(BANDAGE, 5, 1, 3).add(PAINKILLERS, 3, 1, 2).into(t);
+            }
+            case "police" -> {
+                new P(1, 2, 3).gun(PISTOL, 10).gun(SHOTGUN, 6).gun(SMG, 2).gun(ASSAULT_RIFLE, 1)
+                        .add(POLICE_VEST, 6, 1, 1).add(RIOT_HELMET, 4, 1, 1).into(t);
+                new P(1, 3, 2).add(AMMO_9MM, 12, 6, 20).add(AMMO_SHELLS, 8, 3, 10).add(AMMO_RIFLE, 3, 3, 10).into(t);
+                meds(0, 1, 4).into(t);
+            }
+            case "hospital" -> meds(2, 4, 2).into(t);
+            case "fire_station" -> {
+                meds(1, 2, 3).into(t);
+                new P(0, 1, 6).add(CROWBAR, 6, 1, 1).add(SLEDGEHAMMER, 4, 1, 1).add(BOTTLED_WATER, 6, 2, 5).into(t);
+            }
+            case "school" -> {
+                food(1, 2, 4).into(t);
+                new P(0, 1, 8).add(BASEBALL_BAT, 6, 1, 1).add(BACKPACK, 6, 1, 1).add(BANDAGE, 4, 1, 2).into(t);
+            }
+            case "office" -> {
+                food(0, 2, 5).into(t);
+                new P(0, 1, 14).add(PAINKILLERS, 5, 1, 2).add(BASEBALL_BAT, 2, 1, 1).gun(PISTOL, 1).add(BACKPACK, 2, 1, 1).into(t);
+            }
+            case "warehouse", "construction" -> {
+                new P(0, 2, 6).add(CROWBAR, 6, 1, 1).add(SLEDGEHAMMER, 5, 1, 1).add(MACHETE, 3, 1, 1).add(SPIKED_BAT, 2, 1, 1)
+                        .add(ENERGY_BAR, 5, 1, 3).add(BOTTLED_WATER, 5, 1, 4).into(t);
+            }
+            default -> food(0, 2, 6).into(t);
+        }
+    }
+
+    private static void vanilla(String path, LootTable.Builder t) {
+        if (path.startsWith("chests/village/")) {
+            food(0, 2, 6).into(t);
+            meds(0, 1, 8).into(t);
+            homeDefence(24).into(t);
+        } else if (path.equals("chests/simple_dungeon") || path.equals("chests/abandoned_mineshaft")) {
+            new P(0, 2, 8).gun(PISTOL, 4).gun(SHOTGUN, 3).gun(HUNTING_RIFLE, 2)
+                    .add(AMMO_9MM, 6, 4, 14).add(AMMO_SHELLS, 5, 2, 8).add(AMMO_RIFLE, 4, 2, 6).add(FIRST_AID_KIT, 2, 1, 1).into(t);
+        } else if (path.equals("chests/pillager_outpost") || path.equals("chests/woodland_mansion")) {
+            new P(1, 2, 4).gun(ASSAULT_RIFLE, 3).gun(SMG, 4).gun(HUNTING_RIFLE, 3)
+                    .add(MILITARY_VEST, 3, 1, 1).add(MILITARY_HELMET, 3, 1, 1)
+                    .add(AMMO_RIFLE, 8, 6, 20).add(AMMO_9MM, 6, 6, 20).into(t);
+        } else if (path.startsWith("chests/shipwreck") || path.equals("chests/buried_treasure")) {
+            food(0, 2, 4).into(t);
+            new P(0, 1, 8).gun(PISTOL, 3).add(AMMO_9MM, 5, 4, 12).into(t);
+        }
+    }
+}
