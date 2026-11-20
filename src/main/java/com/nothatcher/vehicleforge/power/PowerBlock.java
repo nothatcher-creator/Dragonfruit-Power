@@ -39,7 +39,7 @@ public class PowerBlock extends FacingShapeBlock implements BlockEntityProvider 
     public enum Kind { GENERATOR, SOLAR, WIND, BATTERY, POLE }
 
     public static final BooleanProperty ACTIVE = Properties.POWERED;
-    public static final IntProperty LEVEL = Properties.LEVEL_3;   // 0-3, battery charge bars
+    public static final IntProperty LEVEL = IntProperty.of("level", 0, 3);   // 0-3, battery charge bars
     public final Kind kind;
 
     public PowerBlock(Settings settings, VoxelShape shape, Kind kind) {
