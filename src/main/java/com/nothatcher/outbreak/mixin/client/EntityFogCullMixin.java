@@ -19,6 +19,7 @@ public abstract class EntityFogCullMixin {
     private void outbreak$fogCull(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
         float d = OutbreakClient.cullDist;
         if (d <= 0f || entity.isGlowing()) return;
+        d = Math.max(d, com.mojang.blaze3d.systems.RenderSystem.getShaderFogEnd());   // other mods (an isometric camera) may push the fog back
         double r = d + 8.0 + entity.getWidth();                             // big vehicles poke out of the fog first
         if (entity.squaredDistanceTo(x, y, z) > r * r) cir.setReturnValue(false);
     }

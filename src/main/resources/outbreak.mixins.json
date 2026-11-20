@@ -11,7 +11,10 @@
     "client.ClientPlayerFovMixin",
     "client.PlayerRendererMixin",
     "client.FogMixin",
-    "client.EntityFogCullMixin"
+    "client.EntityFogCullMixin",
+    "client.TitleSwapMixin",
+    "client.ScreenBackgroundMixin",
+    "client.ListBackgroundMixin"
   ],
   "injectors": {
     "defaultRequire": 1
