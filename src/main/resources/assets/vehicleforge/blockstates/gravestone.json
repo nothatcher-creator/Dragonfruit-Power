@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/gravestone"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/gravestone",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/gravestone",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/gravestone",
+      "y": 270
+    }
+  }
+}

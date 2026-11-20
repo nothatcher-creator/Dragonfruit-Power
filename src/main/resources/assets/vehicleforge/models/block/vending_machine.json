@@ -1,0 +1,147 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "b": "vehicleforge:block/vending_bottom",
+    "t": "vehicleforge:block/vending_top",
+    "s": "vehicleforge:block/vending_side",
+    "particle": "vehicleforge:block/vending_bottom"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        2
+      ],
+      "to": [
+        15,
+        16,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            1,
+            0,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            1,
+            0,
+            15,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#s",
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ]
+        },
+        "down": {
+          "texture": "#s",
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        16,
+        2
+      ],
+      "to": [
+        15,
+        30,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#t",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#s",
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ]
+        },
+        "down": {
+          "texture": "#s",
+          "uv": [
+            1,
+            2,
+            15,
+            14
+          ]
+        }
+      }
+    }
+  ]
+}

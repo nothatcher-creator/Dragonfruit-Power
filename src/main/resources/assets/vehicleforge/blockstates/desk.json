@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/desk"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/desk",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/desk",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/desk",
+      "y": 270
+    }
+  }
+}

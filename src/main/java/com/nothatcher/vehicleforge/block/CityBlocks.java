@@ -4,6 +4,9 @@ import com.nothatcher.vehicleforge.VehicleForge;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.GlassBlock;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.block.MapColor;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.item.BlockItem;
@@ -76,6 +79,59 @@ public final class CityBlocks {
             box(3, 0, 3, 13, 14, 13), false));
 
     public static final Block GARAGE_DOOR = reg("garage_door", new GarageDoorBlock(metal().mapColor(MapColor.WHITE).strength(4f, 8f)));
+
+    // ---- glass: no frame lines, neighbouring panes merge into one sheet
+    public static final Block CLEAR_GLASS = reg("clear_glass", new GlassBlock(AbstractBlock.Settings.copy(Blocks.GLASS).mapColor(MapColor.CLEAR)));
+    public static final Block REFLECTIVE_GLASS = reg("reflective_glass", new GlassBlock(AbstractBlock.Settings.copy(Blocks.GLASS)
+            .mapColor(MapColor.LIGHT_BLUE).strength(0.6f)));
+
+    // ---- furniture
+    private static AbstractBlock.Settings furniture(MapColor c, BlockSoundGroup sound) {
+        return AbstractBlock.Settings.create().mapColor(c).strength(1f).sounds(sound).nonOpaque();
+    }
+
+    public static final Block DESK = reg("desk", new FacingShapeBlock(furniture(MapColor.OAK_TAN, BlockSoundGroup.WOOD), box(0, 0, 0, 16, 14, 16), false));
+    public static final Block OFFICE_CHAIR = reg("office_chair", new FacingShapeBlock(furniture(MapColor.BLACK, BlockSoundGroup.WOOL),
+            VoxelShapes.union(box(3, 0, 3, 13, 8, 13), box(3, 8, 11, 13, 16, 14)), false));
+    public static final Block COMPUTER = reg("computer", new FacingShapeBlock(furniture(MapColor.BLACK, BlockSoundGroup.METAL).luminance(s -> 3),
+            box(2, 0, 3, 14, 10, 10), false));
+    public static final Block FILING_CABINET = reg("filing_cabinet", new FacingShapeBlock(furniture(MapColor.GRAY, BlockSoundGroup.METAL), box(1, 0, 2, 15, 16, 15), false));
+    public static final Block WATER_COOLER = reg("water_cooler", new FacingShapeBlock(furniture(MapColor.WHITE, BlockSoundGroup.METAL), box(4, 0, 4, 12, 16, 12), false));
+    public static final Block POTTED_PLANT = reg("potted_plant", new FacingShapeBlock(furniture(MapColor.DARK_GREEN, BlockSoundGroup.GRASS), box(2, 0, 2, 14, 16, 14), false));
+    public static final Block SOFA = reg("sofa", new FacingShapeBlock(furniture(MapColor.BLUE, BlockSoundGroup.WOOL),
+            VoxelShapes.union(box(0, 0, 1, 16, 7, 15), box(0, 7, 11, 16, 14, 15)), false));
+    public static final Block TV = reg("tv", new FacingShapeBlock(furniture(MapColor.BLACK, BlockSoundGroup.METAL), box(0, 0, 6, 16, 15, 12), false));
+    public static final Block KITCHEN_COUNTER = reg("kitchen_counter", new FacingShapeBlock(furniture(MapColor.WHITE, BlockSoundGroup.STONE), box(0, 0, 0, 16, 15, 16), false));
+    public static final Block FRIDGE = reg("fridge", new FacingShapeBlock(furniture(MapColor.WHITE, BlockSoundGroup.METAL), box(1, 0, 1, 15, 16, 15), false));
+    public static final Block STOVE = reg("stove", new FacingShapeBlock(furniture(MapColor.WHITE, BlockSoundGroup.METAL), box(0, 0, 0, 16, 15, 16), false));
+    public static final Block STORE_SHELF = reg("store_shelf", new FacingShapeBlock(furniture(MapColor.WHITE, BlockSoundGroup.METAL), box(0, 0, 1, 16, 16, 15), false));
+    public static final Block CHECKOUT_COUNTER = reg("checkout_counter", new FacingShapeBlock(furniture(MapColor.GRAY, BlockSoundGroup.METAL), box(0, 0, 0, 16, 16, 16), false));
+
+    // ---- street furniture
+    public static final Block MAILBOX = reg("mailbox", new FacingShapeBlock(metal().mapColor(MapColor.BLUE), box(3, 0, 3, 13, 15, 13), false));
+    public static final Block NEWSPAPER_BOX = reg("newspaper_box", new FacingShapeBlock(metal().mapColor(MapColor.RED), box(3, 0, 4, 13, 12, 12), false));
+    public static final Block VENDING_MACHINE = reg("vending_machine", new FacingShapeBlock(metal().mapColor(MapColor.RED).luminance(s -> 7), box(1, 0, 2, 15, 16, 14), false));
+    public static final Block ATM = reg("atm", new FacingShapeBlock(metal().luminance(s -> 4), box(2, 0, 4, 14, 16, 13), false));
+    public static final Block PARKING_METER = reg("parking_meter", new FacingShapeBlock(metal(), VoxelShapes.union(box(7, 0, 7, 9, 10, 9), box(5, 10, 6, 11, 15, 10)), false));
+    public static final Block STOP_SIGN = reg("stop_sign", new FacingShapeBlock(metal().mapColor(MapColor.RED), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(3, 8, 6.5, 13, 16, 7.5)), false));
+    public static final Block PICNIC_TABLE = reg("picnic_table", new FacingShapeBlock(prop().mapColor(MapColor.OAK_TAN), box(0, 0, 0, 16, 11, 16), false));
+    public static final Block PLANTER = reg("planter", new FacingShapeBlock(walk().nonOpaque(), box(1, 0, 1, 15, 15, 15), false));
+    public static final Block AC_UNIT = reg("ac_unit", new FacingShapeBlock(metal(), box(0, 0, 1, 16, 12, 15), false));
+    public static final Block FOUNTAIN_SPOUT = reg("fountain_spout", new FountainSpoutBlock(walk().nonOpaque(), box(4, 0, 4, 12, 12, 12)));
+
+    // ---- church and churchyard
+    public static final Block PEW = reg("pew", new FacingShapeBlock(prop().mapColor(MapColor.BROWN),
+            VoxelShapes.union(box(0, 0, 2, 16, 7, 13), box(0, 7, 12, 16, 16, 14)), false));
+    public static final Block ALTAR = reg("altar", new FacingShapeBlock(walk().nonOpaque().mapColor(MapColor.WHITE), box(0, 0, 2, 16, 14, 14), false));
+    public static final Block GRAVESTONE = reg("gravestone", new FacingShapeBlock(walk().nonOpaque(), VoxelShapes.union(box(3, 0, 6, 13, 2, 10), box(4, 2, 7, 12, 14, 9)), false));
+
+    // ---- park trees
+    public static final Block MAPLE_LEAVES = reg("maple_leaves", new LeavesBlock(AbstractBlock.Settings.copy(Blocks.OAK_LEAVES).mapColor(MapColor.ORANGE)));
+    public static final Block LINDEN_LEAVES = reg("linden_leaves", new LeavesBlock(AbstractBlock.Settings.copy(Blocks.OAK_LEAVES).mapColor(MapColor.DARK_GREEN)));
+
+    /** blocks that need the cutout or translucent render layer */
+    public static final Block[] CUTOUT = {POTTED_PLANT, PLANTER, MAPLE_LEAVES, LINDEN_LEAVES, STOP_SIGN};
+    public static final Block[] TRANSLUCENT = {CLEAR_GLASS, REFLECTIVE_GLASS};
 
     private CityBlocks() {}
 

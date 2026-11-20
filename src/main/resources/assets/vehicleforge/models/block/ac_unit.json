@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "s": "vehicleforge:block/ac_side",
+    "t": "vehicleforge:block/ac_top",
+    "particle": "vehicleforge:block/ac_side"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        1
+      ],
+      "to": [
+        16,
+        12,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#s",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            0,
+            4,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#s",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#s",
+          "uv": [
+            1,
+            4,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#t",
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#s",
+          "uv": [
+            0,
+            1,
+            16,
+            15
+          ]
+        }
+      }
+    }
+  ]
+}

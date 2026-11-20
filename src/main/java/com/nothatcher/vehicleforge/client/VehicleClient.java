@@ -35,6 +35,10 @@ public class VehicleClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        for (net.minecraft.block.Block b : com.nothatcher.vehicleforge.block.CityBlocks.CUTOUT)
+            net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlock(b, net.minecraft.client.render.RenderLayer.getCutoutMipped());
+        for (net.minecraft.block.Block b : com.nothatcher.vehicleforge.block.CityBlocks.TRANSLUCENT)
+            net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlock(b, net.minecraft.client.render.RenderLayer.getTranslucent());
         for (EntityType<VehicleEntity> t : ModRegistry.ENTITY_TYPES.values()) {
             EntityRendererRegistry.register(t, VehicleRenderer::new);
         }

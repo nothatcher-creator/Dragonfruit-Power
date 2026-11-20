@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/mailbox"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/mailbox",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/mailbox",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/mailbox",
+      "y": 270
+    }
+  }
+}

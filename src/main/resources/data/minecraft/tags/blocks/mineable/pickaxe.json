@@ -21,6 +21,27 @@
     "vehicleforge:roadblock",
     "vehicleforge:fire_hydrant",
     "vehicleforge:trash_bin",
-    "vehicleforge:rv_door"
+    "vehicleforge:rv_door",
+    "vehicleforge:computer",
+    "vehicleforge:filing_cabinet",
+    "vehicleforge:water_cooler",
+    "vehicleforge:tv",
+    "vehicleforge:kitchen_counter",
+    "vehicleforge:fridge",
+    "vehicleforge:stove",
+    "vehicleforge:store_shelf",
+    "vehicleforge:checkout_counter",
+    "vehicleforge:mailbox",
+    "vehicleforge:newspaper_box",
+    "vehicleforge:vending_machine",
+    "vehicleforge:atm",
+    "vehicleforge:parking_meter",
+    "vehicleforge:stop_sign",
+    "vehicleforge:planter",
+    "vehicleforge:ac_unit",
+    "vehicleforge:fountain_spout",
+    "vehicleforge:altar",
+    "vehicleforge:gravestone",
+    "vehicleforge:garage_door"
   ]
 }

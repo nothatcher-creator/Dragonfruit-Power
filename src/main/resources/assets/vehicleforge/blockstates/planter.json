@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/planter"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/planter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/planter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/planter",
+      "y": 270
+    }
+  }
+}

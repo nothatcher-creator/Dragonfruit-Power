@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/checkout_counter"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/checkout_counter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/checkout_counter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/checkout_counter",
+      "y": 270
+    }
+  }
+}

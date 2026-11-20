@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/computer"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/computer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/computer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/computer",
+      "y": 270
+    }
+  }
+}

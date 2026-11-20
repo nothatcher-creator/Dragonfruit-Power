@@ -1,0 +1,147 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "s": "vehicleforge:block/planter_stone",
+    "h": "vehicleforge:block/hedge",
+    "d": "minecraft:block/dirt",
+    "particle": "vehicleforge:block/planter_stone"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        8,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#s",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#s",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#s",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#d",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#s",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        8,
+        2
+      ],
+      "to": [
+        14,
+        15,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#h",
+          "uv": [
+            2,
+            1,
+            14,
+            8
+          ]
+        },
+        "south": {
+          "texture": "#h",
+          "uv": [
+            2,
+            1,
+            14,
+            8
+          ]
+        },
+        "east": {
+          "texture": "#h",
+          "uv": [
+            2,
+            1,
+            14,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#h",
+          "uv": [
+            2,
+            1,
+            14,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#h",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "down": {
+          "texture": "#h",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        }
+      }
+    }
+  ]
+}

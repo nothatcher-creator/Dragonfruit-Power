@@ -1,0 +1,214 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "w": "vehicleforge:block/cooler_white",
+    "b": "vehicleforge:block/cooler_bottle",
+    "particle": "vehicleforge:block/cooler_white"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        10,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#w",
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#w",
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#w",
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#w",
+          "uv": [
+            4,
+            6,
+            12,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#w",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#w",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        10,
+        5
+      ],
+      "to": [
+        11,
+        16,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#b",
+          "uv": [
+            5,
+            0,
+            11,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#b",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "down": {
+          "texture": "#b",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        6,
+        3
+      ],
+      "to": [
+        9.5,
+        7.5,
+        4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#w",
+          "uv": [
+            6.5,
+            8.5,
+            9.5,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#w",
+          "uv": [
+            6.5,
+            8.5,
+            9.5,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#w",
+          "uv": [
+            12,
+            8.5,
+            13,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#w",
+          "uv": [
+            3,
+            8.5,
+            4,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#w",
+          "uv": [
+            6.5,
+            3,
+            9.5,
+            4
+          ]
+        },
+        "down": {
+          "texture": "#w",
+          "uv": [
+            6.5,
+            12,
+            9.5,
+            13
+          ]
+        }
+      }
+    }
+  ]
+}

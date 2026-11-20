@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/tv"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/tv",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/tv",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/tv",
+      "y": 270
+    }
+  }
+}

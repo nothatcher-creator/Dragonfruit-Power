@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/leaves",
+  "textures": {
+    "all": "vehicleforge:block/linden_leaves"
+  }
+}

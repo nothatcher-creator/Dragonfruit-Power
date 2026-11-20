@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/picnic_table"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/picnic_table",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/picnic_table",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/picnic_table",
+      "y": 270
+    }
+  }
+}

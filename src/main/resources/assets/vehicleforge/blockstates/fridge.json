@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/fridge"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/fridge",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/fridge",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/fridge",
+      "y": 270
+    }
+  }
+}

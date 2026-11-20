@@ -1,0 +1,161 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "p": "vehicleforge:block/pot",
+    "l": "vehicleforge:block/plant_leaves",
+    "d": "minecraft:block/dirt",
+    "particle": "vehicleforge:block/pot"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        6,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#p",
+          "uv": [
+            4,
+            10,
+            12,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#p",
+          "uv": [
+            4,
+            10,
+            12,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#p",
+          "uv": [
+            4,
+            10,
+            12,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#p",
+          "uv": [
+            4,
+            10,
+            12,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#d",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#p",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        1,
+        6,
+        8
+      ],
+      "to": [
+        15,
+        20,
+        8
+      ],
+      "faces": {
+        "north": {
+          "texture": "#l",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#l",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "from": [
+        8,
+        6,
+        1
+      ],
+      "to": [
+        8,
+        20,
+        15
+      ],
+      "faces": {
+        "east": {
+          "texture": "#l",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#l",
+          "uv": [
+            1,
+            0,
+            15,
+            14
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          8,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    }
+  ]
+}

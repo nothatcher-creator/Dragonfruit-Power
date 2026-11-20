@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/altar"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/altar",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/altar",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/altar",
+      "y": 270
+    }
+  }
+}

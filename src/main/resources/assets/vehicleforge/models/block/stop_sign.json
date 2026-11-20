@@ -1,0 +1,178 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "s": "vehicleforge:block/stop_sign",
+    "m": "vehicleforge:block/lamp_metal",
+    "particle": "vehicleforge:block/stop_sign"
+  },
+  "elements": [
+    {
+      "from": [
+        7,
+        0,
+        7
+      ],
+      "to": [
+        9,
+        16,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        16,
+        7
+      ],
+      "to": [
+        9,
+        20,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#m",
+          "uv": [
+            7,
+            0,
+            9,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            7,
+            7,
+            9,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        12,
+        6.5
+      ],
+      "to": [
+        14,
+        24,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            12
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            2,
+            0,
+            14,
+            12
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/atm"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/atm",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/atm",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/atm",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/stove"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/stove",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/stove",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/stove",
+      "y": 270
+    }
+  }
+}

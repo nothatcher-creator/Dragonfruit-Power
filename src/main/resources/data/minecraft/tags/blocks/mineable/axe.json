@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "vehicleforge:desk",
+    "vehicleforge:sofa",
+    "vehicleforge:picnic_table",
+    "vehicleforge:pew",
+    "vehicleforge:office_chair"
+  ]
+}
