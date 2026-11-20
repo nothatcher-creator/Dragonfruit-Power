@@ -204,3 +204,152 @@ names = {'clear_glass': 'Clear Glass (seamless)', 'reflective_glass': 'Reflectiv
 for k, v in names.items(): lang['block.vehicleforge.' + k] = v
 json.dump(lang, open(LP, 'w'), indent=2)
 print('props ok', len(names))
+
+# ======================= wave 3: interactive variants, smoke, electricity =======================
+save('screen_off', px_img(lambda x, y: (20, 20, 22, 255) if x in (0, 15) or y in (0, 15) else (cl(18 + (6 if x + y == 12 else 0)), cl(20 + (6 if x + y == 12 else 0)), cl(26 + (8 if x + y == 12 else 0)), 255)))
+# animated TV picture: 4 frames of a newscast that keeps rolling static
+tv = Image.new('RGBA', (16, 64)); d = ImageDraw.Draw(tv)
+for f in range(4):
+    oy = f * 16
+    d.rectangle([0, oy, 15, oy + 15], fill=(16, 16, 18, 255))
+    d.rectangle([1, oy + 1, 14, oy + 14], fill=(60, 90, 140, 255))
+    d.rectangle([5, oy + 4, 10, oy + 11], fill=(200, 160, 130, 255)); d.rectangle([5, oy + 3, 10, oy + 5], fill=(60, 40, 30, 255))   # anchor
+    d.rectangle([1, oy + 11, 14, oy + 14], fill=(170, 30, 30, 255))
+    for x in range(1, 15):
+        if (x + f * 3) % 5 < 3: d.point((x, oy + 12), fill=(240, 240, 240, 255))
+    for k in range(10): d.point((r2.randint(1, 14), oy + r2.randint(1, 10)), fill=(220, 220, 225, 255))
+    d.line([(1, oy + 2 + f * 3), (14, oy + 2 + f * 3)], fill=(120, 150, 190, 255))
+tv.save(os.path.join(TEX, 'tv_on.png'))
+json.dump({"animation": {"frametime": 4}}, open(os.path.join(TEX, 'tv_on.png.mcmeta'), 'w'))
+# electricity
+gb = solid((226, 186, 40), 5); d = ImageDraw.Draw(gb); d.rectangle([0, 0, 15, 1], fill=(60, 60, 64, 255)); d.rectangle([0, 14, 15, 15], fill=(60, 60, 64, 255))
+for yy in range(4, 12, 2): d.line([(10, yy), (14, yy)], fill=(160, 130, 30, 255))
+save('generator_body', gb)
+for on in (0, 1):
+    gf = solid((226, 186, 40), 5); d = ImageDraw.Draw(gf); d.rectangle([2, 3, 13, 12], fill=(50, 52, 56, 255))
+    d.ellipse([3, 4, 7, 8], fill=(220, 220, 214, 255)); d.line([(5, 6), (6, 5)], fill=(200, 30, 30, 255))
+    d.rectangle([9, 5, 11, 6], fill=(60, 230, 90, 255) if on else (30, 60, 34, 255)); d.rectangle([9, 9, 12, 10], fill=(150, 30, 30, 255))
+    save(f'generator_front_{on}', gf)
+sc = solid((24, 50, 110), 3); d = ImageDraw.Draw(sc)
+for k in range(0, 16, 4): d.line([(k, 0), (k, 15)], fill=(160, 180, 200, 255)); d.line([(0, k), (15, k)], fill=(160, 180, 200, 255))
+d.line([(1, 14), (14, 1)], fill=(70, 110, 170, 255)); save('solar_cells', sc)
+save('concrete_light', solid((190, 190, 186), 4))
+for lv in range(4):
+    bf = solid((80, 84, 90), 3); d = ImageDraw.Draw(bf); d.rectangle([3, 2, 12, 13], fill=(30, 30, 34, 255))
+    for k in range(3):
+        col = (70, 210, 90) if k < lv else (40, 50, 44)
+        d.rectangle([5, 10 - k * 3, 10, 11 - k * 3], fill=col + (255,))
+    d.rectangle([6, 0, 9, 1], fill=(200, 40, 40, 255))
+    save(f'battery_front_{lv}', bf)
+save('pole_wood', px_img(lambda x, y: (cl(96 + (10 if x % 5 == 0 else 0) + r2.randint(-4, 4)), cl(74 + r2.randint(-3, 3)), cl(52 + r2.randint(-3, 3)), 255)))
+save('insulator', solid((210, 214, 208), 3))
+for on in (0, 1):
+    el_ = solid((90, 92, 96), 2); d = ImageDraw.Draw(el_)
+    d.rectangle([2, 2, 13, 13], fill=(255, 250, 225, 255) if on else (120, 122, 118, 255))
+    if on: d.rectangle([4, 4, 11, 11], fill=(255, 255, 245, 255))
+    for k in (5, 10): d.line([(2, k), (13, k)], fill=(70, 72, 76, 255))
+    save(f'electric_light_{on}', el_)
+ch = px_img(lambda x, y: (cl(30 + r2.randint(-8, 8)), cl(26 + r2.randint(-6, 6)), cl(24 + r2.randint(-6, 6)), 255) if r2.random() > 0.07 else (255, cl(120 + r2.randint(0, 80)), 30, 255))
+save('charred', ch)
+vg = solid((90, 92, 94), 3); d = ImageDraw.Draw(vg)
+for x in range(2, 15, 3): d.line([(x, 1), (x, 14)], fill=(20, 20, 22, 255))
+save('vent_grate', vg)
+os.makedirs(os.path.join(A, 'textures/entity'), exist_ok=True)
+solid((236, 238, 240), 2).save(os.path.join(A, 'textures/entity/wind_turbine.png'))
+
+def facing_lit(name, off, on, key='lit'):
+    v = {}
+    for f, y in [('north', 0), ('east', 90), ('south', 180), ('west', 270)]:
+        for val, m in (('false', off), ('true', on)):
+            e = {"model": "vehicleforge:block/" + m}
+            if y: e["y"] = y
+            v[f"facing={f},{key}={val}"] = e
+    wj(os.path.join(A, 'blockstates', name + '.json'), {"variants": v})
+# computer / tv on-off
+model('computer_on', json.load(open(os.path.join(A, 'models/block/computer.json'))))
+cm = json.load(open(os.path.join(A, 'models/block/computer.json'))); cm['textures']['s'] = tex('screen_off'); model('computer', cm)
+facing_lit('computer', 'computer', 'computer_on')
+tm = json.load(open(os.path.join(A, 'models/block/tv.json'))); model('tv', tm)
+tm2 = json.loads(json.dumps(tm)); tm2['textures']['s'] = tex('tv_on'); model('tv_on', tm2)
+facing_lit('tv', 'tv', 'tv_on')
+# smoke and steam
+model('smoke_source', {"parent": "minecraft:block/block", "textures": {"particle": tex('charred'), "c": tex('charred')},
+    "elements": [box([2, 0, 3], [14, 2.5, 6], "#c", {"origin": [8, 1, 4.5], "axis": "y", "angle": 22.5}),
+                 box([3, 0, 9], [13, 2.5, 12], "#c", {"origin": [8, 1, 10.5], "axis": "y", "angle": -22.5}),
+                 box([5, 2, 5], [11, 4, 11], "#c")]})
+simple_state('smoke_source'); item('smoke_source'); loot('smoke_source')
+model('steam_vent', {"parent": "minecraft:block/block", "textures": {"particle": tex('vent_grate'), "g": tex('vent_grate')},
+    "elements": [box([1, 0, 1], [15, 1, 15], "#g")]})
+simple_state('steam_vent'); item('steam_vent'); loot('steam_vent')
+# electricity
+for on in (0, 1):
+    model(f'generator_{on}', {"parent": "minecraft:block/block", "textures": {"particle": tex('generator_body'), "b": tex('generator_body'),
+        "f": tex(f'generator_front_{on}'), "m": tex('lamp_metal')},
+        "elements": [el([1, 1, 2], [15, 11, 14], faces("#f", "#b")), box([1, 0, 3], [3, 1, 13], "#m"), box([13, 0, 3], [15, 1, 13], "#m"),
+                     box([2, 11, 4], [14, 12, 12], "#m"), box([3, 9, 13.5], [5, 15, 15.5], "#m"), box([10, 11, 6], [13, 13, 9], "#b")]})
+facing_lit('generator', 'generator_0', 'generator_1', 'powered')
+item('generator', 'generator_0'); loot('generator')
+fm('solar_panel', {"c": tex('solar_cells'), "m": tex('metal_gray')}, [
+    box([7, 0, 7], [9, 5, 9], "#m"), box([4, 0, 4], [12, 1, 12], "#m"),
+    el([0, 5, 0], [16, 6.5, 16], {"up": "#c", "down": "#m", "north": "#m", "south": "#m", "east": "#m", "west": "#m"}, {"origin": [8, 6, 8], "axis": "x", "angle": -22.5})])
+fm("wind_turbine", {"c": tex("concrete_light")}, [
+    box([1, 0, 1], [15, 4, 15], "#c"), box([2, 4, 2], [14, 6, 14], "#c"), box([4.8, 6, 4.8], [11.2, 16, 11.2], "#c")])
+for lv in range(4):
+    model(f'battery_bank_{lv}', {"parent": "minecraft:block/block", "textures": {"particle": tex('metal_gray'), "f": tex(f'battery_front_{lv}'), "s": tex('metal_gray')},
+        "elements": [el([1, 0, 3], [15, 14, 13], faces("#f", "#s"))]})
+v = {}
+for f, y in [('north', 0), ('east', 90), ('south', 180), ('west', 270)]:
+    for lv in range(4):
+        e = {"model": f"vehicleforge:block/battery_bank_{lv}"}
+        if y: e["y"] = y
+        v[f"facing={f},level={lv}"] = e
+wj(os.path.join(A, 'blockstates/battery_bank.json'), {"variants": v}); item('battery_bank', 'battery_bank_3'); loot('battery_bank')
+fm('power_pole', {"p": tex('pole_wood'), "i": tex('insulator'), "m": tex('lamp_metal')}, [
+    box([6, 0, 6], [10, 32, 10], "#p"), box([0, 26, 7], [16, 28, 9], "#p"), box([-6, 26, 7], [0, 28, 9], "#p"), box([16, 26, 7], [22, 28, 9], "#p"),
+    box([-4, 28, 7.25], [-2.5, 31, 8.75], "#i"), box([3, 28, 7.25], [4.5, 31, 8.75], "#i"), box([11.5, 28, 7.25], [13, 31, 8.75], "#i"),
+    box([18.5, 28, 7.25], [20, 31, 8.75], "#i"), box([9.5, 18, 5], [13.5, 23, 11], "#m")])
+for on in (0, 1):
+    model(f'electric_light_{on}', {"parent": "minecraft:block/cube_bottom_top", "textures": {"top": tex(f'electric_light_{on}'), "bottom": tex(f'electric_light_{on}'), "side": tex('metal_gray')}})
+wj(os.path.join(A, 'blockstates/electric_light.json'), {"variants": {"lit=false": {"model": "vehicleforge:block/electric_light_0"}, "lit=true": {"model": "vehicleforge:block/electric_light_1"}}})
+item('electric_light', 'electric_light_1'); loot('electric_light')
+# particles
+P = os.path.join(A, 'particles'); os.makedirs(P, exist_ok=True)
+for n in ('dark_smoke', 'steam'):
+    json.dump({"textures": [f"minecraft:big_smoke_{i}" for i in range(12)]}, open(os.path.join(P, n + '.json'), 'w'), indent=2)
+# loot for the props
+def entry(item_, w_, lo=1, hi=1):
+    e = {"type": "minecraft:item", "name": item_, "weight": w_}
+    if hi > 1: e["functions"] = [{"function": "minecraft:set_count", "count": {"type": "minecraft:uniform", "min": lo, "max": hi}}]
+    return e
+def table(path, rolls, entries):
+    wj(os.path.join(D, 'loot_tables', path + '.json'), {"type": "minecraft:chest", "pools": [{"rolls": rolls, "entries": entries}]})
+table('props/vending', 1, [entry("minecraft:cookie", 6, 1, 3), entry("minecraft:apple", 4), entry("minecraft:bread", 3), entry("minecraft:honey_bottle", 2),
+                           entry("minecraft:dried_kelp", 3, 2, 4), entry("minecraft:melon_slice", 3, 1, 2), entry("minecraft:pumpkin_pie", 1)])
+table('city/fridge', {"type": "minecraft:uniform", "min": 1, "max": 4}, [{"type": "minecraft:empty", "weight": 6}, entry("minecraft:apple", 4, 1, 3),
+      entry("minecraft:carrot", 3, 1, 4), entry("minecraft:cooked_beef", 2, 1, 2), entry("minecraft:beef", 3, 1, 3), entry("minecraft:chicken", 3, 1, 2),
+      entry("minecraft:egg", 3, 1, 6), entry("minecraft:milk_bucket", 1), entry("minecraft:cake", 1), entry("minecraft:melon_slice", 3, 2, 5),
+      entry("minecraft:rotten_flesh", 4, 1, 3)])
+table('city/kitchen', {"type": "minecraft:uniform", "min": 0, "max": 3}, [{"type": "minecraft:empty", "weight": 6}, entry("minecraft:bowl", 4, 1, 3),
+      entry("minecraft:glass_bottle", 5, 1, 3), entry("minecraft:sugar", 3, 1, 4), entry("minecraft:wheat", 2, 1, 3), entry("minecraft:bread", 2),
+      entry("minecraft:cocoa_beans", 1, 1, 3)])
+table('city/mail', {"type": "minecraft:uniform", "min": 0, "max": 3}, [{"type": "minecraft:empty", "weight": 4}, entry("minecraft:paper", 8, 1, 6),
+      entry("minecraft:book", 3), entry("minecraft:map", 2), entry("minecraft:writable_book", 1), entry("minecraft:name_tag", 1)])
+NEW3 = ['smoke_source', 'steam_vent', 'generator', 'solar_panel', 'wind_turbine', 'battery_bank', 'power_pole', 'electric_light']
+pk = os.path.join(RES, 'data/minecraft/tags/blocks/mineable/pickaxe.json'); tg = json.load(open(pk))
+tg['values'] += ['vehicleforge:' + n for n in NEW3 if n not in ('power_pole', 'smoke_source')]
+json.dump(tg, open(pk, 'w'), indent=2)
+ax = os.path.join(RES, 'data/minecraft/tags/blocks/mineable/axe.json'); ta = json.load(open(ax)); ta['values'] += ['vehicleforge:power_pole', 'vehicleforge:smoke_source']
+json.dump(ta, open(ax, 'w'), indent=2)
+lang = json.load(open(LP))
+lang.update({'block.vehicleforge.smoke_source': 'Smoke Source', 'block.vehicleforge.steam_vent': 'Steam Vent', 'block.vehicleforge.generator': 'Generator',
+             'block.vehicleforge.solar_panel': 'Solar Panel', 'block.vehicleforge.wind_turbine': 'Wind Turbine', 'block.vehicleforge.battery_bank': 'Battery Bank',
+             'block.vehicleforge.power_pole': 'Power Pole', 'block.vehicleforge.electric_light': 'Electric Light', 'entity.vehicleforge.seat': 'Seat',
+             'msg.vehicleforge.no_power': 'No power. Hook it up to a generator, solar panel or wind turbine (within 16 blocks, or chain power poles).',
+             'msg.vehicleforge.sold_out': 'Sold out.', 'msg.vehicleforge.atm_empty': 'The ATM is empty.',
+             'msg.vehicleforge.atm': 'Cash out. Not that it\'s worth much any more.',
+             'msg.vehicleforge.stove_hint': 'Hold raw food and use the stove to cook it.',
+             'msg.vehicleforge.meter_expired': 'EXPIRED', 'msg.vehicleforge.meter_paid': '00:12 remaining. Someone paid.',
+             'msg.vehicleforge.generator_fuel': 'Generator running - fuel %s%%', 'msg.vehicleforge.generator_empty': 'Out of fuel. Add coal, charcoal, lava or a fuel can.',
+             'msg.vehicleforge.battery': 'Battery charge: %s%%', 'msg.vehicleforge.grid_live': 'Power: live', 'msg.vehicleforge.grid_dead': 'Power: dead'})
+json.dump(lang, open(LP, 'w'), indent=2)
+print('wave 3 ok')

@@ -27,6 +27,7 @@ public class VehicleForge implements ModInitializer {
         ModEffects.register();
         ModRegistry.register();
         com.nothatcher.vehicleforge.block.CityBlocks.register();
+        com.nothatcher.vehicleforge.block.CityExtras.register();
         com.nothatcher.vehicleforge.world.CityWorld.register();
         Net.registerServer();
         InteriorManager.register();

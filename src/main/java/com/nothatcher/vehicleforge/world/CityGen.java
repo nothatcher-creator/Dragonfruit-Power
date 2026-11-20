@@ -55,6 +55,8 @@ public final class CityGen {
     private static final BlockState PLAZA = Blocks.POLISHED_ANDESITE.getDefaultState();
     private static final BlockState POLE = CityBlocks.LAMP_POST.getDefaultState();
     private static final BlockState LIGHT = Blocks.SEA_LANTERN.getDefaultState();
+    private static final BlockState CEILING_LIGHT = CityBlocks.ELECTRIC_LIGHT.getDefaultState()
+            .with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN);
     private static final BlockState LADDER = Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST);
     private static final BlockState PATH = Blocks.DIRT_PATH.getDefaultState();
     private static final BlockState WATER = Blocks.WATER.getDefaultState();
@@ -167,6 +169,19 @@ public final class CityGen {
         LootableContainerBlockEntity.setLootTable(w, w.getRandom(), at, new net.minecraft.util.Identifier("vehicleforge", "city/" + kind));
     }
 
+    private void lootAt(int x, int y, int z, String kind) {
+        pos.set(x, y, z);
+        LootableContainerBlockEntity.setLootTable(w, w.getRandom(), pos.toImmutable(), new net.minecraft.util.Identifier("vehicleforge", "city/" + kind));
+    }
+
+    private String propLoot(Block b) {
+        if (b == CityBlocks.FRIDGE) return "fridge";
+        if (b == CityBlocks.KITCHEN_COUNTER) return "kitchen";
+        if (b == CityBlocks.STORE_SHELF || b == CityBlocks.CHECKOUT_COUNTER) return "shop";
+        if (b == CityBlocks.MAILBOX || b == CityBlocks.NEWSPAPER_BOX) return "mail";
+        return loot;
+    }
+
     private boolean isAir(int x, int y, int z) {
         pos.set(x, y, z);
         return w.isAir(pos);
@@ -247,7 +262,10 @@ public final class CityGen {
                 case CHURCH -> church(x, z, bx, bz, lx, lz);
             }
         }
-        if (bridge) bridge(x, z, ux, uz - C);
+        if (bridge) {
+            bridge(x, z, ux, uz - C);
+            if (brokenBridge(bx, bz)) breakBridge(x, z, ux, uz - C);
+        }
         trees(x, z);
     }
 
@@ -293,6 +311,7 @@ public final class CityGen {
             s = CityBlocks.MANHOLE.getDefaultState();
         }
         set(x, GROUND, z, s);
+        if (s.getBlock() == CityBlocks.MANHOLE && rnd(x, z, 171) < 0.2f) set(x, BASE, z, CityBlocks.STEAM_VENT.getDefaultState());
     }
 
     private void sidewalk(int x, int z, int ux, int uz) {
@@ -352,14 +371,20 @@ public final class CityGen {
             if (alongX && (uz == R0 - 1 || uz == R1) && Math.floorMod(x, 6) == 3)
                 set(x, BASE, z, CityBlocks.facing(CityBlocks.PARKING_METER, uz == R0 - 1 ? Direction.SOUTH : Direction.NORTH));
         }
+        if (d > 10 && ((alongZ && ux == C - 2 && Math.floorMod(z, 20) == 10) || (alongX && uz == C - 2 && Math.floorMod(x, 20) == 10))) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.POWER_POLE, alongZ ? Direction.EAST : Direction.NORTH));   // suburban power lines
+            return;
+        }
         if (alongZ && ux == C - 2 && (uz == C + 6 || uz == CELL - 7)) {
             set(x, BASE, z, CityBlocks.facing(uz == C + 6 ? CityBlocks.NEWSPAPER_BOX : CityBlocks.MAILBOX, Direction.WEST));
+            lootAt(x, BASE, z, "mail");
         }
         if (alongZ && ux == 1 && (uz == C + 8 || uz == CELL - 9)) {
             set(x, BASE, z, CityBlocks.facing(uz == C + 8 ? CityBlocks.MAILBOX : CityBlocks.NEWSPAPER_BOX, Direction.EAST));
+            lootAt(x, BASE, z, "mail");
         }
-        if (alongX && uz == C - 2 && ux == C + 10) set(x, BASE, z, CityBlocks.facing(CityBlocks.NEWSPAPER_BOX, Direction.NORTH));
-        if (alongX && uz == 1 && ux == CELL - 11) set(x, BASE, z, CityBlocks.facing(CityBlocks.MAILBOX, Direction.SOUTH));
+        if (alongX && uz == C - 2 && ux == C + 10) { set(x, BASE, z, CityBlocks.facing(CityBlocks.NEWSPAPER_BOX, Direction.NORTH)); lootAt(x, BASE, z, "mail"); }
+        if (alongX && uz == 1 && ux == CELL - 11) { set(x, BASE, z, CityBlocks.facing(CityBlocks.MAILBOX, Direction.SOUTH)); lootAt(x, BASE, z, "mail"); }
         if (d <= 4 && alongX && uz == C - 2 && Math.floorMod(x, 14) == 7) set(x, BASE, z, CityBlocks.facing(CityBlocks.PLANTER, Direction.NORTH));
     }
 
@@ -490,11 +515,16 @@ public final class CityGen {
             } else if (shaftCol) {
                 s = st.frame;
             } else if (floorRow) {
-                s = Math.floorMod(x + z * 3, 7) == 0 ? LIGHT : INNER_FLOOR;
+                s = Math.floorMod(x + z * 3, 7) == 0 ? CEILING_LIGHT : INNER_FLOOR;
             } else {
                 BlockState f = furnish(x, y, z, rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid);
                 if (f != null) {
-                    if (f != AIR) set(x, y, z, f);
+                    if (f != AIR) {
+                        if (f.getBlock() == CityBlocks.COMPUTER && !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN && rnd(x, y * 13 + z, 174) < 0.4f)
+                            f = f.with(net.minecraft.state.property.Properties.LIT, true);
+                        set(x, y, z, f);
+                        if (f.getBlock() instanceof com.nothatcher.vehicleforge.block.StorageProp) lootAt(x, y, z, propLoot(f.getBlock()));
+                    }
                     continue;
                 }
                 // cupboards and chests against the walls on every floor
@@ -525,6 +555,20 @@ public final class CityGen {
         set(x, top, z, roof);
         if (edge) {
             set(x, top + 1, z, st.frame);
+            return;
+        }
+        if (OVERRUN && roofType != Roof.SPIRE && rnd(x0, z0, 172) < 0.14f) {        // a fire still smouldering on the roof
+            int fx = (bx0 + bx1) / 2 + 2, fz = (bz0 + bz1) / 2 - 4;
+            int ddx = x - fx, ddz = z - fz;
+            if (ddx * ddx + ddz * ddz <= 6) set(x, top, z, Blocks.BLACK_CONCRETE.getDefaultState());
+            if ((ddx == 0 && ddz == 0) || (ddx == 1 && ddz == -1)) {
+                set(x, top + 1, z, CityBlocks.SMOKE_SOURCE.getDefaultState());
+                return;
+            }
+        }
+        if (roofType == Roof.PLAIN && bx1 - bx0 >= 14 && rnd(x0, z0, 173) < 0.45f && x >= bx0 + 8 && x <= bx1 - 3 && z >= bz0 + 3 && z <= bz0 + 9
+                && (z - bz0) % 3 == 0) {
+            set(x, top + 1, z, CityBlocks.facing(CityBlocks.SOLAR_PANEL, Direction.NORTH));
             return;
         }
         switch (roofType) {
@@ -595,6 +639,8 @@ public final class CityGen {
         // the side of each cell facing into the room, for things standing against a wall
         Direction inward = ix == 1 ? Direction.EAST : ix == w - 1 ? Direction.WEST : iz == 1 ? Direction.SOUTH : Direction.NORTH;
         String kind = floor == 0 && st.shopFront() ? "shop" : loot;
+        if (floor == 0 && r == 1 && ix == w - 2 && iz == d - 2 && (loot.equals("hospital") || loot.equals("police") || loot.equals("fire_station")))
+            return f(CityBlocks.GENERATOR, Direction.WEST);                  // backup generator
         if (floor == 0 && kind.equals("office")) kind = "lobby";
         switch (kind) {
             case "office", "fire_station" -> {
@@ -1435,25 +1481,89 @@ public final class CityGen {
         set(x, GROUND - 1, z, ux % 4 == 0 ? Blocks.POLISHED_ANDESITE.getDefaultState() : Blocks.STONE_BRICKS.getDefaultState());
     }
 
-    /** a river: quay walls, promenades with trees, benches and lamps, and 40 blocks of water */
+    /**
+     * A river: quay walls with stone support pillars, promenades with benches, lamps and a row of wind turbines,
+     * wooden docks on posts reaching out into the water (ladders down from the promenade), and 40 blocks of water.
+     */
     private void river(int x, int z, int lx, int lz) {
+        int dock = Math.floorMod(x, 48);
+        boolean dockX = dock >= 20 && dock <= 22;
+        boolean north = lz <= 25;
         if (lz <= 4 || lz >= 47) {                                          // promenade
             boolean grass = lz <= 1 || lz >= 50;
             set(x, GROUND, z, grass ? Blocks.GRASS_BLOCK.getDefaultState() : WALK);
+            if (lz == 0 && Math.floorMod(x, 40) == 20) {
+                set(x, BASE, z, CityBlocks.facing(CityBlocks.WIND_TURBINE, Direction.SOUTH));
+                return;
+            }
             if (lz == 4 || lz == 47) {
                 if (Math.floorMod(x, 16) == 8) lamp(x, z, lz == 4 ? Direction.SOUTH : Direction.NORTH);
                 else if (Math.floorMod(x, 16) == 2 || Math.floorMod(x, 16) == 3) set(x, BASE, z, CityBlocks.facing(CityBlocks.BENCH, lz == 4 ? Direction.SOUTH : Direction.NORTH));
             }
             return;
         }
-        if (lz == 5 || lz == 46) {                                           // quay wall with a railing
+        if (lz == 5 || lz == 46) {                                           // quay wall with a railing (gap at the docks)
             for (int y = BED; y <= GROUND; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
-            set(x, BASE, z, Blocks.STONE_BRICK_WALL.getDefaultState());
+            if (!(dockX && dock == 21)) set(x, BASE, z, Blocks.STONE_BRICK_WALL.getDefaultState());
             return;
         }
         set(x, BED, z, rnd(x, z, 19) < 0.2f ? Blocks.CLAY.getDefaultState() : Blocks.GRAVEL.getDefaultState());
         for (int y = BED + 1; y <= GROUND; y++) set(x, y, z, y <= WATER_TOP ? WATER : AIR);
+        // support pillars buttressing the quay walls
+        int pil = Math.floorMod(x, 12);
+        if ((lz == 6 || lz == 45) && (pil == 5 || pil == 6) && !dockX) {
+            for (int y = BED + 1; y <= GROUND; y++) set(x, y, z, y == WATER_TOP + 1 ? Blocks.CHISELED_STONE_BRICKS.getDefaultState()
+                    : y == GROUND ? Blocks.POLISHED_ANDESITE.getDefaultState() : churchStone(x, y, z));
+            if (pil == 5) set(x, BASE, z, Blocks.LANTERN.getDefaultState());
+            return;
+        }
+        // docks: a 3-wide plank walk on posts, 9 blocks out from each quay
+        boolean onDock = dockX && (north ? lz <= 14 : lz >= 37);
+        if (onDock) {
+            int out = north ? lz - 6 : 45 - lz;                              // 0 at the quay
+            boolean edge = dock == 20 || dock == 22;
+            boolean rotten = OVERRUN && rnd(x, z, 175) < 0.15f;
+            if (!rotten || out == 0) set(x, WATER_TOP + 1, z, Blocks.SPRUCE_PLANKS.getDefaultState());
+            if (edge && out % 3 == 2) {
+                for (int y = BED + 1; y <= WATER_TOP + 1; y++) set(x, y, z, Blocks.SPRUCE_LOG.getDefaultState());
+                set(x, WATER_TOP + 2, z, Blocks.SPRUCE_FENCE.getDefaultState());
+                if (out == 8) set(x, WATER_TOP + 3, z, Blocks.LANTERN.getDefaultState());
+            }
+            if (dock == 21 && out == 0) {                                    // ladder up the quay wall
+                Direction toWall = north ? Direction.SOUTH : Direction.NORTH;
+                for (int y = WATER_TOP + 2; y <= GROUND; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, toWall));
+            }
+            return;
+        }
         if (lz == 6 && rnd(x, 0, 20) < 0.06f) set(x, WATER_TOP + 1, z, Blocks.LILY_PAD.getDefaultState());
+    }
+
+    /** with Outbreak, some bridges have collapsed into the river */
+    private boolean brokenBridge(int bx, int bz) {
+        return OVERRUN && rnd(bx, bz, 170) < 0.4f;
+    }
+
+    /** the missing middle of a broken bridge: a ragged gap, rebar, slabs of deck slumped into the water, rubble, barricades */
+    private void breakBridge(int x, int z, int ux, int lz) {
+        int jag0 = hash(x, z >> 6, 176) % 3, jag1 = hash(x, z >> 6, 177) % 3;
+        int g0 = 19 + jag0, g1 = 31 - jag1;
+        if (lz >= g0 && lz <= g1) {
+            for (int y = GROUND - 1; y <= BASE + 8; y++) set(x, y, z, y <= WATER_TOP ? WATER : AIR);
+            int fromEdge = Math.min(lz - g0, g1 - lz);
+            if (fromEdge <= 3) {                                             // deck slumped down from each broken edge
+                int y = GROUND - 2 - fromEdge * 3;
+                if (y > BED && rnd(x, lz, 178) < 0.7f) set(x, y, z, fromEdge == 0 ? ASPHALT : Blocks.CRACKED_STONE_BRICKS.getDefaultState());
+            }
+            if (fromEdge == 0 && rnd(x, lz, 179) < 0.4f) set(x, GROUND - 1, z, Blocks.IRON_BARS.getDefaultState());   // rebar
+            int pile = hash(x, lz, 180) % 4;
+            for (int y = BED + 1; y <= BED + pile; y++)
+                set(x, y, z, rnd(x, y * 7 + lz, 181) < 0.5f ? Blocks.COBBLESTONE.getDefaultState() : Blocks.CRACKED_STONE_BRICKS.getDefaultState());
+            return;
+        }
+        if ((lz == g0 - 1 || lz == g1 + 1) && rnd(x, lz, 182) < 0.35f) set(x, BASE, z, Blocks.IRON_BARS.getDefaultState());
+        if ((lz == g0 - 4 || lz == g1 + 4) && ux >= 4 && ux <= 24 && ux % 3 == 0)
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.ROADBLOCK, lz < 25 ? Direction.NORTH : Direction.SOUTH));
+        if (lz == g0 - 2 && ux == 12) set(x, BASE, z, CityBlocks.SMOKE_SOURCE.getDefaultState());
     }
 
     private void plaza(int x, int z, int lx, int lz) {
@@ -2090,6 +2200,10 @@ public final class CityGen {
                 || v.type.category == com.nothatcher.vehicleforge.VehicleType.Category.TRUCK && !id.equals("van") && !id.equals("pickup_truck");
         if (!livery) v.setPaint(CAR_COLORS[(h >>> 5) % CAR_COLORS.length]);
         v.setFuel(0.2f + ((h >>> 9) % 70) / 100f);
+        if (wreck && (h >>> 21) % 3 == 0 && Math.abs(y - BASE) < 0.01) {
+            pos.set(Math.floor(x), BASE, Math.floor(z));
+            if (w.isAir(pos)) w.setBlockState(pos.toImmutable(), CityBlocks.SMOKE_SOURCE.getDefaultState(), Block.NOTIFY_LISTENERS);
+        }
         if (wreck) {
             v.setWreck(true);
             if ((h >>> 3) % 3 != 0) v.setPaint(BURNT[(h >>> 7) % BURNT.length]);

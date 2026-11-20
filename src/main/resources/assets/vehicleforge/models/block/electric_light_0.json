@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "vehicleforge:block/electric_light_0",
+    "bottom": "vehicleforge:block/electric_light_0",
+    "side": "vehicleforge:block/metal_gray"
+  }
+}

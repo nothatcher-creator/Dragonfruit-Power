@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "vehicleforge:block/electric_light_0"
+    },
+    "lit=true": {
+      "model": "vehicleforge:block/electric_light_1"
+    }
+  }
+}

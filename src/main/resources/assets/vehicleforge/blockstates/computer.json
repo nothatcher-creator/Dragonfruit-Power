@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "vehicleforge:block/computer"
     },
-    "facing=east": {
+    "facing=north,lit=true": {
+      "model": "vehicleforge:block/computer_on"
+    },
+    "facing=east,lit=false": {
       "model": "vehicleforge:block/computer",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,lit=true": {
+      "model": "vehicleforge:block/computer_on",
+      "y": 90
+    },
+    "facing=south,lit=false": {
       "model": "vehicleforge:block/computer",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,lit=true": {
+      "model": "vehicleforge:block/computer_on",
+      "y": 180
+    },
+    "facing=west,lit=false": {
       "model": "vehicleforge:block/computer",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "vehicleforge:block/computer_on",
       "y": 270
     }
   }

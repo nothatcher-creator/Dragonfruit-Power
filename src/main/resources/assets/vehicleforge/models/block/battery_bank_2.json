@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "vehicleforge:block/metal_gray",
+    "f": "vehicleforge:block/battery_front_2",
+    "s": "vehicleforge:block/metal_gray"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        3
+      ],
+      "to": [
+        15,
+        14,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#f",
+          "uv": [
+            1,
+            2,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            1,
+            2,
+            15,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#s",
+          "uv": [
+            3,
+            2,
+            13,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#s",
+          "uv": [
+            3,
+            2,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#s",
+          "uv": [
+            1,
+            3,
+            15,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#s",
+          "uv": [
+            1,
+            3,
+            15,
+            13
+          ]
+        }
+      }
+    }
+  ]
+}

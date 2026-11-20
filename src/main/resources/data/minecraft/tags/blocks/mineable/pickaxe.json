@@ -42,6 +42,12 @@
     "vehicleforge:fountain_spout",
     "vehicleforge:altar",
     "vehicleforge:gravestone",
-    "vehicleforge:garage_door"
+    "vehicleforge:garage_door",
+    "vehicleforge:steam_vent",
+    "vehicleforge:generator",
+    "vehicleforge:solar_panel",
+    "vehicleforge:wind_turbine",
+    "vehicleforge:battery_bank",
+    "vehicleforge:electric_light"
   ]
 }

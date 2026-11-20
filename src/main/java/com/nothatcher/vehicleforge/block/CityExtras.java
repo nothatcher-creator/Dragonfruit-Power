@@ -1,0 +1,43 @@
+package com.nothatcher.vehicleforge.block;
+
+import com.nothatcher.vehicleforge.VehicleForge;
+import com.nothatcher.vehicleforge.power.PowerBlockEntity;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
+import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnGroup;
+import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+
+/** Block entities, the seat entity and smoke particles for the city blocks. */
+public final class CityExtras {
+    public static BlockEntityType<PropStorageBlockEntity> STORAGE_BE;
+    public static BlockEntityType<PowerBlockEntity> POWER_BE;
+    public static BlockEntityType<SmokeBlockEntity> SMOKE_BE;
+    public static EntityType<SeatEntity> SEAT;
+    public static final DefaultParticleType DARK_SMOKE = FabricParticleTypes.simple(true);
+    public static final DefaultParticleType STEAM = FabricParticleTypes.simple(true);
+
+    private CityExtras() {}
+
+    public static void register() {
+        STORAGE_BE = Registry.register(Registries.BLOCK_ENTITY_TYPE, VehicleForge.id("prop_storage"),
+                FabricBlockEntityTypeBuilder.create(PropStorageBlockEntity::new, CityBlocks.STORAGE).build());
+        POWER_BE = Registry.register(Registries.BLOCK_ENTITY_TYPE, VehicleForge.id("power"),
+                FabricBlockEntityTypeBuilder.create(PowerBlockEntity::new, CityBlocks.POWER).build());
+        SMOKE_BE = Registry.register(Registries.BLOCK_ENTITY_TYPE, VehicleForge.id("smoke"),
+                FabricBlockEntityTypeBuilder.create(SmokeBlockEntity::new, new Block[]{CityBlocks.SMOKE_SOURCE, CityBlocks.STEAM_VENT}).build());
+        SEAT = Registry.register(Registries.ENTITY_TYPE, VehicleForge.id("seat"),
+                FabricEntityTypeBuilder.<SeatEntity>create(SpawnGroup.MISC, SeatEntity::new).dimensions(EntityDimensions.fixed(0.2f, 0.2f))
+                        .trackRangeBlocks(48).trackedUpdateRate(20).build());
+        Registry.register(Registries.PARTICLE_TYPE, VehicleForge.id("dark_smoke"), DARK_SMOKE);
+        Registry.register(Registries.PARTICLE_TYPE, VehicleForge.id("steam"), STEAM);
+        ServerLifecycleEvents.SERVER_STOPPED.register(s -> com.nothatcher.vehicleforge.power.PowerGrid.clear());
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "vehicleforge:block/smoke_source"
+    }
+  }
+}

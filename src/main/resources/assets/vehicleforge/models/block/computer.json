@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "s": "vehicleforge:block/screen",
+    "s": "vehicleforge:block/screen_off",
     "b": "vehicleforge:block/screen_back",
     "k": "vehicleforge:block/panel_gray",
     "particle": "vehicleforge:block/screen"

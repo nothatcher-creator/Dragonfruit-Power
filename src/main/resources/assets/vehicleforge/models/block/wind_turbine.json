@@ -1,0 +1,214 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "c": "vehicleforge:block/concrete_light",
+    "w": "vehicleforge:entity/wind_turbine",
+    "particle": "vehicleforge:block/concrete_light"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        4,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#c",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#c",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#c",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#c",
+          "uv": [
+            1,
+            12,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#c",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#c",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        4,
+        2
+      ],
+      "to": [
+        14,
+        6,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#c",
+          "uv": [
+            2,
+            10,
+            14,
+            12
+          ]
+        },
+        "south": {
+          "texture": "#c",
+          "uv": [
+            2,
+            10,
+            14,
+            12
+          ]
+        },
+        "east": {
+          "texture": "#c",
+          "uv": [
+            2,
+            10,
+            14,
+            12
+          ]
+        },
+        "west": {
+          "texture": "#c",
+          "uv": [
+            2,
+            10,
+            14,
+            12
+          ]
+        },
+        "up": {
+          "texture": "#c",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "down": {
+          "texture": "#c",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        4.8,
+        6,
+        4.8
+      ],
+      "to": [
+        11.2,
+        16,
+        11.2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#c",
+          "uv": [
+            4.800000000000001,
+            0,
+            11.2,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#c",
+          "uv": [
+            4.8,
+            0,
+            11.2,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#c",
+          "uv": [
+            4.800000000000001,
+            0,
+            11.2,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#c",
+          "uv": [
+            4.8,
+            0,
+            11.2,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#c",
+          "uv": [
+            4.8,
+            4.8,
+            11.2,
+            11.2
+          ]
+        },
+        "down": {
+          "texture": "#c",
+          "uv": [
+            4.8,
+            4.800000000000001,
+            11.2,
+            11.2
+          ]
+        }
+      }
+    }
+  ]
+}

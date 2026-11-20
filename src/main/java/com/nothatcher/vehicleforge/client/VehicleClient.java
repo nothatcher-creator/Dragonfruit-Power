@@ -35,6 +35,12 @@ public class VehicleClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.getInstance().register(com.nothatcher.vehicleforge.block.CityExtras.DARK_SMOKE,
+                sprites -> new SmokeParticle.Factory(sprites, true));
+        net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.getInstance().register(com.nothatcher.vehicleforge.block.CityExtras.STEAM,
+                sprites -> new SmokeParticle.Factory(sprites, false));
+        net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(com.nothatcher.vehicleforge.block.CityExtras.POWER_BE, ctx -> new TurbineRenderer());
+        EntityRendererRegistry.register(com.nothatcher.vehicleforge.block.CityExtras.SEAT, net.minecraft.client.render.entity.EmptyEntityRenderer::new);
         for (net.minecraft.block.Block b : com.nothatcher.vehicleforge.block.CityBlocks.CUTOUT)
             net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlock(b, net.minecraft.client.render.RenderLayer.getCutoutMipped());
         for (net.minecraft.block.Block b : com.nothatcher.vehicleforge.block.CityBlocks.TRANSLUCENT)

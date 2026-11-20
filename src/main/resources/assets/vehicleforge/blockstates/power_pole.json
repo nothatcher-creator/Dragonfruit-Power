@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/power_pole"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/power_pole",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/power_pole",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/power_pole",
+      "y": 270
+    }
+  }
+}
