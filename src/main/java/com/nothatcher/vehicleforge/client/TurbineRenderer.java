@@ -56,7 +56,7 @@ public class TurbineRenderer implements BlockEntityRenderer<PowerBlockEntity> {
 
     @Override
     public int getRenderDistance() {
-        return 192;
+        return 128;
     }
 
     private static void box(MatrixStack ms, VertexConsumer vc, float x0, float y0, float z0, float x1, float y1, float z1, int light, int overlay) {

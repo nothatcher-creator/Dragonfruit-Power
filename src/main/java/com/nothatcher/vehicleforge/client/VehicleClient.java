@@ -198,10 +198,12 @@ public class VehicleClient implements ClientModInitializer {
             }
         }
         float hp = v.getHealth() / t.health;
-        if (hp < 0.5f) {
+        // wrecks sit at low health but have their own (lighter) smoulder; this used to put out forced smoke every
+        // tick and flames from every wreck in an overrun city
+        if (hp < 0.5f && !v.isWreck()) {
             Vec3d at = t.flies() ? v.toWorld(0, t.height * 0.7, 0) : v.toWorld(0, t.height * 0.55, t.frontZ * 0.6);
             if (r.nextInt(hp < 0.25f ? 1 : 3) == 0) {
-                mc.world.addParticle(hp < 0.25f ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, true, at.x, at.y, at.z,
+                mc.world.addParticle(hp < 0.25f ? ParticleTypes.LARGE_SMOKE : ParticleTypes.SMOKE, at.x, at.y, at.z,
                         (r.nextDouble() - 0.5) * 0.04, 0.06, (r.nextDouble() - 0.5) * 0.04);
             }
             if (hp < 0.2f && r.nextInt(3) == 0) mc.world.addParticle(ParticleTypes.FLAME, at.x, at.y, at.z, 0, 0.03, 0);

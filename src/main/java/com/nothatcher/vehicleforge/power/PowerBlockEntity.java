@@ -46,14 +46,14 @@ public class PowerBlockEntity extends BlockEntity {
             case SOLAR -> active = w.isDay() && !w.isThundering() && w.isSkyVisible(pos.up());
             case WIND -> active = true;
             case BATTERY -> {
-                if (PowerGrid.isPowered(w, pos, pos)) be.charge = Math.min(MAX_CHARGE, be.charge + 400);
+                if (PowerGrid.isPowered(w, pos, pos, true)) be.charge = Math.min(MAX_CHARGE, be.charge + 400);
                 else if (be.charge > 0) be.charge = Math.max(0, be.charge - 20);
                 active = be.charge > 0;
                 be.markDirty();
             }
             default -> active = PowerGrid.isPowered(w, pos, pos);
         }
-        PowerGrid.report(w, pos, active && k != PowerBlock.Kind.POLE);
+        PowerGrid.report(w, pos, active && k != PowerBlock.Kind.POLE, k != PowerBlock.Kind.BATTERY);
         int level = k != PowerBlock.Kind.BATTERY || be.charge == 0 ? 0 : Math.min(3, 1 + (int) ((long) be.charge * 3 / (MAX_CHARGE + 1)));
         if (state.get(PowerBlock.ACTIVE) != active || state.get(PowerBlock.LEVEL) != level) {
             w.setBlockState(pos, state.with(PowerBlock.ACTIVE, active).with(PowerBlock.LEVEL, level));

@@ -20,12 +20,12 @@ public class SmokeParticle extends SpriteBillboardParticle {
         setSprite(sprites);
         scale(dark ? 3.2f + random.nextFloat() * 1.6f : 2.2f + random.nextFloat());
         setBoundingBoxSpacing(0.25f, 0.25f);
-        this.maxAge = dark ? 260 + random.nextInt(120) : 70 + random.nextInt(40);
+        this.maxAge = dark ? 200 + random.nextInt(80) : 60 + random.nextInt(30);
         this.gravityStrength = 3.0e-6f;
         this.velocityX = vx;
         this.velocityY = vy + random.nextFloat() / 500f;
         this.velocityZ = vz;
-        this.grow = dark ? 1.004f : 1.012f;
+        this.grow = dark ? 1.0045f : 1.012f;
         float g = dark ? 0.12f + random.nextFloat() * 0.1f : 0.88f + random.nextFloat() * 0.1f;
         setColor(g, g, g * (dark ? 0.98f : 1f));
         setAlpha(dark ? 0.92f : 0.6f);
@@ -45,7 +45,7 @@ public class SmokeParticle extends SpriteBillboardParticle {
         velocityZ += random.nextFloat() / 5000f * (random.nextBoolean() ? 1 : -1);
         velocityY -= gravityStrength;
         move(velocityX, velocityY, velocityZ);
-        scale *= grow;
+        if (scale < 14f) scale *= grow;                                   // don't swell into screen-filling sheets
         if (age >= maxAge - 60 && alpha > 0.01f) alpha -= 0.015f;
     }
 

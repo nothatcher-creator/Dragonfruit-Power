@@ -663,7 +663,10 @@ public class VehicleEntity extends Entity {
         updateGearbox();
         setBoundingBox(calculateBoundingBox());
         if (getWorld().isClient) {
-            updateBody();
+            // the suspension traces the ground under each wheel: no need while it's parked and settled
+            boolean settled = getControllingPassenger() == null && Math.abs(clientSpeed) < 0.001f && Math.abs(accelVis) < 0.0005f
+                    && Math.abs(pitchVel) + Math.abs(rollVel) < 0.01f && (age + getId()) % 20 != 0;
+            if (!settled) updateBody();
             long t = getWorld().getTimeOfDay() % 24000L;
             lightsOn = getControllingPassenger() != null && (t > 12600 && t < 23400 || getWorld().isRaining()
                     || getWorld().getLightLevel(LightType.SKY, getBlockPos().up()) < 8 || isSubmergedInWater());
@@ -856,6 +859,10 @@ public class VehicleEntity extends Entity {
             if (carriedBy.isRemoved() || carriedBy.carried != this) carriedBy = null;
             else return;
         }
+        if (asleep()) {
+            setVelocity(Vec3d.ZERO);
+            return;
+        }
         boolean driven = getControllingPassenger() != null && getWorld().isClient;
         boolean fwd = driven && InputState.forward, back = driven && InputState.back;
         boolean left = driven && InputState.left, right = driven && InputState.right;
@@ -880,6 +887,22 @@ public class VehicleEntity extends Entity {
             case TRAIN -> train(pedal);
             default -> ground(driven, pedal, steer, up, engine);
         }
+    }
+
+    /**
+     * A parked ground vehicle that isn't moving skips its physics (and the block collision that comes with it) except
+     * for a check every half second, so a city full of parked cars and wrecks costs next to nothing. Anything that
+     * gives it a shove (an explosion, another car) sets its velocity and wakes it up.
+     */
+    private boolean asleep() {
+        if (getWorld().isClient || !getPassengerList().isEmpty() || !isOnGround()) return false;
+        switch (type.category) {
+            case HELICOPTER, PLANE, ROCKET, BOAT, SUBMARINE, BALLOON, TRAIN -> { return false; }
+            default -> { }
+        }
+        if (Math.abs(speed) > 0.002f || getVelocity().horizontalLengthSquared() > 1.0e-6 || boostTicks > 0) return false;
+        if (abilityOn() || sirenOn() || isTouchingWater() || scaleNow != getScaleTarget()) return false;
+        return (age + getId()) % 10 != 0;
     }
 
     /** damaged engines lose power */

@@ -51,6 +51,10 @@ public class SecretBlock extends Block {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (world.isClient) return ActionResult.SUCCESS;
         boolean open = !state.get(OPEN);
+        if (!open && blocked(world, pos)) {                                    // someone's standing in the gap
+            world.playSound(null, pos, SoundEvents.BLOCK_WOOD_HIT, SoundCategory.BLOCKS, 0.6f, 0.6f);
+            return ActionResult.CONSUME;
+        }
         toggle(world, pos, open);
         for (Direction d : new Direction[]{Direction.UP, Direction.DOWN}) {
             BlockPos p = pos.offset(d);
@@ -59,6 +63,15 @@ public class SecretBlock extends Block {
         world.playSound(null, pos, open ? SoundEvents.BLOCK_PISTON_CONTRACT : SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.6f, 0.7f);
         world.playSound(null, pos, SoundEvents.BLOCK_GRINDSTONE_USE, SoundCategory.BLOCKS, 0.3f, 0.5f);
         return ActionResult.CONSUME;
+    }
+
+    /** anything in the column of secret blocks that would get shut inside it */
+    private boolean blocked(World w, BlockPos pos) {
+        BlockPos lo = pos, hi = pos;
+        for (int i = 0; i < 2 && w.getBlockState(lo.down()).isOf(this); i++) lo = lo.down();
+        for (int i = 0; i < 2 && w.getBlockState(hi.up()).isOf(this); i++) hi = hi.up();
+        return !w.getOtherEntities(null, new net.minecraft.util.math.Box(lo.getX(), lo.getY(), lo.getZ(), hi.getX() + 1, hi.getY() + 1, hi.getZ() + 1).contract(0.05),
+                e -> e.isAlive() && !e.isSpectator()).isEmpty();
     }
 
     private void toggle(World w, BlockPos p, boolean open) {

@@ -29,13 +29,16 @@ public class ElectricLightBlock extends Block {
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         update(state, world, pos);
-        world.scheduleBlockTick(pos, this, 30);
+        if (PowerGrid.MAINS_DOWN) world.scheduleBlockTick(pos, this, 30);   // with the mains on it just stays lit
     }
 
-    /** lights built into the city check now and then (random ticks) rather than constantly */
+    /**
+     * lights built into the city check now and then (random ticks) rather than constantly. With the mains on they're
+     * always lit, so they don't need ticking at all (there are thousands of them in the towers).
+     */
     @Override
     public boolean hasRandomTicks(BlockState state) {
-        return true;
+        return PowerGrid.MAINS_DOWN;
     }
 
     @Override
