@@ -351,5 +351,8 @@
   "block.vehicleforge.secret_quartz": "Smooth Quartz Block",
   "block.vehicleforge.secret_stone": "Smooth Stone",
   "block.vehicleforge.suitcase": "Suitcase",
-  "block.vehicleforge.airport_marker": "Dirt"
+  "block.vehicleforge.airport_marker": "Dirt",
+  "key.vehicleforge.iso_zoom_in": "Isometric view: zoom in",
+  "key.vehicleforge.iso_zoom_out": "Isometric view: zoom out",
+  "msg.vehicleforge.iso_on": "Isometric view  (zoom: %s / %s, F5 to leave)"
 }

@@ -11,7 +11,12 @@
     "client.VfCameraAccessor",
     "client.VfCameraMixin",
     "client.LivingEntityRendererMixin",
-    "client.VfGameRendererMixin"
+    "client.VfGameRendererMixin",
+    "client.VfIsoProjectionMixin",
+    "client.VfIsoPerspectiveMixin",
+    "client.VfIsoWorldMixin",
+    "client.VfIsoFrustumMixin",
+    "client.VfIsoFogMixin"
   ],
   "injectors": {
     "defaultRequire": 1

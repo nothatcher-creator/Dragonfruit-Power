@@ -10,6 +10,9 @@ public interface VfCameraAccessor {
     @Invoker("setPos")
     void vehicleforge$setPos(double x, double y, double z);
 
+    @Invoker("setRotation")
+    void vehicleforge$setRotation(float yaw, float pitch);
+
     @Invoker("moveBy")
     void vehicleforge$moveBy(double x, double y, double z);
 

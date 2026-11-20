@@ -51,6 +51,7 @@ public class VehicleClient implements ClientModInitializer {
         primaryKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.primary", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.vehicleforge"));
         secondaryKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.secondary", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "category.vehicleforge"));
         downKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.down", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "category.vehicleforge"));
+        IsoCam.registerKeys();
 
         VehicleEntity.clientTickHook = VehicleClient::vehicleTick;
         VehicleEntity.crashHook = (v, impact) -> {
@@ -63,6 +64,7 @@ public class VehicleClient implements ClientModInitializer {
     }
 
     private static void tick(MinecraftClient mc) {
+        IsoCam.tick(mc);
         ClientPlayerEntity p = mc.player;
         boolean driving = p != null && p.getVehicle() instanceof VehicleEntity v && v.getControllingPassenger() == p;
         if (driving) {
