@@ -346,5 +346,10 @@
   "msg.vehicleforge.generator_empty": "Out of fuel. Add coal, charcoal, lava or a fuel can.",
   "msg.vehicleforge.battery": "Battery charge: %s%%",
   "msg.vehicleforge.grid_live": "Power: live",
-  "msg.vehicleforge.grid_dead": "Power: dead"
+  "msg.vehicleforge.grid_dead": "Power: dead",
+  "block.vehicleforge.secret_bookshelf": "Bookshelf",
+  "block.vehicleforge.secret_quartz": "Smooth Quartz Block",
+  "block.vehicleforge.secret_stone": "Smooth Stone",
+  "block.vehicleforge.suitcase": "Suitcase",
+  "block.vehicleforge.airport_marker": "Dirt"
 }

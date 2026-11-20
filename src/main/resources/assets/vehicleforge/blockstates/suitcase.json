@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/suitcase"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/suitcase",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/suitcase",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/suitcase",
+      "y": 270
+    }
+  }
+}

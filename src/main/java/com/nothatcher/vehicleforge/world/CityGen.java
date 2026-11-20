@@ -37,7 +37,41 @@ public final class CityGen {
     enum Kind {
         TOWERS, APARTMENTS, PARKING, PARK, GAS, HOUSES,
         LANDMARK, PLAZA, HOSPITAL, FIRE, POLICE, SCHOOL, STADIUM, ROWHOUSES,
-        WAREHOUSE, FACTORY, CONTAINERS, CONSTRUCTION, RIVER, CHURCH
+        WAREHOUSE, FACTORY, CONTAINERS, CONSTRUCTION, RIVER, CHURCH,
+        AIRPORT, STATION, FARM, FOREST, MEADOW, ORCHARD
+    }
+
+    // ------------------------------------------------- zones: airport, countryside, railway
+
+    /** past this many cells from the centre, the city gives way to countryside */
+    static final int COUNTRY = 16;
+    /** the airport covers cells 12..15 east and 4..5 south of the centre, roads between them included */
+    static final int AIR_BX = 12, AIR_BZ = 4, AIR_X0 = AIR_BX * CELL + C, AIR_Z0 = AIR_BZ * CELL + C, AIR_W = 4 * CELL - C, AIR_H = 2 * CELL - C;
+    static final int RAIL_LZ = 40, RAIL_Y = BASE + 5;
+
+    static boolean inAirport(int x, int z) {
+        return x >= AIR_X0 && x < AIR_X0 + AIR_W && z >= AIR_Z0 && z < AIR_Z0 + AIR_H;
+    }
+
+    static boolean airportCell(int bx, int bz) {
+        return bx >= AIR_BX && bx < AIR_BX + 4 && bz >= AIR_BZ && bz < AIR_BZ + 2;
+    }
+
+    static boolean countryCell(int bx, int bz) {
+        return Math.max(Math.abs(bx), Math.abs(bz)) >= COUNTRY;
+    }
+
+    static boolean railRow(int bz) {
+        return Math.floorMod(bz, 9) == 6 && !riverRow(bz);
+    }
+
+    /** the first countryside cell on a railway row, east or west of the city: the line ends here */
+    static boolean stationCell(int bx, int bz) {
+        return railRow(bz) && Math.abs(bz) < COUNTRY && Math.abs(bx) == COUNTRY;
+    }
+
+    static boolean railCell(int bx, int bz) {
+        return railRow(bz) && countryCell(bx, bz);
     }
 
     private enum Roof { PLAIN, HELIPAD, SPIRE, WATER_TOWER, GARDEN }
@@ -179,6 +213,7 @@ public final class CityGen {
         if (b == CityBlocks.KITCHEN_COUNTER) return "kitchen";
         if (b == CityBlocks.STORE_SHELF || b == CityBlocks.CHECKOUT_COUNTER) return "shop";
         if (b == CityBlocks.MAILBOX || b == CityBlocks.NEWSPAPER_BOX) return "mail";
+        if (b == CityBlocks.SUITCASE) return "luggage";
         return loot;
     }
 
@@ -195,8 +230,13 @@ public final class CityGen {
         if (riverRow(bz)) return Kind.RIVER;
         if (bx == 0 && bz == 0) return Kind.PARK;                          // central park at spawn
         if (bx == 1 && bz == 1) return Kind.LANDMARK;                      // the tallest tower in the city
+        if (airportCell(bx, bz)) return Kind.AIRPORT;
         int d = Math.max(Math.abs(bx), Math.abs(bz));
         float r = rnd(bx, bz, 1);
+        if (stationCell(bx, bz)) return Kind.STATION;
+        if (d >= COUNTRY) {
+            return r < 0.38f ? Kind.FARM : r < 0.64f ? Kind.FOREST : r < 0.8f ? Kind.MEADOW : r < 0.93f ? Kind.ORCHARD : Kind.GAS;
+        }
         boolean industrial = d >= 5 && rnd(Math.floorDiv(bx, 3), Math.floorDiv(bz, 3), 70) < 0.25f;
         if (industrial) {
             return r < 0.32f ? Kind.WAREHOUSE : r < 0.55f ? Kind.FACTORY : r < 0.75f ? Kind.CONTAINERS
@@ -226,11 +266,19 @@ public final class CityGen {
     // ------------------------------------------------------------- column
 
     void column(int x, int z) {
+        if (inAirport(x, z)) {
+            airport(x, z, x - AIR_X0, z - AIR_Z0);
+            return;
+        }
         int ux = Math.floorMod(x, CELL), uz = Math.floorMod(z, CELL);
         boolean rx = ux >= R0 && ux < R1, rz = uz >= R0 && uz < R1;
         int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
         boolean bridge = riverRow(bz) && uz >= C && ux < C;                // a north-south road crossing the river
-        if (rx || rz) {
+        boolean country = (ux < C || uz < C) && !bridge && countryCorridor(bx, bz, ux, uz);
+        if (country) {
+            countryRoad(x, z, ux, uz);
+            if (ux < C && uz >= C && railCell(bx, bz) && railCell(bx - 1, bz) && Math.abs(uz - C - RAIL_LZ) <= 6) railBridge(x, z, ux, uz - C);
+        } else if (rx || rz) {
             road(x, z, ux, uz, rx, rz);
         } else if (ux < C || uz < C) {
             sidewalk(x, z, ux, uz);
@@ -260,7 +308,14 @@ public final class CityGen {
                 case CONSTRUCTION -> construction(x, z, bx, bz, lx, lz);
                 case RIVER -> river(x, z, lx, lz);
                 case CHURCH -> church(x, z, bx, bz, lx, lz);
+                case STATION -> station(x, z, bx, lx, lz);
+                case FARM -> farm(x, z, bx, bz, lx, lz);
+                case FOREST -> forest(x, z, bx, bz, lx, lz);
+                case MEADOW -> meadow(x, z, bx, bz, lx, lz);
+                case ORCHARD -> orchard(x, z, bx, bz, lx, lz);
+                default -> { }
             }
+            if (railCell(bx, bz) && !stationCell(bx, bz) && Math.abs(lz - RAIL_LZ) <= 6) railLine(x, z, lz);
         }
         if (bridge) {
             bridge(x, z, ux, uz - C);
@@ -605,6 +660,927 @@ public final class CityGen {
             }
             default -> { }
         }
+    }
+
+    // ============================================================ countryside
+
+    /** is this corridor (road strip) out in the countryside? Every block it touches must be country. */
+    private boolean countryCorridor(int bx, int bz, int ux, int uz) {
+        if (!countryCell(bx, bz)) return false;
+        if (ux < C && !countryCell(bx - 1, bz)) return false;
+        if (uz < C && !countryCell(bx, bz - 1)) return false;
+        return !(ux < C && uz < C) || countryCell(bx - 1, bz - 1);
+    }
+
+    /** a two-lane country road: asphalt, edge lines, a dashed centre line, gravel shoulders, fences and power lines */
+    private void countryRoad(int x, int z, int ux, int uz) {
+        boolean ns = ux < C, ew = uz < C;
+        set(x, GROUND, z, Blocks.GRASS_BLOCK.getDefaultState());
+        if (ns && ew) {                                                      // crossroads
+            if ((ux >= 9 && ux <= 19) || (uz >= 9 && uz <= 19)) set(x, GROUND, z, ASPHALT);
+            else if ((ux >= 7 && ux <= 21) || (uz >= 7 && uz <= 21)) set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            if ((ux == 6 || ux == 22) && (uz == 6 || uz == 22)) set(x, BASE, z, CityBlocks.facing(CityBlocks.STOP_SIGN, uz == 6 ? Direction.NORTH : Direction.SOUTH));
+            return;
+        }
+        int u = ns ? ux : uz;
+        int along = ns ? z : x;
+        int v = ns ? uz : ux;
+        Direction.Axis axis = ns ? Direction.Axis.Z : Direction.Axis.X;
+        if (u >= 9 && u <= 19) {
+            BlockState sfc = ASPHALT;
+            if (u == 14 && Math.floorMod(along, 10) < 5) sfc = CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, axis);
+            else if (u == 9 || u == 19) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, axis);
+            set(x, GROUND, z, sfc);
+            return;
+        }
+        if (u == 7 || u == 8 || u == 20 || u == 21) {
+            set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            return;
+        }
+        boolean nearEnd = v < C + 3 || v > CELL - 4;
+        if ((u == 3 || u == 25) && !nearEnd && Math.floorMod(along, 40) > 3) {
+            set(x, BASE, z, Blocks.OAK_FENCE.getDefaultState());
+            return;
+        }
+        if (u == 5 && !nearEnd && Math.floorMod(along, 24) == 12) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.POWER_POLE, ns ? Direction.EAST : Direction.NORTH));
+            return;
+        }
+        float f = rnd(x, z, 200);
+        if (f < 0.12f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+        else if (f < 0.15f) set(x, BASE, z, FLOWERS[hash(x, z, 201) % FLOWERS.length]);
+    }
+
+    /** the railway embankment and track running east-west through a countryside block */
+    private void railLine(int x, int z, int lz) {
+        int dz = Math.abs(lz - RAIL_LZ);
+        int top = dz <= 2 ? RAIL_Y - 1 : RAIL_Y - 1 - (dz - 2);
+        for (int y = BASE; y <= BASE + 16; y++) set(x, y, z, AIR);
+        set(x, GROUND, z, Blocks.DIRT.getDefaultState());
+        for (int y = BASE; y <= top; y++) {
+            BlockState b;
+            if (y == top) b = dz <= 2 ? Blocks.GRAVEL.getDefaultState() : Blocks.GRASS_BLOCK.getDefaultState();
+            else b = dz <= 2 ? Blocks.STONE.getDefaultState() : Blocks.DIRT.getDefaultState();
+            set(x, y, z, b);
+        }
+        if (dz <= 1 && Math.floorMod(x, 2) == 0) set(x, top, z, Blocks.SPRUCE_PLANKS.getDefaultState());     // sleepers
+        if (dz == 0) set(x, RAIL_Y, z, Blocks.RAIL.getDefaultState().with(net.minecraft.state.property.Properties.RAIL_SHAPE, net.minecraft.block.enums.RailShape.EAST_WEST));
+        if (dz == 2 && Math.floorMod(x, 48) == 24) set(x, RAIL_Y, z, Blocks.REDSTONE_TORCH.getDefaultState());   // signal light
+    }
+
+    /** a steel girder bridge carrying the railway over a north-south road */
+    private void railBridge(int x, int z, int ux, int lz) {
+        int dz = Math.abs(lz - RAIL_LZ);
+        if (ux <= 2 || ux >= 26) {                                           // abutments
+            railLine(x, z, lz);
+            if (dz <= 3) for (int y = BASE; y < RAIL_Y - 1; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+            return;
+        }
+        if (dz > 3) return;
+        for (int y = BASE; y <= BASE + 10; y++) set(x, y, z, AIR);
+        if (dz <= 2) {
+            set(x, RAIL_Y - 1, z, dz == 2 ? Blocks.IRON_BLOCK.getDefaultState() : Blocks.POLISHED_BLACKSTONE.getDefaultState());
+            if (Math.floorMod(x, 5) == 0) set(x, RAIL_Y - 2, z, Blocks.IRON_BLOCK.getDefaultState());    // cross beams
+            if (dz == 0) set(x, RAIL_Y, z, Blocks.RAIL.getDefaultState().with(net.minecraft.state.property.Properties.RAIL_SHAPE, net.minecraft.block.enums.RailShape.EAST_WEST));
+            return;
+        }
+        // side girders: a truss of iron with bars between the verticals
+        set(x, RAIL_Y - 2, z, Blocks.IRON_BLOCK.getDefaultState());
+        set(x, RAIL_Y - 1, z, Blocks.IRON_BLOCK.getDefaultState());
+        for (int y = RAIL_Y; y <= RAIL_Y + 1; y++) set(x, y, z, Math.floorMod(x, 4) == 0 ? Blocks.IRON_BLOCK.getDefaultState() : Blocks.IRON_BARS.getDefaultState()
+                .with(net.minecraft.block.HorizontalConnectingBlock.EAST, true).with(net.minecraft.block.HorizontalConnectingBlock.WEST, true));
+        set(x, RAIL_Y + 2, z, Blocks.IRON_BLOCK.getDefaultState());
+    }
+
+    /**
+     * The train station at the edge of the city: a brick hall with a clock tower, ticket counters, benches and
+     * departure boards; stairs up to two covered platforms either side of the track, which ends at a buffer stop.
+     */
+    private void station(int x, int z, int bx, int lx, int lz) {
+        int s = bx > 0 ? lx : 51 - lx;                                       // 0 on the city side, 51 where the line comes in
+        Direction out = bx > 0 ? Direction.EAST : Direction.WEST;
+        int dz = Math.abs(lz - RAIL_LZ);
+        set(x, GROUND, z, lz <= 5 ? PLAZA : Blocks.GRASS_BLOCK.getDefaultState());
+        // embankment where the line comes in past the platforms
+        if (s >= 49 && dz <= 6) {
+            railLine(x, z, lz);
+            return;
+        }
+        // track bed and buffer stop
+        if (dz <= 1 && s >= 10) {
+            for (int y = BASE; y < RAIL_Y - 1; y++) set(x, y, z, Blocks.STONE.getDefaultState());
+            set(x, RAIL_Y - 1, z, s == 10 ? Blocks.SMOOTH_STONE.getDefaultState() : dz == 0 && s % 2 == 0 ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.GRAVEL.getDefaultState());
+            if (s == 10) set(x, RAIL_Y, z, AIR);
+            else if (dz == 0 && s == 11) {
+                set(x, RAIL_Y, z, Blocks.IRON_BLOCK.getDefaultState());       // buffer stop
+                set(x, RAIL_Y + 1, z, Blocks.RED_CONCRETE.getDefaultState());
+            } else if (dz == 0) set(x, RAIL_Y, z, Blocks.RAIL.getDefaultState().with(net.minecraft.state.property.Properties.RAIL_SHAPE, net.minecraft.block.enums.RailShape.EAST_WEST));
+            if (s == 10) set(x, RAIL_Y - 1, z, Blocks.SMOOTH_STONE.getDefaultState());
+            canopy(x, z, s, lz);
+            return;
+        }
+        // platforms
+        if (dz >= 2 && dz <= 4 && s >= 10 && s <= 48) {
+            for (int y = BASE; y < RAIL_Y; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+            set(x, RAIL_Y, z, dz == 2 ? Blocks.YELLOW_CONCRETE.getDefaultState() : Blocks.SMOOTH_STONE.getDefaultState());
+            if (dz == 4 && s % 8 == 4) set(x, RAIL_Y + 1, z, CityBlocks.facing(CityBlocks.BENCH, lz < RAIL_LZ ? Direction.SOUTH : Direction.NORTH));
+            if (dz == 3 && s == 30) set(x, RAIL_Y + 1, z, CityBlocks.facing(CityBlocks.VENDING_MACHINE, lz < RAIL_LZ ? Direction.SOUTH : Direction.NORTH));
+            canopy(x, z, s, lz);
+            return;
+        }
+        if (dz <= 6 && s >= 10) {                                            // embankment sides beside the platforms
+            for (int y = BASE; y < RAIL_Y - (dz - 4); y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+            return;
+        }
+        // stairs up from the back of the hall to the north platform
+        if (s >= 20 && s <= 22 && lz >= 29 && lz <= 35) {
+            int k = lz - 29;
+            int top = Math.min(BASE + k, RAIL_Y);
+            for (int y = BASE; y < top; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+            set(x, top, z, k >= 6 ? Blocks.SMOOTH_STONE.getDefaultState() : Blocks.STONE_BRICK_STAIRS.getDefaultState().with(StairsBlock.FACING, Direction.SOUTH));
+            return;
+        }
+        if ((s == 19 || s == 23) && lz >= 29 && lz <= 35) {
+            for (int y = BASE; y <= Math.min(BASE + lz - 29, RAIL_Y) + 1; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+            return;
+        }
+        // clock tower in front of the hall
+        if (s >= 28 && s <= 32 && lz >= 2 && lz <= 6) {
+            stationTower(x, z, s, lz, out);
+            return;
+        }
+        // the hall
+        if (s >= 8 && s <= 40 && lz >= 7 && lz <= 28) {
+            stationHall(x, z, s, lz, out);
+            return;
+        }
+        // car park and taxi rank
+        if (s >= 43 && lz <= 30) {
+            set(x, GROUND, z, (lz % 6 == 0 && s % 3 != 0) ? CityBlocks.axis(CityBlocks.LINE_WHITE, out.getAxis()) : ASPHALT);
+            return;
+        }
+        if (lz == 4 && s == 14) set(x, BASE, z, CityBlocks.facing(CityBlocks.BUS_STOP_SIGN, Direction.NORTH));
+        if (lz == 4 && (s == 6 || s == 40)) lamp(x, z, Direction.NORTH);
+        if (lz == 5 && s % 9 == 3) set(x, BASE, z, CityBlocks.facing(CityBlocks.PLANTER, Direction.NORTH));
+    }
+
+    private void canopy(int x, int z, int s, int lz) {
+        if (s < 14 || s > 46) return;
+        int dz = Math.abs(lz - RAIL_LZ);
+        if (dz == 3 && s % 6 == 2) for (int y = RAIL_Y + 1; y <= RAIL_Y + 4; y++) set(x, y, z, Blocks.BLACK_CONCRETE.getDefaultState());
+        if (dz <= 4) set(x, RAIL_Y + 5, z, dz <= 1 ? CLEAR : Blocks.DEEPSLATE_TILE_SLAB.getDefaultState());
+        if (dz == 3 && s % 6 == 5) set(x, RAIL_Y + 4, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+    }
+
+    private void stationTower(int x, int z, int s, int lz, Direction out) {
+        boolean wall = s == 28 || s == 32 || lz == 2 || lz == 6;
+        boolean corner = (s == 28 || s == 32) && (lz == 2 || lz == 6);
+        int top = BASE + 20;
+        set(x, GROUND, z, Blocks.POLISHED_ANDESITE.getDefaultState());
+        if (!wall) {
+            set(x, top, z, Blocks.BRICKS.getDefaultState());
+        } else {
+            for (int y = BASE; y <= top; y++) {
+                BlockState b = corner ? Blocks.STONE_BRICKS.getDefaultState() : Blocks.BRICKS.getDefaultState();
+                if (lz == 2 && s >= 29 && s <= 31 && y >= BASE + 14 && y <= BASE + 16) {   // the clock face
+                    boolean centre = s == 30 && y == BASE + 15, hand = s == 30 && y == BASE + 16 || s == 31 && y == BASE + 15;
+                    b = centre || hand ? Blocks.BLACK_CONCRETE.getDefaultState() : Blocks.QUARTZ_BLOCK.getDefaultState();
+                }
+                if (lz == 2 && s == 30 && y >= BASE && y <= BASE + 2) b = y == BASE + 2 ? Blocks.STONE_BRICKS.getDefaultState() : AIR;   // way in
+                set(x, y, z, b);
+            }
+        }
+        for (int k = 0; k < 4; k++) {                                        // pyramid roof
+            int y = top + 1 + k;
+            if (s >= 28 + k && s <= 32 - k && lz >= 2 + k && lz <= 6 - k) set(x, y, z, Blocks.DEEPSLATE_TILES.getDefaultState());
+        }
+        if (s == 30 && lz == 4) {
+            set(x, top + 5, z, Blocks.IRON_BARS.getDefaultState());
+            set(x, top + 6, z, Blocks.LIGHTNING_ROD.getDefaultState());
+        }
+    }
+
+    private void stationHall(int x, int z, int s, int lz, Direction out) {
+        boolean wall = s == 8 || s == 40 || lz == 7 || lz == 28;
+        int top = BASE + 8;
+        set(x, GROUND, z, (s + lz) % 2 == 0 ? Blocks.POLISHED_ANDESITE.getDefaultState() : Blocks.POLISHED_DIORITE.getDefaultState());
+        set(x, top + 1, z, Blocks.STONE_BRICK_SLAB.getDefaultState());
+        if (wall) {
+            for (int y = BASE; y <= top; y++) {
+                BlockState b = Blocks.BRICKS.getDefaultState();
+                boolean corner = (s == 8 || s == 40) && (lz == 7 || lz == 28);
+                if (corner || y == top) b = Blocks.STONE_BRICKS.getDefaultState();
+                if (!corner && y >= BASE + 1 && y <= BASE + 5 && ((lz == 7 && s % 4 == 2) || ((s == 8 || s == 40) && lz % 4 == 1))) b = CLEAR;   // tall windows
+                if (lz == 7 && s >= 17 && s <= 19 && y <= BASE + 3) b = AIR;                                         // front doors
+                if (lz == 28 && s >= 20 && s <= 22 && y <= BASE + 3) b = AIR;                                        // to the platforms
+                set(x, y, z, b);
+            }
+            if (lz == 28 && s >= 22 && s <= 26) set(x, BASE + 4, z, CityBlocks.facing(CityBlocks.TV, Direction.NORTH).with(net.minecraft.state.property.Properties.LIT,
+                    !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));   // departure board
+            return;
+        }
+        set(x, top, z, (s % 5 == 2 && lz % 5 == 2) ? CEILING_LIGHT : Blocks.WHITE_CONCRETE.getDefaultState());
+        if (lz == 25 && s >= 11 && s <= 19 && s % 2 == 1) { set(x, BASE, z, f(CityBlocks.CHECKOUT_COUNTER, Direction.NORTH)); lootAt(x, BASE, z, "shop"); }
+        else if (lz >= 11 && lz <= 21 && lz % 3 == 2 && ((s >= 11 && s <= 15) || (s >= 25 && s <= 37))) set(x, BASE, z, f(CityBlocks.PEW, Direction.NORTH));
+        else if (lz == 9 && s == 10) set(x, BASE, z, f(CityBlocks.VENDING_MACHINE, Direction.EAST));
+        else if (lz == 9 && s == 38) set(x, BASE, z, f(CityBlocks.ATM, Direction.WEST));
+        else if ((s == 9 || s == 39) && (lz == 8 || lz == 27)) set(x, BASE, z, f(CityBlocks.POTTED_PLANT, Direction.NORTH));
+    }
+
+    /** a farm: farmhouse, red barn, silo, and either crop fields with irrigation channels or a fenced pasture */
+    private void farm(int x, int z, int bx, int bz, int lx, int lz) {
+        if (lx < 17 && lz < 17) {                                            // farmhouse on its own lot
+            Lot l = lot(bx, bz, 0, 0);
+            HouseStyle hs = HOUSES[hash(bx, bz, 202) % HOUSES.length];
+            if (bunker(l)) bunkerColumn(x, z, l);
+            if (x >= l.hx0 - 1 && x <= l.hx1 + 1 && z >= l.hz0 - 1 && z <= l.hz1 + 1) houseColumn(x, z, l, hs);
+            else if (lx >= 7 && lx <= 9 && lz < 4) set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            return;
+        }
+        if (lx >= 22 && lx <= 37 && lz >= 2 && lz <= 16) {
+            barn(x, z, bx, bz, lx - 22, lz - 2);
+            return;
+        }
+        double sdx = lx - 44.5, sdz = lz - 8.5, sr = Math.sqrt(sdx * sdx + sdz * sdz);
+        if (sr < 4) {
+            silo(x, z, sr, lx, lz);
+            return;
+        }
+        if (lz >= 0 && lz < 19 && lx >= 18 && lx <= 20) {                    // farm track
+            set(x, GROUND, z, Blocks.DIRT_PATH.getDefaultState());
+            return;
+        }
+        if (lz < 19) {
+            if (rnd(x, z, 203) < 0.02f) set(x, BASE, z, Blocks.HAY_BLOCK.getDefaultState());
+            return;
+        }
+        boolean pasture = hash(bx, bz, 204) % 3 == 0;
+        if (pasture) {
+            boolean edge = lx == 1 || lx == 50 || lz == 19 || lz == 50;
+            if (edge) {
+                if (!(lz == 19 && lx >= 18 && lx <= 20)) set(x, BASE, z, Blocks.OAK_FENCE.getDefaultState());
+                else set(x, GROUND, z, Blocks.DIRT_PATH.getDefaultState());
+                return;
+            }
+            if (lx == 25 && lz == 30) set(x, BASE, z, Blocks.WATER_CAULDRON.getDefaultState().with(net.minecraft.block.LeveledCauldronBlock.LEVEL, 3));
+            else if (rnd(x, z, 205) < 0.015f) set(x, BASE, z, Blocks.HAY_BLOCK.getDefaultState());
+            else if (rnd(x, z, 206) < 0.2f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+            return;
+        }
+        // crops in four strips, irrigation every 9 rows, a scarecrow in each strip
+        if (lx == 0 || lx == 51) return;
+        if ((lz - 19) % 9 == 4) {
+            set(x, GROUND, z, WATER);
+            return;
+        }
+        int strip = lx / 13;
+        if (lx % 13 == 6 && lz == 33) {
+            set(x, GROUND, z, Blocks.DIRT.getDefaultState());
+            set(x, BASE, z, Blocks.OAK_FENCE.getDefaultState());
+            set(x, BASE + 1, z, Blocks.HAY_BLOCK.getDefaultState());
+            set(x, BASE + 2, z, Blocks.CARVED_PUMPKIN.getDefaultState().with(net.minecraft.block.CarvedPumpkinBlock.FACING, Direction.NORTH));
+            return;
+        }
+        set(x, GROUND, z, Blocks.FARMLAND.getDefaultState().with(net.minecraft.block.FarmlandBlock.MOISTURE, 7));
+        BlockState crop = switch ((strip + hash(bx, bz, 207)) % 4) {
+            case 0 -> Blocks.WHEAT.getDefaultState().with(net.minecraft.block.CropBlock.AGE, 7);
+            case 1 -> Blocks.CARROTS.getDefaultState().with(net.minecraft.block.CropBlock.AGE, 7);
+            case 2 -> Blocks.POTATOES.getDefaultState().with(net.minecraft.block.CropBlock.AGE, 7);
+            default -> Blocks.BEETROOTS.getDefaultState().with(net.minecraft.block.BeetrootsBlock.AGE, 3);
+        };
+        if (rnd(x, z, 208) < (OVERRUN ? 0.55f : 0.95f)) set(x, BASE, z, crop);   // fields going to ruin in an outbreak
+    }
+
+    /** red barn with a big door, hay inside and a gambrel-ish roof; bx/bz give each barn its own look */
+    private void barn(int x, int z, int bx, int bz, int px, int pz) {
+        // px 0..15 along x, pz 0..14 along z; door on the south side
+        boolean wall = px == 0 || px == 15 || pz == 0 || pz == 14;
+        boolean corner = (px == 0 || px == 15) && (pz == 0 || pz == 14);
+        set(x, GROUND, z, Blocks.SPRUCE_PLANKS.getDefaultState());
+        int e = Math.min(pz, 14 - pz);                                       // 0 at the eaves, 7 at the ridge
+        int roofY = BASE + 7 + (e <= 3 ? e * 2 : 6 + (e - 3));
+        if (wall) {
+            for (int y = BASE; y < BASE + 7; y++) {
+                BlockState b = corner ? Blocks.DARK_OAK_LOG.getDefaultState() : Blocks.RED_TERRACOTTA.getDefaultState();
+                if (pz == 14 && px >= 5 && px <= 10 && y <= BASE + 4) b = (px == 5 || px == 10) ? Blocks.WHITE_TERRACOTTA.getDefaultState() : AIR;
+                if ((px == 0 || px == 15) && pz % 4 == 2 && y == BASE + 3) b = Blocks.WHITE_STAINED_GLASS_PANE.getDefaultState();
+                set(x, y, z, b);
+            }
+            if (px == 0 || px == 15) for (int y = BASE + 7; y < roofY; y++) set(x, y, z, Blocks.RED_TERRACOTTA.getDefaultState());   // gable ends
+        } else {
+            if (rnd(x, z, 209) < 0.25f && (px <= 3 || px >= 12)) {
+                int h = 1 + hash(x, z, 210) % 3;
+                for (int y = BASE; y < BASE + h; y++) set(x, y, z, Blocks.HAY_BLOCK.getDefaultState());
+            }
+            if (px == 1 && pz == 1) container(x, BASE, z, "farm", true);
+            if (pz == 2 && px >= 5 && px <= 10) set(x, BASE, z, Blocks.OAK_FENCE.getDefaultState());   // stalls
+        }
+        BlockState stair = Blocks.DARK_OAK_STAIRS.getDefaultState().with(StairsBlock.FACING, pz < 7 ? Direction.SOUTH : Direction.NORTH);
+        set(x, roofY, z, e >= 7 ? Blocks.DARK_OAK_PLANKS.getDefaultState() : stair);
+        if (e <= 3) set(x, roofY - 1, z, Blocks.DARK_OAK_PLANKS.getDefaultState());
+    }
+
+    private void silo(int x, int z, double r, int lx, int lz) {
+        set(x, GROUND, z, Blocks.SMOOTH_STONE.getDefaultState());
+        int h = 16;
+        if (r >= 3) for (int y = BASE; y < BASE + h; y++) set(x, y, z, (y - BASE) % 4 == 3 ? Blocks.IRON_BLOCK.getDefaultState() : Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+        else for (int y = BASE; y < BASE + 3; y++) set(x, y, z, Blocks.HAY_BLOCK.getDefaultState());
+        double dome = Math.sqrt(Math.max(0, 16 - r * r));
+        for (int y = BASE + h; y <= BASE + h + (int) dome; y++) set(x, y, z, Blocks.OXIDIZED_COPPER.getDefaultState());
+        if (lx == 41 && lz == 8) for (int y = BASE; y < BASE + h; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.WEST));
+    }
+
+    /** a seed for tree() that picks the species and varies the trunk height */
+    private static int treeSeed(int species, int h) {
+        return ((species + 5 * Math.floorMod(h, 40)) << 8) | (h & 0xff);
+    }
+
+    /** woodland: dense mixed trees, undergrowth, a winding trail and sometimes a hunter's cabin */
+    private void forest(int x, int z, int bx, int bz, int lx, int lz) {
+        double trail = 25 + 9 * Math.sin(lx / 7.0 + bz);
+        boolean onTrail = Math.abs(lz - trail) < 1.2;
+        boolean cabin = hash(bx, bz, 211) % 2 == 0;
+        int cx = lx - 37, cz = lz - 9;
+        if (cabin && Math.abs(cx) <= 4 && Math.abs(cz) <= 4) {
+            cabin(x, z, cx, cz);
+            return;
+        }
+        float g = rnd(x, z, 212);
+        set(x, GROUND, z, onTrail ? Blocks.DIRT_PATH.getDefaultState() : g < 0.15f ? Blocks.PODZOL.getDefaultState() : g < 0.22f ? Blocks.COARSE_DIRT.getDefaultState() : Blocks.GRASS_BLOCK.getDefaultState());
+        if (!onTrail) {
+            float u = rnd(x, z, 213);
+            if (u < 0.14f) set(x, BASE, z, Blocks.FERN.getDefaultState());
+            else if (u < 0.3f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+            else if (u < 0.32f) set(x, BASE, z, Blocks.SWEET_BERRY_BUSH.getDefaultState().with(net.minecraft.block.SweetBerryBushBlock.AGE, 3));
+            else if (u < 0.335f) set(x, BASE, z, u < 0.3275f ? Blocks.BROWN_MUSHROOM.getDefaultState() : Blocks.RED_MUSHROOM.getDefaultState());
+            else if (u < 0.34f) set(x, BASE, z, Blocks.MOSSY_COBBLESTONE.getDefaultState());
+        }
+        // trees on a 5-block grid
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        for (int gx = Math.floorDiv(lx - 4, 5); gx <= Math.floorDiv(lx + 4, 5); gx++) {
+            for (int gz = Math.floorDiv(lz - 4, 5); gz <= Math.floorDiv(lz + 4, 5); gz++) {
+                int h = hash(ox + gx, oz + gz, 214);
+                int tlx = gx * 5 + 1 + h % 3, tlz = gz * 5 + 1 + (h >>> 3) % 3;
+                if (tlx < 1 || tlz < 1 || tlx > 50 || tlz > 50) continue;
+                if (Math.abs(tlz - (25 + 9 * Math.sin(tlx / 7.0 + bz))) < 2.5) continue;
+                if (cabin && Math.abs(tlx - 37) <= 6 && Math.abs(tlz - 9) <= 6) continue;
+                if (rnd(ox + gx, oz + gz, 215) > 0.8f) continue;
+                int species = new int[]{2, 2, 1, 0, 2, 1}[(h >>> 6) % 6];
+                tree(x, z, ox + tlx, oz + tlz, treeSeed(species, h));
+            }
+        }
+    }
+
+    private void cabin(int x, int z, int cx, int cz) {
+        int ax = Math.abs(cx), az = Math.abs(cz);
+        set(x, GROUND, z, Blocks.SPRUCE_PLANKS.getDefaultState());
+        if (ax == 4 || az == 4) {
+            if (az == 4 && cz > 0 && ax <= 4 && cx == 0) {                   // door
+                set(x, BASE, z, Blocks.SPRUCE_DOOR.getDefaultState().with(DoorBlock.FACING, Direction.NORTH).with(DoorBlock.HALF, DoubleBlockHalf.LOWER));
+                set(x, BASE + 1, z, Blocks.SPRUCE_DOOR.getDefaultState().with(DoorBlock.FACING, Direction.NORTH).with(DoorBlock.HALF, DoubleBlockHalf.UPPER));
+                set(x, BASE + 2, z, Blocks.SPRUCE_LOG.getDefaultState());
+            } else {
+                for (int y = BASE; y <= BASE + 2; y++) {
+                    BlockState log = Blocks.SPRUCE_LOG.getDefaultState().with(net.minecraft.block.PillarBlock.AXIS, ax == 4 && az == 4 ? Direction.Axis.Y : ax == 4 ? Direction.Axis.Z : Direction.Axis.X);
+                    set(x, y, z, y == BASE + 1 && (ax == 0 || az == 0) && !(az == 4 && cz > 0) ? Blocks.GLASS_PANE.getDefaultState() : log);
+                }
+            }
+        } else {
+            if (cx == -3 && cz == -3) container(x, BASE, z, "cabin", true);
+            if (cx == 3 && cz == -3) set(x, BASE, z, Blocks.BROWN_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.HEAD));
+            if (cx == 3 && cz == -2) set(x, BASE, z, Blocks.BROWN_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.FOOT));
+            if (cx == -3 && cz == 2) set(x, BASE, z, Blocks.CRAFTING_TABLE.getDefaultState());
+            if (cx == 0 && cz == 0) set(x, BASE + 2, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+        }
+        int roof = BASE + 3 + Math.max(0, 4 - ax) / 2;
+        set(x, roof, z, ax <= 1 ? Blocks.SPRUCE_PLANKS.getDefaultState() : Blocks.SPRUCE_STAIRS.getDefaultState().with(StairsBlock.FACING, cx < 0 ? Direction.EAST : Direction.WEST));
+        if (cx == 2 && cz == 4) {}                                           // (porch side)
+        if (cx == 0 && cz == -4) for (int y = BASE + 3; y <= BASE + 6; y++) set(x, y, z, Blocks.COBBLESTONE.getDefaultState());   // chimney
+        if (cx == 0 && cz == -4) set(x, BASE + 7, z, Blocks.CAMPFIRE.getDefaultState());
+    }
+
+    /** open meadow: long grass, wildflowers, a pond with reeds, scattered trees and hay bales */
+    private void meadow(int x, int z, int bx, int bz, int lx, int lz) {
+        double px = (lx - 30) / 6.0, pz = (lz - 30) / 4.0, pe = px * px + pz * pz;
+        if (pe < 1) {
+            set(x, GROUND, z, WATER);
+            set(x, GROUND - 1, z, pe < 0.5 ? WATER : Blocks.CLAY.getDefaultState());
+            if (pe < 0.5) set(x, GROUND - 2, z, Blocks.CLAY.getDefaultState());
+            if (rnd(x, z, 216) < 0.07f) set(x, BASE, z, Blocks.LILY_PAD.getDefaultState());
+            return;
+        }
+        if (pe < 1.3 && rnd(x, z, 217) < 0.35f) {
+            for (int y = BASE; y < BASE + 2; y++) set(x, y, z, Blocks.SUGAR_CANE.getDefaultState());
+            return;
+        }
+        if (lx == 22 && lz == 26) { set(x, BASE, z, CityBlocks.facing(CityBlocks.PICNIC_TABLE, Direction.NORTH)); return; }
+        float f = rnd(x, z, 218);
+        if (f < 0.22f) {
+            set(x, BASE, z, Blocks.TALL_GRASS.getDefaultState().with(net.minecraft.block.TallPlantBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.LOWER));
+            set(x, BASE + 1, z, Blocks.TALL_GRASS.getDefaultState().with(net.minecraft.block.TallPlantBlock.HALF, net.minecraft.block.enums.DoubleBlockHalf.UPPER));
+        } else if (f < 0.45f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+        else if (f < 0.56f) set(x, BASE, z, FLOWERS[hash(x, z, 219) % FLOWERS.length]);
+        else if (f < 0.565f) set(x, BASE, z, Blocks.HAY_BLOCK.getDefaultState());
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        for (int gx = Math.floorDiv(lx - 4, 13); gx <= Math.floorDiv(lx + 4, 13); gx++) {
+            for (int gz = Math.floorDiv(lz - 4, 13); gz <= Math.floorDiv(lz + 4, 13); gz++) {
+                int h = hash(ox + gx, oz + gz, 220);
+                int tlx = gx * 13 + 3 + h % 7, tlz = gz * 13 + 3 + (h >>> 3) % 7;
+                if (tlx < 4 || tlz < 4 || tlx > 47 || tlz > 47 || rnd(ox + gx, oz + gz, 221) > 0.45f) continue;
+                double qx = (tlx - 30) / 9.0, qz = (tlz - 30) / 7.0;
+                if (qx * qx + qz * qz < 1) continue;
+                tree(x, z, ox + tlx, oz + tlz, treeSeed(new int[]{0, 1, 4}[h % 3], h));
+            }
+        }
+    }
+
+    /** orchard: rows of blossoming fruit trees with mown paths, and a farm stand by the road */
+    private void orchard(int x, int z, int bx, int bz, int lx, int lz) {
+        if (lz <= 4 && lx >= 2 && lx <= 9) {                                 // farm stand
+            set(x, GROUND, z, Blocks.SPRUCE_PLANKS.getDefaultState());
+            if (lz == 2 && lx >= 3 && lx <= 8) {
+                set(x, BASE, z, lx % 2 == 0 ? Blocks.BARREL.getDefaultState() : Blocks.SPRUCE_SLAB.getDefaultState()
+                        .with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+                if (lx % 2 == 0) lootAt(x, BASE, z, "farm");
+            }
+            if ((lx == 2 || lx == 9) && (lz == 1 || lz == 4)) for (int y = BASE; y < BASE + 3; y++) set(x, y, z, Blocks.SPRUCE_FENCE.getDefaultState());
+            set(x, BASE + 3, z, (lx + lz) % 2 == 0 ? Blocks.RED_WOOL.getDefaultState() : Blocks.WHITE_WOOL.getDefaultState());
+            return;
+        }
+        if (lx % 6 == 0) {
+            set(x, GROUND, z, Blocks.DIRT_PATH.getDefaultState());
+            return;
+        }
+        if (rnd(x, z, 222) < 0.15f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+        // fruit trees on a 6x6 grid
+        for (int gx = Math.floorDiv(lx - 3, 6); gx <= Math.floorDiv(lx + 3, 6); gx++) {
+            for (int gz = Math.floorDiv(lz - 3, 6); gz <= Math.floorDiv(lz + 3, 6); gz++) {
+                int tlx = gx * 6 + 3, tlz = gz * 6 + 3;
+                if (tlx < 3 || tlx > 48 || tlz < 9 || tlz > 48) continue;
+                int dx = lx - tlx, dz = lz - tlz;
+                double d = Math.sqrt(dx * dx + dz * dz);
+                boolean blossom = hash(bx * 31 + gx, bz * 31 + gz, 223) % 3 == 0;
+                if (dx == 0 && dz == 0) for (int y = BASE; y < BASE + 3; y++) set(x, y, z, Blocks.OAK_LOG.getDefaultState());
+                for (int y = BASE + 2; y <= BASE + 5; y++) {
+                    double ry = (y - (BASE + 3.5)) * 1.2;
+                    if (Math.sqrt(d * d + ry * ry) <= 2.5 && isAir(x, y, z))
+                        set(x, y, z, (blossom ? Blocks.CHERRY_LEAVES : Blocks.FLOWERING_AZALEA_LEAVES).getDefaultState().with(LeavesBlock.PERSISTENT, true));
+                }
+            }
+        }
+    }
+
+    /** cows and sheep, tractors and pickups, trains at the stations */
+    private void countryEntities(int bx, int bz, int x0, int z0) {
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        Kind k = kind(bx, bz);
+        if (k == Kind.FARM) {
+            parkAt("tractor", 33, 19, BASE, 0f, 0.8, bx, bz, 1, x0, z0);
+            parkAt("pickup_truck", 12, 2.5, BASE, 90f, 0.6, bx, bz, 2, x0, z0);
+            if (hash(bx, bz, 204) % 3 == 0) {                                // pasture animals
+                for (int i = 0; i < 10; i++) {
+                    double ax = ox + 4 + rnd(bx * 13 + i, bz, 224) * 44, az = oz + 22 + rnd(bx, bz * 13 + i, 225) * 26;
+                    if (!inChunk(ax, az, x0, z0)) continue;
+                    var type = i % 3 == 0 ? EntityType.SHEEP : EntityType.COW;
+                    var a = type.create(w.toServerWorld());
+                    if (a == null) continue;
+                    a.refreshPositionAndAngles(ax, BASE, az, rnd(bx, i, 226) * 360f, 0);
+                    a.setPersistent();
+                    w.spawnEntity(a);
+                }
+            }
+        } else if (k == Kind.STATION) {
+            double s = 30, tx = bx > 0 ? ox + s + 0.5 : ox + 51 - s + 0.5, tz = oz + RAIL_LZ + 0.5;
+            String id = new String[]{"diesel_locomotive", "steam_train", "bullet_train"}[hash(bx, bz, 227) % 3];
+            if (inChunk(tx, tz, x0, z0)) spawnType(tx, RAIL_Y, tz, bx > 0 ? -90f : 90f, id, hash(bx, bz, 228), false);
+            for (int i = 0; i < 3; i++) {
+                double cx = bx > 0 ? ox + 45 + i * 2.5 : ox + 6 - i * 2.5, cz = oz + 3.5;
+                if (inChunk(cx, cz, x0, z0) && rnd(bx, bz * 5 + i, 229) < 0.7f) spawnType(cx, BASE, cz, 0f, "taxi", hash(bx * 5 + i, bz, 230));
+            }
+        }
+    }
+
+    // ============================================================ airport
+
+    private static final BlockState MARKER = CityBlocks.AIRPORT_MARKER.getDefaultState();
+
+    /**
+     * The airport, in its own coordinates (ax 0..294 west to east, az 0..132 north to south): a glass terminal with
+     * check-in, security, baggage claim, seating and shops; a control tower; a hangar (with a secret armoury
+     * underneath); fuel tanks; an apron with stands and jet bridges; a taxiway; and a 290-block runway.
+     */
+    private void airport(int x, int z, int ax, int az) {
+        loot = "shop";
+        set(x, GROUND - 1, z, MARKER);
+        set(x, GROUND, z, Blocks.GRASS_BLOCK.getDefaultState());
+        if (ax >= 244 && ax <= 260 && az >= 5 && az <= 15) armoryColumn(x, z, ax, az);
+        // perimeter fence (open along the front of the terminal and car park)
+        boolean fence = ax == 0 || ax == AIR_W - 1 || az == AIR_H - 1 || (az == 0 && ax >= 155 && !(ax >= 178 && ax <= 186));
+        if (fence) {
+            boolean post = (ax + az) % 6 == 0;
+            for (int y = BASE; y <= BASE + 2; y++) set(x, y, z, post ? Blocks.IRON_BLOCK.getDefaultState() : Blocks.IRON_BARS.getDefaultState()
+                    .with(net.minecraft.block.HorizontalConnectingBlock.EAST, az == 0 || az == AIR_H - 1).with(net.minecraft.block.HorizontalConnectingBlock.WEST, az == 0 || az == AIR_H - 1)
+                    .with(net.minecraft.block.HorizontalConnectingBlock.NORTH, ax == 0 || ax == AIR_W - 1).with(net.minecraft.block.HorizontalConnectingBlock.SOUTH, ax == 0 || ax == AIR_W - 1));
+            return;
+        }
+        if (ax >= 30 && ax <= 150 && az >= 4 && az <= 38) { terminal(x, z, ax - 30, az - 4); return; }
+        if (ax >= 162 && ax <= 172 && az >= 7 && az <= 17) { tower(x, z, ax - 167, az - 12); return; }
+        if (ax >= 196 && ax <= 262 && az >= 4 && az <= 40) { hangar(x, z, ax, az); return; }
+        for (int[] t : new int[][]{{278, 14}, {278, 31}}) {
+            double dx = ax - t[0] + 0.5, dz = az - t[1] + 0.5, r = Math.sqrt(dx * dx + dz * dz);
+            if (r < 6) { fuelTank(x, z, r, dx, dz); return; }
+        }
+        // forecourt and drop-off lane
+        if (az <= 3 && ax <= 154) {
+            set(x, GROUND, z, az <= 1 ? WALK : ASPHALT);
+            if (az == 1 && ax % 20 == 10) lamp(x, z, Direction.SOUTH);
+            if (az == 0 && ax % 12 == 6) set(x, BASE, z, CityBlocks.facing(CityBlocks.PLANTER, Direction.NORTH));
+            if (az == 1 && ax == 24) set(x, BASE, z, CityBlocks.facing(CityBlocks.BUS_STOP_SIGN, Direction.NORTH));
+            return;
+        }
+        // car park
+        if (ax >= 2 && ax <= 27 && az >= 4 && az <= 38) {
+            boolean line = (az == 11 || az == 18 || az == 25 || az == 32) ? false : ax % 3 == 2 && ((az >= 5 && az <= 9) || (az >= 13 && az <= 17) || (az >= 20 && az <= 24) || (az >= 27 && az <= 31));
+            set(x, GROUND, z, line ? CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.Z) : ASPHALT);
+            if (ax == 27 && az % 10 == 5) lamp(x, z, Direction.WEST);
+            return;
+        }
+        // jet bridges from the terminal out to the stands
+        for (int g : new int[]{51, 91, 131}) {
+            if (Math.abs(ax - g) <= 1 && az >= 39 && az <= 47) {
+                boolean side = Math.abs(ax - g) == 1;
+                set(x, GROUND, z, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+                for (int y = BASE; y <= BASE + 2; y++) set(x, y, z, side ? CLEAR : AIR);   // covered walkway out to the plane
+                set(x, BASE + 3, z, Blocks.WHITE_CONCRETE.getDefaultState());
+                return;
+            }
+        }
+        // apron
+        if (az >= 39 && az <= 76 && ax >= 20 && ax <= 285) {
+            BlockState sfc = Blocks.LIGHT_GRAY_CONCRETE.getDefaultState();
+            for (int g : new int[]{51, 91, 131, 171, 211}) {
+                if (ax == g && az >= 48 && az <= 72) sfc = CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, Direction.Axis.Z);   // lead-in lines
+                if (Math.abs(ax - g) == 12 && az >= 48 && az <= 72) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.Z);
+            }
+            if (az == 76) sfc = CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, Direction.Axis.X);
+            set(x, GROUND, z, sfc);
+            if (az == 44 && ax % 40 == 0) set(x, BASE, z, CityBlocks.facing(CityBlocks.SUITCASE, Direction.SOUTH));
+            return;
+        }
+        // taxiway, with links to the runway at both ends
+        boolean link = (ax >= 12 && ax <= 18) || (ax >= 276 && ax <= 282);
+        if ((az >= 79 && az <= 85 && ax >= 10 && ax <= 285) || (link && az >= 77 && az <= 93)) {
+            boolean centre = (az == 82 && !link) || (link && (ax == 15 || ax == 279) && az != 82);
+            set(x, GROUND, z, centre ? CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, az == 82 ? Direction.Axis.X : Direction.Axis.Z) : ASPHALT);
+            if ((az == 78 || az == 86) && ax % 10 == 0 && !link) set(x, BASE, z, Blocks.END_ROD.getDefaultState());
+            return;
+        }
+        // runway
+        if (az >= 94 && az <= 120 && ax >= 4 && ax <= 290) {
+            BlockState sfc = ASPHALT;
+            boolean threshold = (ax >= 8 && ax <= 18) || (ax >= 276 && ax <= 286);
+            if (az == 95 || az == 119) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.X);
+            else if (threshold && az >= 98 && az <= 116 && (az - 98) % 3 < 2) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.X);
+            else if (az == 107 && !threshold && Math.floorMod(ax, 14) < 7) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.X);
+            else if ((ax == 30 || ax == 264) && az >= 100 && az <= 114 && az != 107) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.X);   // touchdown zone
+            set(x, GROUND, z, sfc);
+            return;
+        }
+        if ((az == 93 || az == 121) && ax >= 4 && ax <= 290 && ax % 10 == 4) {
+            set(x, BASE, z, Blocks.END_ROD.getDefaultState());               // runway edge lights
+            return;
+        }
+        if (az >= 100 && az <= 114 && az % 3 == 1 && (ax == 1 || ax == 2 || ax == AIR_W - 2 || ax == AIR_W - 3)) {
+            set(x, BASE, z, Blocks.SEA_LANTERN.getDefaultState());            // approach lights
+            return;
+        }
+        if (ax == 150 && az == 89) {                                         // windsock
+            for (int y = BASE; y < BASE + 5; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+            set(x, BASE + 5, z, Blocks.ORANGE_WOOL.getDefaultState());
+            return;
+        }
+        if (rnd(x, z, 240) < 0.1f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+    }
+
+    private void terminal(int x, int z, int tx, int tz) {
+        int W = 120, D = 34, top = BASE + 11;
+        set(x, GROUND, z, (tx / 3 + tz / 3) % 2 == 0 ? Blocks.SMOOTH_QUARTZ.getDefaultState() : Blocks.POLISHED_DIORITE.getDefaultState());
+        boolean wallX = tx == 0 || tx == W, wallZ = tz == 0 || tz == D;
+        if (wallX || wallZ) {
+            for (int y = BASE; y < top; y++) {
+                BlockState b = wallZ ? (tx % 6 == 0 ? Blocks.WHITE_CONCRETE.getDefaultState() : REFLECT)
+                        : (y >= BASE + 3 && y <= BASE + 8 && tz % 4 != 0 ? REFLECT : Blocks.WHITE_CONCRETE.getDefaultState());
+                if (tz == 0 && y <= BASE + 3 && (tx % 40 >= 18 && tx % 40 <= 21)) b = AIR;            // entrances
+                if (tz == D && y <= BASE + 3 && (tx == 20 || tx == 21 || tx == 60 || tx == 61 || tx == 100 || tx == 101)) b = AIR;   // to the jet bridges
+                set(x, y, z, b);
+            }
+            set(x, top, z, Blocks.WHITE_CONCRETE.getDefaultState());
+            set(x, top + 1, z, Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState());
+            return;
+        }
+        set(x, top, z, tz % 8 == 4 ? CLEAR : (tx % 5 == 2 && tz % 5 == 2) ? CEILING_LIGHT : Blocks.WHITE_CONCRETE.getDefaultState());
+        if (tx % 20 == 10 && tz % 12 == 6) {                                 // columns
+            for (int y = BASE; y < top; y++) set(x, y, z, Blocks.WHITE_CONCRETE.getDefaultState());
+            return;
+        }
+        if ((tx % 20 == 9 || tx % 20 == 11) && tz % 12 == 6) { set(x, BASE, z, f(CityBlocks.POTTED_PLANT, Direction.NORTH)); return; }
+        // departure boards over the hall
+        if (tz == 1 && tx >= 50 && tx <= 70) {
+            set(x, BASE + 5, z, CityBlocks.facing(CityBlocks.TV, Direction.SOUTH).with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));
+        }
+        // check-in counters (west half)
+        if (tz == 9 && tx >= 4 && tx <= 56 && tx % 4 != 0) { set(x, BASE, z, f(CityBlocks.CHECKOUT_COUNTER, Direction.NORTH)); lootAt(x, BASE, z, "shop"); return; }
+        if (tz == 11 && tx >= 4 && tx <= 56 && tx % 4 == 2) { set(x, BASE, z, f(CityBlocks.OFFICE_CHAIR, Direction.NORTH)); return; }
+        // security arches
+        if (tz == 15 && tx >= 4 && tx <= 56) {
+            int m = tx % 5;
+            if (m == 1 || m == 4) for (int y = BASE; y <= BASE + 2; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+            else if (m == 0) set(x, BASE, z, f(CityBlocks.DESK, Direction.SOUTH));
+            else set(x, BASE + 2, z, Blocks.IRON_BARS.getDefaultState());
+            return;
+        }
+        // baggage claim carousels (east half)
+        for (int cx : new int[]{78, 102}) {
+            int dx = Math.abs(tx - cx), dz = Math.abs(tz - 9);
+            if (dx <= 7 && dz <= 3 && (dx == 7 || dz == 3 || (dz == 0 && dx <= 5))) {
+                set(x, BASE, z, Blocks.BLACK_CONCRETE.getDefaultState());
+                if (rnd(x, z, 241) < 0.35f) {
+                    set(x, BASE + 1, z, f(CityBlocks.SUITCASE, Direction.fromHorizontal(hash(x, z, 242) % 4)));
+                    lootAt(x, BASE + 1, z, "luggage");
+                }
+                return;
+            }
+        }
+        // gate seating
+        if (tz >= 21 && tz <= 30 && tz % 3 == 0 && tx >= 4 && tx <= 116 && tx % 7 != 0) { set(x, BASE, z, f(CityBlocks.SOFA, Direction.SOUTH)); return; }
+        // shops and cafes along the back
+        if (tz == 33 && tx >= 64 && tx <= 116) {
+            if (tx % 8 < 5) { set(x, BASE, z, f(CityBlocks.STORE_SHELF, Direction.NORTH)); lootAt(x, BASE, z, "shop"); }
+            else if (tx % 8 == 6) set(x, BASE, z, f(CityBlocks.VENDING_MACHINE, Direction.NORTH));
+            return;
+        }
+        if (tz == 31 && tx >= 64 && tx <= 116 && tx % 8 == 2) { set(x, BASE, z, f(CityBlocks.CHECKOUT_COUNTER, Direction.SOUTH)); lootAt(x, BASE, z, "shop"); return; }
+        if (tz == 2 && (tx == 3 || tx == 117)) set(x, BASE, z, f(CityBlocks.ATM, Direction.SOUTH));
+    }
+
+    /** control tower: a shaft with a ladder up to a glass cab, (ox, oz) from the centre */
+    private void tower(int x, int z, int ox, int oz) {
+        int cabFloor = BASE + 30;
+        int a = Math.max(Math.abs(ox), Math.abs(oz));
+        set(x, GROUND, z, Blocks.POLISHED_ANDESITE.getDefaultState());
+        if (a <= 3) {
+            for (int y = BASE; y < cabFloor; y++) {
+                if (a == 3) {
+                    BlockState b = Blocks.WHITE_CONCRETE.getDefaultState();
+                    if ((ox == 0 || oz == 0) && (y - BASE) % 6 == 3) b = REFLECT;
+                    if (oz == -3 && ox == 0 && y <= BASE + 2) b = y == BASE + 2 ? Blocks.WHITE_CONCRETE.getDefaultState() : AIR;
+                    set(x, y, z, b);
+                } else if (ox == -2 && oz == 0) {
+                    set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST));
+                }
+            }
+        }
+        if (a <= 5) {
+            set(x, cabFloor, z, ox == -2 && oz == 0 ? Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST) : Blocks.SMOOTH_STONE.getDefaultState());
+            for (int y = cabFloor + 1; y <= cabFloor + 3; y++) set(x, y, z, a == 5 ? REFLECT : AIR);
+            set(x, cabFloor + 4, z, a == 5 ? Blocks.LIGHT_GRAY_CONCRETE.getDefaultState() : Blocks.WHITE_CONCRETE.getDefaultState());
+            if (a == 4 && (ox + oz) % 2 == 0 && oz != 0) {
+                set(x, cabFloor + 1, z, f(CityBlocks.DESK, Direction.fromHorizontal(Math.abs(ox) > Math.abs(oz) ? (ox > 0 ? 3 : 1) : (oz > 0 ? 0 : 2)).getOpposite()));
+                set(x, cabFloor + 2, z, f(CityBlocks.COMPUTER, Direction.fromHorizontal(Math.abs(ox) > Math.abs(oz) ? (ox > 0 ? 3 : 1) : (oz > 0 ? 0 : 2)).getOpposite())
+                        .with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));
+            }
+        }
+        if (ox == 0 && oz == 0) {
+            for (int y = cabFloor + 5; y <= cabFloor + 9; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+            set(x, cabFloor + 10, z, Blocks.REDSTONE_BLOCK.getDefaultState());
+            set(x, cabFloor + 11, z, Blocks.SEA_LANTERN.getDefaultState());
+        }
+    }
+
+    /** arched hangar, open to the south */
+    private void hangar(int x, int z, int ax, int az) {
+        double dx = ax - 229, r = 33;
+        int h = (int) Math.round(Math.sqrt(Math.max(0, r * r - dx * dx)) * 0.62);
+        set(x, GROUND, z, ax == 258 && az == 8 ? CityBlocks.SECRET_STONE.getDefaultState() : Blocks.SMOOTH_STONE.getDefaultState());
+        int roof = BASE + h;
+        if (h <= 1) {                                                        // the arch meets the ground: side walls
+            for (int y = BASE; y <= BASE + 1; y++) set(x, y, z, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+            return;
+        }
+        set(x, roof, z, az % 4 == 0 ? Blocks.IRON_BLOCK.getDefaultState() : Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+        if (az == 4) {                                                       // back wall
+            for (int y = BASE; y < roof; y++) set(x, y, z, (y - BASE) % 5 == 3 && Math.abs(dx) < 20 ? CLEAR : Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+            return;
+        }
+        if (az == 40 && h > 2) set(x, roof - 1, z, Blocks.YELLOW_CONCRETE.getDefaultState());   // door header
+        if (az % 9 == 4 && ax % 12 == 1) set(x, roof - 1, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+        if (az == 6 && ax % 6 == 0 && ax < 240) { container(x, BASE, z, "garage", true); return; }
+        if (az == 6 && ax == 243) { set(x, BASE, z, f(CityBlocks.GENERATOR, Direction.SOUTH)); return; }
+        if (az == 7 && (ax == 202 || ax == 203)) set(x, BASE, z, f(CityBlocks.DESK, Direction.SOUTH));
+    }
+
+    private void fuelTank(int x, int z, double r, double dx, double dz) {
+        set(x, GROUND, z, Blocks.SMOOTH_STONE.getDefaultState());
+        if (r < 5) {
+            for (int y = BASE; y <= BASE + 8; y++) set(x, y, z, r >= 4 || y == BASE + 8 ? Blocks.SMOOTH_QUARTZ.getDefaultState() : AIR);
+            if (r < 3) set(x, BASE + 9, z, Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState());
+            if (r >= 4 && Math.abs(dz) < 0.6 && dx < 0) for (int y = BASE; y <= BASE + 8; y++) set(x, y, z, Blocks.QUARTZ_PILLAR.getDefaultState());
+        } else if (Math.abs(dz) < 0.6 && dx < 0) {
+            for (int y = BASE; y <= BASE + 8; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.WEST));
+        } else if (r >= 5.6) {
+            set(x, BASE, z, Blocks.IRON_BARS.getDefaultState());
+        }
+    }
+
+    /** under the hangar: a sealed military armoury, reached through a stone floor panel that slides away */
+    private void armoryColumn(int x, int z, int ax, int az) {
+        int floor = GROUND - 13, ceil = GROUND - 7;
+        boolean wall = ax == 244 || ax == 260 || az == 5 || az == 15;
+        for (int y = floor; y <= ceil; y++) set(x, y, z, wall || y == floor || y == ceil ? Blocks.POLISHED_DEEPSLATE.getDefaultState() : AIR);
+        if (wall) return;
+        set(x, floor, z, Blocks.POLISHED_ANDESITE.getDefaultState());
+        if (ax == 258 && az == 8) {                                          // the way down
+            for (int y = floor + 1; y < GROUND; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.NORTH));
+            return;
+        }
+        if (ax == 258 && az == 9) {
+            for (int y = floor + 1; y < ceil; y++) set(x, y, z, Blocks.POLISHED_DEEPSLATE.getDefaultState());
+            return;
+        }
+        if ((ax + az) % 4 == 0) set(x, ceil, z, CEILING_LIGHT.with(net.minecraft.state.property.Properties.LIT, true));
+        int y = floor + 1;
+        if (az == 6 && ax % 2 == 0 && ax <= 256) container(x, y, z, "armory", true);
+        else if (az == 14 && ax >= 246 && ax <= 250) { set(x, y, z, f(CityBlocks.STORE_SHELF, Direction.NORTH)); lootAt(x, y, z, "armory"); }
+        else if (az == 14 && ax == 245) { set(x, y, z, f(CityBlocks.GENERATOR, Direction.EAST)); fuel(x, y, z); }
+        else if ((ax == 253 || ax == 255) && az == 14) set(x, y, z, Blocks.GREEN_BED.getDefaultState().with(BedBlock.FACING, Direction.SOUTH).with(BedBlock.PART, BedPart.HEAD));
+        else if ((ax == 253 || ax == 255) && az == 13) set(x, y, z, Blocks.GREEN_BED.getDefaultState().with(BedBlock.FACING, Direction.SOUTH).with(BedBlock.PART, BedPart.FOOT));
+        else if (ax == 250 && az == 10) {
+            set(x, y, z, f(CityBlocks.DESK, Direction.NORTH));
+            set(x, y + 1, z, f(CityBlocks.COMPUTER, Direction.NORTH).with(net.minecraft.state.property.Properties.LIT, true));
+        } else if (ax == 252 && az == 10) set(x, y, z, Blocks.CARTOGRAPHY_TABLE.getDefaultState());
+    }
+
+    private void fuel(int x, int y, int z) {
+        pos.set(x, y, z);
+        if (w.getBlockEntity(pos) instanceof com.nothatcher.vehicleforge.power.PowerBlockEntity pbe) pbe.setFuel(36000);
+    }
+
+    /** planes on the stands, a plane and a helicopter in the hangar, cars in the car park, and (with Outbreak) the dead */
+    private void airportEntities(int x0, int z0) {
+        double X = AIR_X0, Z = AIR_Z0;
+        Object[][] craft = {
+                {"airliner", 51.5, 60.0, 180f}, {"airliner", 91.5, 60.0, 180f}, {"airliner", 131.5, 60.0, 180f},
+                {"jet", 171.5, 60.0, 180f}, {"jet", 211.5, 60.0, 180f}, {"prop_plane", 215.0, 22.0, 0f}, {"helicopter", 245.0, 26.0, 0f},
+                {"airliner", 90.0, 82.5, -90f}, {"prop_plane", 30.0, 107.5, -90f}};
+        for (int i = 0; i < craft.length; i++) {
+            double cx = X + (double) craft[i][1], cz = Z + (double) craft[i][2];
+            if (!inChunk(cx, cz, x0, z0)) continue;
+            int h = hash(i, 777, 243);
+            boolean wreck = OVERRUN && i != 5 && i != 6 && (h >>> 9) % 3 == 0;
+            spawnType(cx, BASE, cz, (float) craft[i][3], (String) craft[i][0], h, wreck);
+        }
+        if (OVERRUN) {
+            double cx = X + 150.5, cz = Z + 108.5;                           // the one that didn't make it
+            if (inChunk(cx, cz, x0, z0)) spawnType(cx, BASE, cz, 35f, "airliner", 4242, true);
+        }
+        for (int row : new int[]{7, 15, 22, 29}) {
+            for (int s = 0; s < 8; s++) {
+                double cx = X + 3.5 + s * 3, cz = Z + row + 0.5;
+                if (inChunk(cx, cz, x0, z0) && rnd(s, row, 244) < 0.55f) spawn(cx, cz, row % 2 == 0 ? 0f : 180f, hash(s, row, 245));
+            }
+        }
+        if (!OVERRUN) return;
+        // the airport was where everyone tried to get out: a dense, finite crowd of the dead
+        for (int i = 0; i < 7; i++) {
+            int lx = hash(x0, z0 * 7 + i, 246) & 15, lz = hash(x0 * 7 + i, z0, 247) & 15;
+            int x = x0 + lx, z = z0 + lz, ax = x - AIR_X0, az = z - AIR_Z0;
+            if (!inAirport(x, z)) continue;
+            float density = ax >= 30 && ax <= 150 && az >= 4 && az <= 38 ? 0.9f          // terminal
+                    : az >= 39 && az <= 76 ? 0.5f                                         // apron
+                    : ax >= 196 && ax <= 262 && az <= 40 ? 0.5f                            // hangar
+                    : ax <= 27 && az <= 38 ? 0.45f                                         // car park
+                    : az <= 3 ? 0.6f                                                      // forecourt
+                    : 0.15f;
+            if (rnd(x, z, 248) > density) continue;
+            if (!isAir(x, BASE, z) || !isAir(x, BASE + 1, z)) continue;
+            var zed = EntityType.ZOMBIE.create(w.toServerWorld());
+            if (zed == null) continue;
+            zed.refreshPositionAndAngles(x + 0.5, BASE, z + 0.5, rnd(x, z, 249) * 360f, 0);
+            pos.set(x, BASE, z);
+            zed.initialize(w, w.getLocalDifficulty(pos), net.minecraft.entity.SpawnReason.STRUCTURE, null, null);
+            zed.setPersistent();
+            zed.addCommandTag("outbreak_horde");
+            w.spawnEntity(zed);
+        }
+    }
+
+    // ============================================================ secrets
+
+    /** one garaged house in seven hides a doomsday bunker */
+    private boolean bunker(Lot l) {
+        return hasGarage(l) && hash(l.ox, l.oz, 190) % 7 == 0;
+    }
+
+    /** where the bunker hatch is: the back corner of the garage, under a rug */
+    private int[] hatch(Lot l) {
+        boolean frontLow = l.face == Direction.NORTH || l.face == Direction.WEST;
+        int a1 = l.alongX ? l.hx1 : l.hz1, c0 = l.alongX ? l.hz0 : l.hx0, c1 = l.alongX ? l.hz1 : l.hx1;
+        int a = a1 - 3, c = frontLow ? c1 - 1 : c0 + 1;
+        return l.alongX ? new int[]{a, c} : new int[]{c, a};
+    }
+
+    /**
+     * The bunker: an 11x11 concrete room 13 blocks down with bunks, a radio, a fuelled generator, water, shelves of
+     * supplies... and a bookshelf wall, one shelf of which slides aside into a vault.
+     */
+    private void bunkerColumn(int x, int z, Lot l) {
+        int px = x - l.ox, pz0 = z - l.oz;
+        if (px < 3 || px > 13 || pz0 < 3 || pz0 > 13) return;
+        int floor = GROUND - 13, ceil = GROUND - 7;
+        int[] h = hatch(l);
+        // lay the room out so the hatch always comes down into the main room, never the vault
+        boolean flip = h[1] - l.oz < 8;
+        int pz = flip ? 16 - pz0 : pz0;
+        Direction n = flip ? Direction.SOUTH : Direction.NORTH;
+        boolean wall = px == 3 || px == 13 || pz0 == 3 || pz0 == 13;
+        for (int y = floor; y <= ceil; y++) set(x, y, z, wall || y == floor || y == ceil ? Blocks.POLISHED_DEEPSLATE.getDefaultState() : AIR);
+        if (wall) return;
+        set(x, floor, z, Blocks.POLISHED_ANDESITE.getDefaultState());
+        if (x == h[0] && z == h[1]) {
+            for (int y = floor + 1; y < GROUND; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.NORTH));
+            return;
+        }
+        if (x == h[0] && z == h[1] + 1) {
+            for (int y = floor + 1; y < ceil; y++) set(x, y, z, Blocks.POLISHED_DEEPSLATE.getDefaultState());
+            return;
+        }
+        if ((px + pz) % 4 == 0) set(x, ceil, z, CEILING_LIGHT.with(net.minecraft.state.property.Properties.LIT, true));
+        int y = floor + 1;
+        if (pz == 7) {                                                       // the bookshelf wall, with one secret shelf
+            for (int k = y; k < ceil; k++) {
+                BlockState b = k <= y + 2 ? Blocks.BOOKSHELF.getDefaultState() : Blocks.POLISHED_DEEPSLATE.getDefaultState();
+                if (px == 8 && k <= y + 1) b = CityBlocks.SECRET_BOOKSHELF.getDefaultState();
+                set(x, k, z, b);
+            }
+            return;
+        }
+        if (pz <= 6) {                                                       // the vault
+            if (pz == 4 && px % 2 == 1 && px >= 5 && px <= 11) container(x, y, z, "bunker_vault", true);
+            if (pz == 4 && px == 12) set(x, y, z, Blocks.GOLD_BLOCK.getDefaultState());
+            if (pz == 4 && px == 4) set(x, y, z, Blocks.TNT.getDefaultState());
+            return;
+        }
+        if ((px == 4 || px == 5) && pz == 8) set(x, y, z, Blocks.GRAY_BED.getDefaultState().with(BedBlock.FACING, n).with(BedBlock.PART, BedPart.HEAD));
+        else if ((px == 4 || px == 5) && pz == 9) set(x, y, z, Blocks.GRAY_BED.getDefaultState().with(BedBlock.FACING, n).with(BedBlock.PART, BedPart.FOOT));
+        else if (px == 12 && pz >= 8 && pz <= 10) { set(x, y, z, f(CityBlocks.STORE_SHELF, Direction.WEST)); set(x, y + 1, z, f(CityBlocks.STORE_SHELF, Direction.WEST)); lootAt(x, y, z, "bunker"); }
+        else if (px == 12 && pz == 12) { set(x, y, z, f(CityBlocks.GENERATOR, Direction.WEST)); fuel(x, y, z); }
+        else if (px == 7 && pz == 12) { set(x, y, z, f(CityBlocks.DESK, n)); set(x, y + 1, z, f(CityBlocks.COMPUTER, n).with(net.minecraft.state.property.Properties.LIT, true)); }
+        else if (px == 7 && pz == 11) set(x, y, z, f(CityBlocks.OFFICE_CHAIR, n.getOpposite()));
+        else if (px == 4 && pz == 12) set(x, y, z, Blocks.WATER_CAULDRON.getDefaultState().with(net.minecraft.block.LeveledCauldronBlock.LEVEL, 3));
+        else if (px == 5 && pz == 12) set(x, y, z, Blocks.CRAFTING_TABLE.getDefaultState());
+        else if (px == 10 && pz == 12) { set(x, y, z, f(CityBlocks.FILING_CABINET, n)); lootAt(x, y, z, "bunker"); }
+        else if (px == 9 && pz == 12) set(x, y, z, Blocks.CARTOGRAPHY_TABLE.getDefaultState());
+    }
+
+    /**
+     * Beneath the church: a vaulted crypt of stone coffins, candles, skulls and cobwebs with a reliquary at the far
+     * end. The way down is the quartz floor tile just behind the altar.
+     */
+    private void cryptColumn(int x, int z, int lx, int lz) {
+        if (lx < 18 || lx > 33 || lz < 21 || lz > 44) return;
+        int floor = GROUND - 8, ceil = GROUND - 2;
+        boolean wall = lx == 18 || lx == 33 || lz == 21 || lz == 44;
+        for (int y = floor; y <= ceil; y++) set(x, y, z, wall || y == floor || y == ceil ? churchStone(x, y, z) : AIR);
+        if (wall) return;
+        int y = floor + 1;
+        if (lx == 25 && lz == 43) {
+            for (int k = y; k <= GROUND; k++) set(x, k, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.NORTH));
+            return;
+        }
+        if ((lx == 19 || lx == 32 || lz == 22) && (lx + lz) % 3 == 0) set(x, ceil - 1, z, Blocks.COBWEB.getDefaultState());
+        boolean coffinX = lx == 21 || lx == 22 || lx == 29 || lx == 30;
+        boolean coffinZ = lz == 25 || lz == 26 || lz == 30 || lz == 31 || lz == 35 || lz == 36;
+        if (coffinX && coffinZ) {
+            set(x, y, z, Blocks.SMOOTH_STONE.getDefaultState());
+            set(x, y + 1, z, Blocks.STONE_BRICK_SLAB.getDefaultState());
+            return;
+        }
+        if ((lx == 23 || lx == 28) && (lz == 27 || lz == 32 || lz == 37)) {
+            set(x, y, z, Blocks.CANDLE.getDefaultState().with(net.minecraft.block.CandleBlock.CANDLES, 2).with(net.minecraft.block.CandleBlock.LIT, true));
+            return;
+        }
+        if (lx == 25 && (lz == 26 || lz == 33 || lz == 40))
+            set(x, ceil - 1, z, Blocks.SOUL_LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+        if (lz == 22) {
+            if (lx == 25 || lx == 26) container(x, y, z, "crypt", true);
+            else if (lx == 24 || lx == 27) {
+                set(x, y, z, Blocks.GOLD_BLOCK.getDefaultState());
+                set(x, y + 1, z, Blocks.CANDLE.getDefaultState().with(net.minecraft.block.CandleBlock.CANDLES, 4).with(net.minecraft.block.CandleBlock.LIT, true));
+            } else if (lx % 3 == 1) set(x, y, z, Blocks.SKELETON_SKULL.getDefaultState().with(net.minecraft.block.SkullBlock.ROTATION, 8));
+            return;
+        }
+        if ((lx == 19 || lx == 32) && lz % 4 == 0) set(x, y, z, Blocks.BONE_BLOCK.getDefaultState());
+        else if ((lx == 19 || lx == 32) && lz % 4 == 2) set(x, y, z, CityBlocks.facing(CityBlocks.GRAVESTONE, lx == 19 ? Direction.EAST : Direction.WEST));
     }
 
     // ------------------------------------------------------- interiors
@@ -1059,6 +2035,7 @@ public final class CityGen {
 
     private void churchNave(int x, int z, int lx, int lz) {
         boolean wallX = lx == 17 || lx == 34, wallZ = lz == 14 || lz == 44;
+        cryptColumn(x, z, lx, lz);
         set(x, GROUND, z, Blocks.POLISHED_ANDESITE.getDefaultState());
         if (wallX || wallZ) {
             boolean towerArch = lz == 14 && lx >= 24 && lx <= 27;
@@ -1075,6 +2052,11 @@ public final class CityGen {
         }
         // chancel: a step up, the altar, candles and a lectern
         if (lz >= 38) {
+            if (lx == 25 && lz == 43) {
+                set(x, GROUND, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.NORTH));
+                set(x, BASE, z, CityBlocks.SECRET_QUARTZ.getDefaultState());
+                return;
+            }
             set(x, BASE, z, Blocks.SMOOTH_QUARTZ.getDefaultState());
             if ((lx == 25 || lx == 26) && lz == 41) {
                 set(x, BASE + 1, z, CityBlocks.facing(CityBlocks.ALTAR, Direction.NORTH));
@@ -1309,6 +2291,7 @@ public final class CityGen {
         }
         Lot l = lot(bx, bz, li, lj);
         HouseStyle hs = HOUSES[hash(bx * 3 + li, bz * 3 + lj, 21) % HOUSES.length];
+        if (bunker(l)) bunkerColumn(x, z, l);
         if (x >= l.hx0 - 1 && x <= l.hx1 + 1 && z >= l.hz0 - 1 && z <= l.hz1 + 1) {
             houseColumn(x, z, l, hs);
             return;
@@ -1410,7 +2393,13 @@ public final class CityGen {
             int cm = (c0 + c1) / 2;
             set(x, BASE + 4, z, a == g0 + 1 && c == cm ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
             if (a == g1 && c == back) container(x, BASE, z, "garage", true);
-            if (a == g0 && c == back) set(x, BASE, z, Blocks.CRAFTING_TABLE.getDefaultState());
+            if (a == g0 && c == back) {
+                if (bunker(l)) {                                             // a hatch under the rug
+                    set(x, GROUND, z, Blocks.SPRUCE_TRAPDOOR.getDefaultState().with(net.minecraft.block.TrapdoorBlock.HALF, net.minecraft.block.enums.BlockHalf.TOP)
+                            .with(net.minecraft.block.TrapdoorBlock.FACING, Direction.NORTH));
+                    set(x, BASE, z, Blocks.GRAY_CARPET.getDefaultState());
+                } else set(x, BASE, z, Blocks.CRAFTING_TABLE.getDefaultState());
+            }
         } else {
             set(x, BASE + 4, z, a == (a0 + a1) / 2 && c == (c0 + c1) / 2 ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
             if (a == a0 + 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.CRAFTING_TABLE.getDefaultState());
@@ -1962,7 +2951,8 @@ public final class CityGen {
         int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
         int lx = ux - C, lz = uz - C;
         Kind k = kind(bx, bz);
-        if (k == Kind.PARK || k == Kind.CHURCH) return 0;                    // these plant their own trees
+        if (k == Kind.PARK || k == Kind.CHURCH || k == Kind.AIRPORT || k == Kind.STATION || k == Kind.FARM || k == Kind.FOREST
+                || k == Kind.MEADOW || k == Kind.ORCHARD) return 0;              // these plant their own trees (or none)
         if (k == Kind.HOUSES) {
             if (lx >= 51 || lz >= 51) return 0;
             int li = lx / 17, lj = lz / 17, px = lx % 17, pz = lz % 17;
@@ -2019,6 +3009,7 @@ public final class CityGen {
 
     /** Parked vehicles for every city cell this chunk touches (cells are 81 wide, so a chunk can span two). */
     void parkedCars(int x0, int z0) {
+        if (x0 + 15 >= AIR_X0 && x0 < AIR_X0 + AIR_W && z0 + 15 >= AIR_Z0 && z0 < AIR_Z0 + AIR_H) airportEntities(x0, z0);
         for (int bx = Math.floorDiv(x0, CELL); bx <= Math.floorDiv(x0 + 15, CELL); bx++) {
             for (int bz = Math.floorDiv(z0, CELL); bz <= Math.floorDiv(z0 + 15, CELL); bz++) {
                 parkedInCell(bx, bz, x0, z0);
@@ -2034,7 +3025,12 @@ public final class CityGen {
     }
 
     private void parkedInCell(int bx, int bz, int x0, int z0) {
+        if (airportCell(bx, bz)) return;                                     // see airportEntities
         int bxs = bx * CELL, bzs = bz * CELL;
+        if (countryCell(bx, bz)) {
+            countryEntities(bx, bz, x0, z0);
+            return;
+        }
         switch (kind(bx, bz)) {
             case PARKING -> {
                 for (int ri = 0; ri < ROWS.length; ri++) {

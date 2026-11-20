@@ -149,7 +149,15 @@ public final class CityBlocks {
     public static final Block ELECTRIC_LIGHT = reg("electric_light", new com.nothatcher.vehicleforge.power.ElectricLightBlock(
             AbstractBlock.Settings.create().mapColor(MapColor.WHITE).strength(0.8f).sounds(BlockSoundGroup.GLASS)));
 
-    public static final Block[] STORAGE = {DESK, FILING_CABINET, KITCHEN_COUNTER, FRIDGE, STORE_SHELF, CHECKOUT_COUNTER, MAILBOX, NEWSPAPER_BOX};
+    // ---- secrets and the airport
+    public static final Block SECRET_BOOKSHELF = reg("secret_bookshelf", new SecretBlock(AbstractBlock.Settings.copy(Blocks.BOOKSHELF).nonOpaque()));
+    public static final Block SECRET_QUARTZ = reg("secret_quartz", new SecretBlock(AbstractBlock.Settings.copy(Blocks.SMOOTH_QUARTZ).nonOpaque()));
+    public static final Block SECRET_STONE = reg("secret_stone", new SecretBlock(AbstractBlock.Settings.copy(Blocks.SMOOTH_STONE).nonOpaque()));
+    public static final Block SUITCASE = reg("suitcase", new StorageProp(furniture(MapColor.BLUE, BlockSoundGroup.WOOL), box(2, 0, 5, 14, 11, 11), 1, SoundEvents.ITEM_ARMOR_EQUIP_LEATHER));
+    /** buried under every airport column so Outbreak knows where the airport is; just dirt to look at */
+    public static final Block AIRPORT_MARKER = reg("airport_marker", new Block(AbstractBlock.Settings.copy(Blocks.DIRT)));
+
+    public static final Block[] STORAGE = {SUITCASE, DESK, FILING_CABINET, KITCHEN_COUNTER, FRIDGE, STORE_SHELF, CHECKOUT_COUNTER, MAILBOX, NEWSPAPER_BOX};
     public static final Block[] POWER = {GENERATOR, SOLAR_PANEL, WIND_TURBINE, BATTERY, POWER_POLE};
 
     /** blocks that need the cutout or translucent render layer */

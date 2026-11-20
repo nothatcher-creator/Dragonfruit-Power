@@ -21,6 +21,12 @@ public class PowerBlockEntity extends BlockEntity {
         super(CityExtras.POWER_BE, pos, state);
     }
 
+    /** for pre-fuelled generators placed by the city generator */
+    public void setFuel(int f) {
+        fuel = Math.min(MAX_FUEL, f);
+        markDirty();
+    }
+
     private PowerBlock.Kind kind() {
         return getCachedState().getBlock() instanceof PowerBlock pb ? pb.kind : PowerBlock.Kind.POLE;
     }

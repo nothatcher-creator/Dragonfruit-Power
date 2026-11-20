@@ -353,3 +353,53 @@ lang.update({'block.vehicleforge.smoke_source': 'Smoke Source', 'block.vehiclefo
              'msg.vehicleforge.battery': 'Battery charge: %s%%', 'msg.vehicleforge.grid_live': 'Power: live', 'msg.vehicleforge.grid_dead': 'Power: dead'})
 json.dump(lang, open(LP, 'w'), indent=2)
 print('wave 3 ok')
+
+# ======================= wave 4: secrets, suitcase, airport marker, new loot =======================
+def secret(name, closed_model):
+    model(name + '_open', {"textures": {"particle": closed_model[1]}, "elements": []})
+    wj(os.path.join(A, 'blockstates', name + '.json'), {"variants": {"open=false": {"model": closed_model[0]}, "open=true": {"model": "vehicleforge:block/" + name + "_open"}}})
+    wj(os.path.join(A, 'models/item', name + '.json'), {"parent": closed_model[0]})
+    loot(name)
+secret('secret_bookshelf', ("minecraft:block/bookshelf", "minecraft:block/bookshelf"))
+secret('secret_quartz', ("minecraft:block/smooth_quartz", "minecraft:block/quartz_block_bottom"))
+secret('secret_stone', ("minecraft:block/smooth_stone", "minecraft:block/smooth_stone"))
+su = solid((40, 60, 110), 5); d = ImageDraw.Draw(su); d.line([(0, 8), (15, 8)], fill=(200, 200, 200, 255))
+d.rectangle([1, 1, 14, 14], outline=(26, 40, 76, 255)); d.rectangle([6, 3, 9, 5], fill=(30, 30, 34, 255)); save('suitcase', su)
+fm('suitcase', {"s": tex('suitcase'), "h": tex('fabric_black')}, [box([2, 0, 5], [14, 10, 11], "#s"), box([6, 10, 7.5], [10, 11.5, 8.5], "#h"),
+                                                                box([2.5, 0, 5.5], [3.5, 0.5, 6.5], "#h"), box([12.5, 0, 5.5], [13.5, 0.5, 6.5], "#h")])
+model('airport_marker', {"parent": "minecraft:block/cube_all", "textures": {"all": "minecraft:block/dirt"}}); simple_state('airport_marker'); item('airport_marker')
+wj(os.path.join(D, 'loot_tables/blocks/airport_marker.json'), {"type": "minecraft:block", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:dirt"}],
+    "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+def ench(item_, w_):
+    return {"type": "minecraft:item", "name": item_, "weight": w_, "functions": [{"function": "minecraft:enchant_randomly"}]}
+table('city/bunker', {"type": "minecraft:uniform", "min": 3, "max": 6}, [entry("minecraft:bread", 6, 2, 6), entry("minecraft:cooked_beef", 5, 2, 5),
+      entry("minecraft:golden_carrot", 3, 2, 6), entry("minecraft:torch", 4, 4, 16), entry("minecraft:arrow", 4, 8, 24), entry("minecraft:iron_ingot", 4, 2, 8),
+      entry("minecraft:coal", 4, 4, 12), entry("minecraft:potion", 2), entry("minecraft:compass", 1), entry("minecraft:bucket", 2)])
+table('city/bunker_vault', {"type": "minecraft:uniform", "min": 3, "max": 6}, [entry("minecraft:diamond", 3, 1, 4), entry("minecraft:gold_ingot", 5, 2, 8),
+      entry("minecraft:emerald", 4, 2, 10), entry("minecraft:golden_apple", 3), entry("minecraft:enchanted_golden_apple", 1), ench("minecraft:iron_sword", 2),
+      ench("minecraft:diamond_chestplate", 1), entry("minecraft:totem_of_undying", 1), entry("minecraft:experience_bottle", 3, 4, 12), entry("minecraft:tnt", 2, 1, 4)])
+table('city/crypt', {"type": "minecraft:uniform", "min": 3, "max": 7}, [entry("minecraft:gold_ingot", 6, 2, 8), entry("minecraft:gold_nugget", 6, 6, 20),
+      ench("minecraft:book", 4), entry("minecraft:golden_apple", 2), entry("minecraft:bone", 6, 2, 8), entry("minecraft:candle", 4, 1, 4),
+      entry("minecraft:ender_pearl", 2, 1, 3), entry("minecraft:diamond", 1, 1, 2), ench("minecraft:golden_sword", 2)])
+table('city/armory', {"type": "minecraft:uniform", "min": 3, "max": 6}, [ench("minecraft:iron_sword", 3), entry("minecraft:iron_chestplate", 3),
+      entry("minecraft:iron_helmet", 3), entry("minecraft:crossbow", 3), entry("minecraft:arrow", 6, 16, 32), entry("minecraft:tnt", 3, 2, 6),
+      entry("minecraft:shield", 3), entry("minecraft:iron_ingot", 4, 4, 12), entry("minecraft:golden_apple", 1), entry("minecraft:spyglass", 2)])
+table('city/luggage', {"type": "minecraft:uniform", "min": 1, "max": 4}, [{"type": "minecraft:empty", "weight": 3}, entry("minecraft:leather_chestplate", 3),
+      entry("minecraft:leather_leggings", 3), entry("minecraft:leather_boots", 3), entry("minecraft:paper", 4, 1, 4), entry("minecraft:book", 2),
+      entry("minecraft:cookie", 3, 1, 4), entry("minecraft:clock", 1), entry("minecraft:emerald", 1, 1, 3), entry("minecraft:map", 1)])
+table('city/farm', {"type": "minecraft:uniform", "min": 2, "max": 5}, [entry("minecraft:wheat", 6, 4, 16), entry("minecraft:wheat_seeds", 5, 4, 12),
+      entry("minecraft:carrot", 4, 2, 8), entry("minecraft:potato", 4, 2, 8), entry("minecraft:apple", 4, 2, 6), entry("minecraft:egg", 3, 2, 8),
+      entry("minecraft:iron_hoe", 2), entry("minecraft:shears", 2), entry("minecraft:lead", 2, 1, 2), entry("minecraft:bone_meal", 3, 4, 12)])
+table('city/cabin', {"type": "minecraft:uniform", "min": 2, "max": 5}, [entry("minecraft:cooked_porkchop", 4, 2, 5), entry("minecraft:arrow", 5, 6, 20),
+      entry("minecraft:bow", 3), entry("minecraft:leather", 4, 2, 6), entry("minecraft:rabbit_hide", 3, 2, 6), entry("minecraft:torch", 4, 4, 12),
+      entry("minecraft:iron_axe", 2), entry("minecraft:fishing_rod", 2), entry("minecraft:sweet_berries", 4, 4, 12)])
+lang = json.load(open(LP))
+lang.update({'block.vehicleforge.secret_bookshelf': 'Bookshelf', 'block.vehicleforge.secret_quartz': 'Smooth Quartz Block',
+             'block.vehicleforge.secret_stone': 'Smooth Stone', 'block.vehicleforge.suitcase': 'Suitcase', 'block.vehicleforge.airport_marker': 'Dirt'})
+json.dump(lang, open(LP, 'w'), indent=2)
+pk = os.path.join(RES, 'data/minecraft/tags/blocks/mineable/pickaxe.json'); tg = json.load(open(pk)); tg['values'] += ['vehicleforge:secret_quartz', 'vehicleforge:secret_stone']
+json.dump(tg, open(pk, 'w'), indent=2)
+ax_ = os.path.join(RES, 'data/minecraft/tags/blocks/mineable/axe.json'); ta = json.load(open(ax_)); ta['values'] += ['vehicleforge:secret_bookshelf']
+json.dump(ta, open(ax_, 'w'), indent=2)
+sh_ = os.path.join(RES, 'data/minecraft/tags/blocks/mineable/shovel.json'); wj(sh_, {"replace": False, "values": ['vehicleforge:airport_marker']})
+print('wave 4 ok')

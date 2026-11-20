@@ -48,6 +48,8 @@
     "vehicleforge:solar_panel",
     "vehicleforge:wind_turbine",
     "vehicleforge:battery_bank",
-    "vehicleforge:electric_light"
+    "vehicleforge:electric_light",
+    "vehicleforge:secret_quartz",
+    "vehicleforge:secret_stone"
   ]
 }

@@ -2,7 +2,6 @@
   "parent": "minecraft:block/block",
   "textures": {
     "c": "vehicleforge:block/concrete_light",
-    "w": "vehicleforge:entity/wind_turbine",
     "particle": "vehicleforge:block/concrete_light"
   },
   "elements": [
