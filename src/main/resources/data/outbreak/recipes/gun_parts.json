@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "minecraft:iron_ingot"
+  },
+  {
+   "item": "outbreak:duct_tape"
+  }
+ ],
+ "result": {
+  "item": "outbreak:gun_parts",
+  "count": 1
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "tag": "minecraft:planks"
+  },
+  {
+   "tag": "minecraft:planks"
+  },
+  {
+   "item": "outbreak:nails"
+  },
+  {
+   "item": "outbreak:nails"
+  }
+ ],
+ "result": {
+  "item": "outbreak:nail_board",
+  "count": 1
+ }
+}

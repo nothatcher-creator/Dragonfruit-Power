@@ -68,6 +68,12 @@ public final class LootInjector {
                 .add(BACKPACK, 3, 1, 1);
     }
 
+    /** scavenging materials for crafting */
+    private static P mats(float lo, float hi, int empty) {
+        return new P(lo, hi, empty).add(SCRAP_METAL, 8, 1, 4).add(DUCT_TAPE, 6, 1, 2).add(NAILS, 6, 3, 10).add(RAG, 5, 1, 3)
+                .add(ELECTRONICS, 3, 1, 2).add(CAR_BATTERY, 1, 1, 1);
+    }
+
     private static P wardrobe(float lo, float hi, int empty) {
         return new P(lo, hi, empty).add(HOODIE, 8, 1, 1).add(LEATHER_JACKET, 4, 1, 1).add(JEANS, 8, 1, 1).add(CARGO_PANTS, 4, 1, 1)
                 .add(SNEAKERS, 7, 1, 1).add(WORK_BOOTS, 3, 1, 1).add(BEANIE, 5, 1, 1).add(BASEBALL_CAP, 5, 1, 1);
@@ -78,11 +84,14 @@ public final class LootInjector {
             if (!source.isBuiltin()) return;
             String ns = id.getNamespace(), path = id.getPath();
             if (ns.equals("vehicleforge") && path.startsWith("city/")) city(path.substring(5), table);
+            else if (ns.equals("vehicleforge") && path.equals("props/vending"))
+                new P(1, 1, 2).add(CHIPS, 6, 1, 2).add(ENERGY_BAR, 4, 1, 1).add(ENERGY_DRINK, 4, 1, 1).add(BOTTLED_WATER, 6, 1, 1).into(table);
             else if (id.equals(Outbreak.id("gameplay/vehicle_search"))) {
                 // a jerry can of fuel now and then, if Vehicle Forge is installed
                 Identifier can = new Identifier("vehicleforge", "fuel_can");
                 if (net.minecraft.registry.Registries.ITEM.containsId(can))
                     new P(1, 1, 6).add(net.minecraft.registry.Registries.ITEM.get(can), 2, 1, 1).into(table);
+                mats(0, 2, 4).into(table);
             }
             else if (ns.equals(Identifier.DEFAULT_NAMESPACE)) vanilla(path, table);
         });
@@ -95,8 +104,17 @@ public final class LootInjector {
                 meds(0, 1, 6).into(t);
                 homeDefence(18).into(t);
                 wardrobe(0, 1, 8).into(t);
+                mats(0, 1, 8).into(t);
             }
+            case "fridge" -> {
+                food(1, 3, 3).into(t);
+                new P(0, 1, 6).add(CANNED_TUNA, 4, 1, 2).add(ENERGY_DRINK, 5, 1, 3).add(BOTTLED_WATER, 6, 1, 3).into(t);
+            }
+            case "kitchen" -> new P(0, 2, 5).add(KITCHEN_KNIFE, 5, 1, 1).add(FRYING_PAN, 3, 1, 1).add(CANNED_BEANS, 5, 1, 2)
+                    .add(CANNED_SOUP, 4, 1, 2).add(CANNED_TUNA, 3, 1, 2).add(RAG, 4, 1, 2).add(DUCT_TAPE, 1, 1, 1).into(t);
+            case "mail" -> new P(0, 1, 10).add(DUCT_TAPE, 2, 1, 1).add(ELECTRONICS, 1, 1, 1).add(BANDAGE, 2, 1, 1).into(t);
             case "garage" -> {
+                mats(1, 3, 3).into(t);
                 new P(1, 2, 3).add(CROWBAR, 6, 1, 1).add(SLEDGEHAMMER, 4, 1, 1).add(PIPE_WRENCH, 6, 1, 1).add(CLAW_HAMMER, 6, 1, 1)
                         .add(FIRE_AXE, 2, 1, 1).add(HARD_HAT, 3, 1, 1).add(WORK_BOOTS, 3, 1, 1).add(GOLF_CLUB, 3, 1, 1)
                         .add(HOCKEY_STICK, 3, 1, 1).add(BOTTLED_WATER, 4, 1, 3).into(t);
@@ -106,17 +124,20 @@ public final class LootInjector {
                 food(2, 5, 2).into(t);
                 new P(0, 1, 10).add(BACKPACK, 4, 1, 1).add(BANDAGE, 5, 1, 3).add(PAINKILLERS, 3, 1, 2).into(t);
                 wardrobe(0, 2, 6).into(t);
+                new P(0, 1, 6).add(DUCT_TAPE, 4, 1, 2).add(ENERGY_DRINK, 5, 1, 2).add(CANNED_TUNA, 4, 1, 2).add(ELECTRONICS, 1, 1, 1).into(t);
             }
             case "police" -> {
                 new P(1, 2, 3).gun(PISTOL, 10).gun(SHOTGUN, 6).gun(SMG, 2).gun(ASSAULT_RIFLE, 1).gun(REVOLVER, 3).gun(SILENCED_PISTOL, 1)
                         .gun(SNIPER_RIFLE, 1).add(POLICE_VEST, 6, 1, 1).add(RIOT_HELMET, 4, 1, 1).add(POLICE_BATON, 6, 1, 1)
                         .add(GAS_MASK, 2, 1, 1).into(t);
                 new P(1, 3, 2).add(AMMO_9MM, 12, 6, 20).add(AMMO_SHELLS, 8, 3, 10).add(AMMO_RIFLE, 3, 3, 10).add(AMMO_MAGNUM, 4, 3, 8).into(t);
+                new P(0, 1, 8).add(GUN_PARTS, 5, 1, 2).add(KEVLAR_VEST, 1, 1, 1).add(TACTICAL_HELMET, 1, 1, 1).add(PIPE_BOMB, 1, 1, 2)
+                        .add(NIGHT_VISION_GOGGLES, 1, 1, 1).into(t);
                 meds(0, 1, 4).into(t);
             }
             case "hospital" -> {
                 meds(2, 4, 2).into(t);
-                new P(0, 1, 8).add(GAS_MASK, 3, 1, 1).add(KITCHEN_KNIFE, 1, 1, 1).into(t);
+                new P(0, 1, 8).add(GAS_MASK, 3, 1, 1).add(KITCHEN_KNIFE, 1, 1, 1).add(RAG, 6, 2, 5).into(t);
             }
             case "fire_station" -> {
                 meds(1, 2, 3).into(t);
@@ -136,6 +157,7 @@ public final class LootInjector {
                 new P(0, 2, 6).add(CROWBAR, 6, 1, 1).add(SLEDGEHAMMER, 5, 1, 1).add(MACHETE, 3, 1, 1).add(SPIKED_BAT, 2, 1, 1)
                         .add(PIPE_WRENCH, 5, 1, 1).add(CLAW_HAMMER, 5, 1, 1).add(ENERGY_BAR, 5, 1, 3).add(BOTTLED_WATER, 5, 1, 4).into(t);
                 new P(0, 1, 6).add(HARD_HAT, 6, 1, 1).add(HI_VIS_VEST, 6, 1, 1).add(WORK_BOOTS, 5, 1, 1).add(CARGO_PANTS, 3, 1, 1).into(t);
+                mats(1, 3, 2).into(t);
             }
             default -> food(0, 2, 6).into(t);
         }
@@ -151,7 +173,8 @@ public final class LootInjector {
                     .add(AMMO_9MM, 6, 4, 14).add(AMMO_SHELLS, 5, 2, 8).add(AMMO_RIFLE, 4, 2, 6).add(FIRST_AID_KIT, 2, 1, 1).into(t);
         } else if (path.equals("chests/pillager_outpost") || path.equals("chests/woodland_mansion")) {
             new P(1, 2, 4).gun(ASSAULT_RIFLE, 3).gun(SMG, 4).gun(HUNTING_RIFLE, 3).gun(SNIPER_RIFLE, 2).gun(LIGHT_MACHINE_GUN, 1)
-                    .add(MILITARY_VEST, 3, 1, 1).add(MILITARY_HELMET, 3, 1, 1)
+                    .add(MILITARY_VEST, 3, 1, 1).add(MILITARY_HELMET, 3, 1, 1).add(GUN_PARTS, 4, 1, 3).add(MRE, 5, 1, 3)
+                    .add(KEVLAR_VEST, 1, 1, 1).add(TACTICAL_HELMET, 1, 1, 1).add(NIGHT_VISION_GOGGLES, 1, 1, 1).add(PIPE_BOMB, 2, 1, 3)
                     .add(AMMO_RIFLE, 8, 6, 20).add(AMMO_9MM, 6, 6, 20).into(t);
         } else if (path.startsWith("chests/shipwreck") || path.equals("chests/buried_treasure")) {
             food(0, 2, 4).into(t);

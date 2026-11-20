@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "minecraft:stick"
+  },
+  {
+   "item": "minecraft:stick"
+  },
+  {
+   "item": "outbreak:kitchen_knife"
+  },
+  {
+   "item": "outbreak:duct_tape"
+  }
+ ],
+ "result": {
+  "item": "outbreak:makeshift_spear",
+  "count": 1
+ }
+}

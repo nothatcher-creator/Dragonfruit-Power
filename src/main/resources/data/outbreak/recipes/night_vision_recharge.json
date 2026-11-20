@@ -1,0 +1,15 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:night_vision_goggles"
+  },
+  {
+   "item": "outbreak:car_battery"
+  }
+ ],
+ "result": {
+  "item": "outbreak:night_vision_goggles",
+  "count": 1
+ }
+}

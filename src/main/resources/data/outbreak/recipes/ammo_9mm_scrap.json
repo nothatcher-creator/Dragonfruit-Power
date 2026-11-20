@@ -1,0 +1,15 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "minecraft:gunpowder"
+  }
+ ],
+ "result": {
+  "item": "outbreak:ammo_9mm",
+  "count": 6
+ }
+}

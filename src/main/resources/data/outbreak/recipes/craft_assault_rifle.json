@@ -1,0 +1,30 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:electronics"
+  }
+ ],
+ "result": {
+  "item": "outbreak:assault_rifle",
+  "count": 1
+ }
+}

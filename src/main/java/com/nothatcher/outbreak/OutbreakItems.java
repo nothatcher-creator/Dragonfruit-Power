@@ -107,6 +107,41 @@ public final class OutbreakItems {
 
     public static final Item BACKPACK = reg("backpack", new BackpackItem(new Item.Settings()));
 
+    // scavenged materials
+    public static final Item SCRAP_METAL = reg("scrap_metal", new Item(new Item.Settings()));
+    public static final Item ELECTRONICS = reg("electronics", new Item(new Item.Settings()));
+    public static final Item DUCT_TAPE = reg("duct_tape", new Item(new Item.Settings().maxCount(16)));
+    public static final Item NAILS = reg("nails", new Item(new Item.Settings()));
+    public static final Item RAG = reg("rag", new Item(new Item.Settings()));
+    public static final Item GUN_PARTS = reg("gun_parts", new Item(new Item.Settings().maxCount(16)));
+    public static final Item CAR_BATTERY = reg("car_battery", new Item(new Item.Settings().maxCount(4)));
+
+    // more food
+    public static final Item MRE = reg("mre", new Item(new Item.Settings().food(
+            new FoodComponent.Builder().hunger(12).saturationModifier(0.9f).build())));
+    public static final Item CANNED_TUNA = reg("canned_tuna", new Item(new Item.Settings().food(
+            new FoodComponent.Builder().hunger(6).saturationModifier(0.8f).meat().build())));
+    public static final Item ENERGY_DRINK = reg("energy_drink", new Item(new Item.Settings().maxCount(16).food(
+            new FoodComponent.Builder().hunger(2).saturationModifier(0.2f).alwaysEdible()
+                    .statusEffect(new StatusEffectInstance(StatusEffects.SPEED, 600, 1), 1f)
+                    .statusEffect(new StatusEffectInstance(StatusEffects.HASTE, 600, 0), 1f).build())));
+
+    // crafted gear, tier 1 (scrap), tier 2 (reinforced), tier 3 (military-grade)
+    public static final Item NAIL_BOARD = reg("nail_board", new SwordItem(ToolMaterials.WOOD, 4, -2.6f, new Item.Settings().maxDamage(120)));
+    public static final Item MAKESHIFT_SPEAR = reg("makeshift_spear", new SwordItem(ToolMaterials.IRON, 3, -2.4f, new Item.Settings().maxDamage(200)));
+    public static final Item REINFORCED_BAT = reg("reinforced_bat", new SwordItem(ToolMaterials.IRON, 6, -2.7f, new Item.Settings().maxDamage(700)));
+    public static final Item SCRAP_ARMOR = clothes("scrap_armor", ArmorItem.Type.CHESTPLATE, 260, 5, 1f, false);
+    public static final Item KEVLAR_VEST = reg("kevlar_vest", new ArmorItem(OutbreakArmor.KEVLAR, ArmorItem.Type.CHESTPLATE, new Item.Settings()));
+    public static final Item TACTICAL_HELMET = reg("tactical_helmet", new ArmorItem(OutbreakArmor.KEVLAR, ArmorItem.Type.HELMET, new Item.Settings()));
+    public static final Item NIGHT_VISION_GOGGLES = reg("night_vision_goggles", new NightVisionGoggles(new Clothing("night_vision_goggles", 600, 1, 0, false), new Item.Settings()));
+    public static final Item PIPE_BOMB = reg("pipe_bomb", new ThrowableItem(new Item.Settings(), "tooltip.outbreak.pipe_bomb"));
+    public static final Item MOLOTOV = reg("molotov", new ThrowableItem(new Item.Settings(), "tooltip.outbreak.molotov"));
+    public static final Item NOISE_MAKER = reg("noise_maker", new ThrowableItem(new Item.Settings(), "tooltip.outbreak.noise_maker"));
+
+    public static final net.minecraft.entity.EntityType<ThrownGear> THROWN = net.minecraft.registry.Registry.register(Registries.ENTITY_TYPE, Outbreak.id("thrown_gear"),
+            net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder.<ThrownGear>create(net.minecraft.entity.SpawnGroup.MISC, ThrownGear::new)
+                    .dimensions(net.minecraft.entity.EntityDimensions.fixed(0.3f, 0.3f)).trackRangeBlocks(64).trackedUpdateRate(10).build());
+
     private OutbreakItems() {}
 
     private static Item clothes(String name, ArmorItem.Type type, int durability, int protection, float toughness, boolean leather) {

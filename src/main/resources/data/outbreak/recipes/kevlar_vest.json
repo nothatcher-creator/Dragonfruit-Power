@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "SDS",
+  "RVR",
+  "SDS"
+ ],
+ "key": {
+  "S": {
+   "item": "outbreak:scrap_metal"
+  },
+  "D": {
+   "item": "outbreak:duct_tape"
+  },
+  "R": {
+   "item": "outbreak:rag"
+  },
+  "V": {
+   "item": "outbreak:police_vest"
+  }
+ },
+ "result": {
+  "item": "outbreak:kevlar_vest",
+  "count": 1
+ }
+}

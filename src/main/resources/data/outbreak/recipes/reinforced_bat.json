@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:spiked_bat"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:duct_tape"
+  }
+ ],
+ "result": {
+  "item": "outbreak:reinforced_bat",
+  "count": 1
+ }
+}

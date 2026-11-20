@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:electronics"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "minecraft:redstone"
+  },
+  {
+   "item": "outbreak:duct_tape"
+  }
+ ],
+ "result": {
+  "item": "outbreak:noise_maker",
+  "count": 1
+ }
+}

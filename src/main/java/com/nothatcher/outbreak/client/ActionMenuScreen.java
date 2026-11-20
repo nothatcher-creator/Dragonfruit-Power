@@ -74,9 +74,11 @@ public class ActionMenuScreen extends Screen {
         if (hr instanceof EntityHitResult eh) {
             Entity e = eh.getEntity();
             title = e.getDisplayName();
-            if (Registries.ENTITY_TYPE.getId(e.getType()).getNamespace().equals("vehicleforge")) {
+            var tid = Registries.ENTITY_TYPE.getId(e.getType());
+            if (tid.getNamespace().equals("vehicleforge") && !tid.getPath().equals("seat")) {
                 out.add(new Entry(tr("enter"), Actions.Type.ENTER, none, e.getId(), -1));
                 out.add(new Entry(tr("search_vehicle"), Actions.Type.SEARCH_VEHICLE, none, e.getId(), -1));
+                out.add(new Entry(tr(Actions.tool(p).isEmpty() ? "salvage_vehicle_no_tool" : "salvage_vehicle"), Actions.Type.SALVAGE_VEHICLE, none, e.getId(), -1));
             }
             if (e instanceof HostileEntity && e.squaredDistanceTo(p) < 9) out.add(new Entry(tr("shove"), Actions.Type.SHOVE, none, -1, -1));
         } else if (hr instanceof BlockHitResult bh && hr.getType() == HitResult.Type.BLOCK) {
@@ -99,6 +101,11 @@ public class ActionMenuScreen extends Screen {
                 out.add(new Entry(tr("craft"), Actions.Type.USE, pos, -1, -1));
             } else if (b instanceof BedBlock) {
                 out.add(new Entry(tr("sleep"), Actions.Type.USE, pos, -1, -1));
+            }
+            String prop = Actions.propName(st);
+            if (Actions.ELECTRONIC_PROPS.contains(prop) || Actions.METAL_PROPS.contains(prop)) {
+                String key = Actions.ELECTRONIC_PROPS.contains(prop) ? "salvage_electronics" : "salvage_metal";
+                out.add(new Entry(tr(Actions.tool(p).isEmpty() ? key + "_no_tool" : key), Actions.Type.SALVAGE_PROP, pos, -1, -1));
             }
             if (st.getSoundGroup() == BlockSoundGroup.GLASS && st.getLuminance() == 0) {
                 float h = st.getHardness(mc.world, pos);
@@ -130,6 +137,13 @@ public class ActionMenuScreen extends Screen {
                 seen.add(s.getItem());
                 out.add(new Entry(tr(s.isOf(OutbreakItems.BOTTLED_WATER) ? "drink" : "eat", s.getName()), Actions.Type.USE_ITEM, none, -1, i));
                 shown++;
+            }
+        }
+        var invr = p.getInventory();
+        for (int i = 0; i < invr.size(); i++) {
+            if (Actions.isRaggable(invr.getStack(i))) {
+                out.add(new Entry(tr("rip_clothes", invr.getStack(i).getName()), Actions.Type.RIP_CLOTHES, none, -1, i));
+                break;
             }
         }
         int bag = find(p, BackpackItem.class);

@@ -1,0 +1,27 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "tag": "minecraft:planks"
+  },
+  {
+   "tag": "minecraft:planks"
+  },
+  {
+   "item": "minecraft:glass_pane"
+  }
+ ],
+ "result": {
+  "item": "outbreak:hunting_rifle",
+  "count": 1
+ }
+}

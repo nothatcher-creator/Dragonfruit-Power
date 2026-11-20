@@ -1,0 +1,24 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:gun_parts"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "tag": "minecraft:planks"
+  }
+ ],
+ "result": {
+  "item": "outbreak:shotgun",
+  "count": 1
+ }
+}

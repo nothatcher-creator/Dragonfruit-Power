@@ -41,7 +41,7 @@ import java.util.UUID;
 public final class Actions {
     public enum Type {
         USE(0), LOOT_ALL(30), SMASH(8), FILL_BOTTLE(20), ENTER(0), SEARCH_VEHICLE(70), SHOVE(0),
-        RELOAD(0), USE_ITEM(-1), OPEN_BACKPACK(0), LISTEN(30);
+        RELOAD(0), USE_ITEM(-1), OPEN_BACKPACK(0), LISTEN(30), SALVAGE_VEHICLE(100), SALVAGE_PROP(60), RIP_CLOTHES(30);
 
         public final int ticks;
 
@@ -52,6 +52,35 @@ public final class Actions {
         public String key() {
             return "action.outbreak." + name().toLowerCase();
         }
+    }
+
+    /** Vehicle Forge props that can be stripped for parts */
+    public static final java.util.Set<String> ELECTRONIC_PROPS = java.util.Set.of("computer", "tv", "vending_machine", "atm", "ac_unit", "electric_light");
+    public static final java.util.Set<String> METAL_PROPS = java.util.Set.of("filing_cabinet", "mailbox", "newspaper_box", "parking_meter", "trash_bin",
+            "fridge", "stove", "store_shelf", "checkout_counter", "stop_sign", "water_cooler", "fire_hydrant", "bus_stop_sign");
+
+    public static boolean isTool(ItemStack s) {
+        Item i = s.getItem();
+        return i == OutbreakItems.CROWBAR || i == OutbreakItems.PIPE_WRENCH || i == OutbreakItems.CLAW_HAMMER || i == OutbreakItems.SLEDGEHAMMER
+                || i == OutbreakItems.FIRE_AXE;
+    }
+
+    public static boolean isRaggable(ItemStack s) {
+        Item i = s.getItem();
+        return i == OutbreakItems.HOODIE || i == OutbreakItems.JEANS || i == OutbreakItems.CARGO_PANTS || i == OutbreakItems.BEANIE
+                || i == OutbreakItems.BASEBALL_CAP || i == OutbreakItems.HI_VIS_VEST;
+    }
+
+    /** a salvage tool in the inventory, or EMPTY */
+    public static ItemStack tool(net.minecraft.entity.player.PlayerEntity p) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) if (isTool(inv.getStack(i))) return inv.getStack(i);
+        return ItemStack.EMPTY;
+    }
+
+    public static String propName(BlockState st) {
+        net.minecraft.util.Identifier id = net.minecraft.registry.Registries.BLOCK.getId(st.getBlock());
+        return id.getNamespace().equals("vehicleforge") ? id.getPath() : "";
     }
 
     private record Pending(Type type, BlockPos pos, int entity, int slot, long end, Vec3d start, float health) {}
@@ -72,6 +101,10 @@ public final class Actions {
     private static void start(ServerPlayerEntity p, Type t, BlockPos pos, int entity, int slot) {
         if (p.isDead() || p.isSpectator()) return;
         if (!valid(p, t, pos, entity, slot)) return;
+        if ((t == Type.SALVAGE_VEHICLE || t == Type.SALVAGE_PROP) && tool(p).isEmpty()) {
+            tell(p, "msg.outbreak.need_tool");
+            return;
+        }
         int ticks = t == Type.USE_ITEM ? useTicks(p.getInventory().getStack(slot)) : t.ticks;
         cancel(p, false);
         if (ticks <= 0) {
@@ -85,14 +118,14 @@ public final class Actions {
 
     private static boolean valid(ServerPlayerEntity p, Type t, BlockPos pos, int entity, int slot) {
         switch (t) {
-            case USE, LOOT_ALL, SMASH, FILL_BOTTLE -> {
+            case USE, LOOT_ALL, SMASH, FILL_BOTTLE, SALVAGE_PROP -> {
                 return p.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) < 49 && p.getWorld().isChunkLoaded(pos);
             }
-            case ENTER, SEARCH_VEHICLE -> {
+            case ENTER, SEARCH_VEHICLE, SALVAGE_VEHICLE -> {
                 Entity e = p.getWorld().getEntityById(entity);
                 return e != null && e.isAlive() && e.squaredDistanceTo(p) < 64;
             }
-            case USE_ITEM, OPEN_BACKPACK -> {
+            case USE_ITEM, OPEN_BACKPACK, RIP_CLOTHES -> {
                 return slot >= 0 && slot < p.getInventory().size() && !p.getInventory().getStack(slot).isEmpty();
             }
             default -> {
@@ -206,6 +239,15 @@ public final class Actions {
                 if (s.getItem() instanceof BackpackItem) BackpackItem.open(p, s, slot);
             }
             case LISTEN -> p.sendMessage(Population.of(w).describe(w, p.getBlockPos()).copy().formatted(Formatting.GRAY), true);
+            case SALVAGE_VEHICLE -> salvageVehicle(p, w, w.getEntityById(entityId));
+            case SALVAGE_PROP -> salvageProp(p, w, pos);
+            case RIP_CLOTHES -> {
+                ItemStack s = p.getInventory().getStack(slot);
+                if (!isRaggable(s)) return;
+                s.decrement(1);
+                p.getInventory().offerOrDrop(new ItemStack(OutbreakItems.RAG, 3));
+                w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_SHEEP_SHEAR, SoundCategory.PLAYERS, 0.8f, 1.2f);
+            }
         }
     }
 
@@ -239,6 +281,54 @@ public final class Actions {
         inv.markDirty();
         if (moved > 0) w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.5f, 1f);
         tell(p, moved == 0 && !left ? "msg.outbreak.empty" : left ? "msg.outbreak.inventory_full" : "msg.outbreak.took", moved);
+    }
+
+    private static void give(ServerPlayerEntity p, Item item, int n) {
+        if (n > 0) p.getInventory().offerOrDrop(new ItemStack(item, n));
+    }
+
+    private static void wearTool(ServerPlayerEntity p) {
+        ItemStack t = tool(p);
+        if (!t.isEmpty()) t.damage(2, p, pl -> pl.sendToolBreakStatus(Hand.MAIN_HAND));
+    }
+
+    private static void salvageVehicle(ServerPlayerEntity p, ServerWorld w, Entity e) {
+        if (e == null) return;
+        if (e.getCommandTags().contains("outbreak_salvaged")) {
+            tell(p, "msg.outbreak.stripped");
+            return;
+        }
+        e.addCommandTag("outbreak_salvaged");
+        var r = w.random;
+        give(p, OutbreakItems.SCRAP_METAL, 2 + r.nextInt(4));
+        if (r.nextFloat() < 0.35f) give(p, OutbreakItems.CAR_BATTERY, 1);
+        if (r.nextFloat() < 0.3f) give(p, OutbreakItems.ELECTRONICS, 1 + r.nextInt(2));
+        if (r.nextFloat() < 0.3f) give(p, OutbreakItems.RAG, 1 + r.nextInt(2));
+        if (r.nextFloat() < 0.2f) give(p, OutbreakItems.DUCT_TAPE, 1);
+        wearTool(p);
+        w.playSound(null, e.getX(), e.getY(), e.getZ(), SoundEvents.BLOCK_ANVIL_PLACE, SoundCategory.PLAYERS, 0.5f, 1.5f);
+        Noise.emit(w, e.getPos(), 20);
+        tell(p, "msg.outbreak.salvaged");
+    }
+
+    private static void salvageProp(ServerPlayerEntity p, ServerWorld w, BlockPos pos) {
+        BlockState st = w.getBlockState(pos);
+        String name = propName(st);
+        boolean elec = ELECTRONIC_PROPS.contains(name), metal = METAL_PROPS.contains(name);
+        if (!elec && !metal) return;
+        var r = w.random;
+        w.breakBlock(pos, false, p);
+        if (elec) {
+            give(p, OutbreakItems.ELECTRONICS, 1 + r.nextInt(2));
+            give(p, OutbreakItems.SCRAP_METAL, r.nextInt(2));
+        } else {
+            give(p, OutbreakItems.SCRAP_METAL, 1 + r.nextInt(3));
+            if (r.nextFloat() < 0.15f) give(p, OutbreakItems.NAILS, 2 + r.nextInt(5));
+        }
+        wearTool(p);
+        w.playSound(null, pos, SoundEvents.BLOCK_ANVIL_LAND, SoundCategory.PLAYERS, 0.4f, 1.6f);
+        Noise.emit(w, Vec3d.ofCenter(pos), 16);
+        tell(p, "msg.outbreak.salvaged");
     }
 
     private static void searchVehicle(ServerPlayerEntity p, ServerWorld w, Entity e) {

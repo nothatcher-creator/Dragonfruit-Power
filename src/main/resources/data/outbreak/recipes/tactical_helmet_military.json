@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shapeless",
+ "ingredients": [
+  {
+   "item": "outbreak:military_helmet"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:scrap_metal"
+  },
+  {
+   "item": "outbreak:duct_tape"
+  }
+ ],
+ "result": {
+  "item": "outbreak:tactical_helmet",
+  "count": 1
+ }
+}

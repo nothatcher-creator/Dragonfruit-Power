@@ -1,0 +1,25 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "GEG",
+  "DBD"
+ ],
+ "key": {
+  "G": {
+   "item": "minecraft:glass_pane"
+  },
+  "E": {
+   "item": "outbreak:electronics"
+  },
+  "D": {
+   "item": "outbreak:duct_tape"
+  },
+  "B": {
+   "item": "outbreak:car_battery"
+  }
+ },
+ "result": {
+  "item": "outbreak:night_vision_goggles",
+  "count": 1
+ }
+}

@@ -11,7 +11,8 @@ import net.minecraft.sound.SoundEvents;
 public enum OutbreakArmor implements ArmorMaterial {
     POLICE("outbreak_police", 22, 2, 6, 0, 0f, 0f),
     MILITARY("outbreak_military", 30, 3, 7, 0, 2f, 0.05f),
-    RIOT("outbreak_riot", 25, 3, 5, 0, 1f, 0.1f);
+    RIOT("outbreak_riot", 25, 3, 5, 0, 1f, 0.1f),
+    KEVLAR("outbreak_kevlar", 38, 4, 9, 0, 3f, 0.1f);
 
     private final String name;
     private final int durability, helmet, chest, legs;

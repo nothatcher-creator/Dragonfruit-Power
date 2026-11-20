@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "S S",
+  "SDS",
+  "SLS"
+ ],
+ "key": {
+  "S": {
+   "item": "outbreak:scrap_metal"
+  },
+  "D": {
+   "item": "outbreak:duct_tape"
+  },
+  "L": {
+   "item": "minecraft:leather"
+  }
+ },
+ "result": {
+  "item": "outbreak:scrap_armor",
+  "count": 1
+ }
+}

@@ -40,6 +40,8 @@ public class OutbreakClient implements ClientModInitializer {
         SHOVE = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.shove", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.outbreak"));
         ACTIONS = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.actions", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, "category.outbreak"));
         FOG = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.fog", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category.outbreak"));
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.nothatcher.outbreak.OutbreakItems.THROWN,
+                net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
         for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
 
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
