@@ -1451,7 +1451,7 @@ public final class CityGen {
         }
         if (!OVERRUN) return;
         // the airport was where everyone tried to get out: a dense, finite crowd of the dead
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 4; i++) {                                        // ~200 across the whole airport
             int lx = hash(x0, z0 * 7 + i, 246) & 15, lz = hash(x0 * 7 + i, z0, 247) & 15;
             int x = x0 + lx, z = z0 + lz, ax = x - AIR_X0, az = z - AIR_Z0;
             if (!inAirport(x, z)) continue;
