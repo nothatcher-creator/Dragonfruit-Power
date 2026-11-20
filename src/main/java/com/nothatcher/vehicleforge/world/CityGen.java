@@ -49,16 +49,53 @@ public final class CityGen {
     static final int AIR_BX = 12, AIR_BZ = 4, AIR_X0 = AIR_BX * CELL + C, AIR_Z0 = AIR_BZ * CELL + C, AIR_W = 4 * CELL - C, AIR_H = 2 * CELL - C;
     static final int RAIL_LZ = 40, RAIL_Y = BASE + 5;
 
+    /**
+     * The world is a grid of metro areas, METRO cells (~3.9 km) apart: each is a city out to COUNTRY cells from its
+     * centre, then countryside until the next city. Railways run from each city's station across the countryside
+     * to the next city's.
+     */
+    static final int METRO = 48;
+
+    /** which metro area this cell index belongs to */
+    static int metroOf(int b) {
+        return Math.floorDiv(b + METRO / 2, METRO);
+    }
+
+    /** cell index relative to its metro's centre (-24..23) */
+    static int local(int b) {
+        return b - metroOf(b) * METRO;
+    }
+
+    /** how far a cell is from the centre of its city, in cells */
+    static int metroD(int bx, int bz) {
+        return Math.max(Math.abs(local(bx)), Math.abs(local(bz)));
+    }
+
+    /** the first city always has an airport; others about half the time (never where a river would cut it) */
+    static boolean hasAirport(int mx, int mz) {
+        if (riverRow(mz * METRO + AIR_BZ) || riverRow(mz * METRO + AIR_BZ + 1)) return false;
+        return (mx == 0 && mz == 0) || Math.floorMod(mx * 31 + mz * 17 + mx * mz, 2) == 0;
+    }
+
+    /** the airport's north-west corner for the metro containing (x, z), or null if there isn't one there */
+    static int[] airportOrigin(int x, int z) {
+        int mx = metroOf(Math.floorDiv(x, CELL)), mz = metroOf(Math.floorDiv(z, CELL));
+        if (!hasAirport(mx, mz)) return null;
+        return new int[]{(mx * METRO + AIR_BX) * CELL + C, (mz * METRO + AIR_BZ) * CELL + C};
+    }
+
     static boolean inAirport(int x, int z) {
-        return x >= AIR_X0 && x < AIR_X0 + AIR_W && z >= AIR_Z0 && z < AIR_Z0 + AIR_H;
+        int[] o = airportOrigin(x, z);
+        return o != null && x >= o[0] && x < o[0] + AIR_W && z >= o[1] && z < o[1] + AIR_H;
     }
 
     static boolean airportCell(int bx, int bz) {
-        return bx >= AIR_BX && bx < AIR_BX + 4 && bz >= AIR_BZ && bz < AIR_BZ + 2;
+        int lbx = local(bx), lbz = local(bz);
+        return lbx >= AIR_BX && lbx < AIR_BX + 4 && lbz >= AIR_BZ && lbz < AIR_BZ + 2 && hasAirport(metroOf(bx), metroOf(bz));
     }
 
     static boolean countryCell(int bx, int bz) {
-        return Math.max(Math.abs(bx), Math.abs(bz)) >= COUNTRY;
+        return metroD(bx, bz) >= COUNTRY;
     }
 
     static boolean railRow(int bz) {
@@ -67,7 +104,7 @@ public final class CityGen {
 
     /** the first countryside cell on a railway row, east or west of the city: the line ends here */
     static boolean stationCell(int bx, int bz) {
-        return railRow(bz) && Math.abs(bz) < COUNTRY && Math.abs(bx) == COUNTRY;
+        return railRow(bz) && Math.abs(local(bz)) < COUNTRY && Math.abs(local(bx)) == COUNTRY;
     }
 
     static boolean railCell(int bx, int bz) {
@@ -228,10 +265,10 @@ public final class CityGen {
 
     Kind kind(int bx, int bz) {
         if (riverRow(bz)) return Kind.RIVER;
-        if (bx == 0 && bz == 0) return Kind.PARK;                          // central park at spawn
-        if (bx == 1 && bz == 1) return Kind.LANDMARK;                      // the tallest tower in the city
+        if (local(bx) == 0 && local(bz) == 0) return Kind.PARK;            // central park (at spawn, for the first city)
+        if (local(bx) == 1 && local(bz) == 1) return Kind.LANDMARK;        // the tallest tower in each city
         if (airportCell(bx, bz)) return Kind.AIRPORT;
-        int d = Math.max(Math.abs(bx), Math.abs(bz));
+        int d = metroD(bx, bz);
         float r = rnd(bx, bz, 1);
         if (stationCell(bx, bz)) return Kind.STATION;
         if (d >= COUNTRY) {
@@ -267,7 +304,8 @@ public final class CityGen {
 
     void column(int x, int z) {
         if (inAirport(x, z)) {
-            airport(x, z, x - AIR_X0, z - AIR_Z0);
+            int[] o = airportOrigin(x, z);
+            airport(x, z, x - o[0], z - o[1]);
             return;
         }
         int ux = Math.floorMod(x, CELL), uz = Math.floorMod(z, CELL);
@@ -419,7 +457,7 @@ public final class CityGen {
     /** parking meters downtown, newspaper boxes and mailboxes near the corners, planters on the wide pavements */
     private void streetFurniture(int x, int z, int ux, int uz, boolean alongX, boolean alongZ) {
         int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
-        int d = Math.max(Math.abs(bx), Math.abs(bz));
+        int d = metroD(bx, bz);
         if (d <= 10) {
             if (alongZ && (ux == R0 - 1 || ux == R1) && Math.floorMod(z, 6) == 3)
                 set(x, BASE, z, CityBlocks.facing(CityBlocks.PARKING_METER, ux == R0 - 1 ? Direction.EAST : Direction.WEST));
@@ -449,7 +487,7 @@ public final class CityGen {
     }
 
     private void trafficLight(int x, int z, Direction a, Direction b) {
-        int d = Math.max(Math.abs(Math.floorDiv(x, CELL)), Math.abs(Math.floorDiv(z, CELL)));
+        int d = metroD(Math.floorDiv(x, CELL), Math.floorDiv(z, CELL));
         if (d > 10) {                                                        // quiet suburbs get a four-way stop
             set(x, BASE, z, CityBlocks.facing(CityBlocks.STOP_SIGN, a));
             return;
@@ -470,7 +508,7 @@ public final class CityGen {
         int lotX = bx * 4 + li, lotZ = bz * 4 + lj;
         int ox = bx * CELL + C + li * 26, oz = bz * CELL + C + lj * 26;
         float r = rnd(lotX, lotZ, 3);
-        int d = Math.max(Math.abs(bx), Math.abs(bz));
+        int d = metroD(bx, bz);
         int floors = towers ? 10 + (int) (r * 28) + (d <= 1 ? 10 : 0) : 2 + (int) (r * 9);
         int[] pool = towers ? TOWER_STYLES : APT_STYLES;
         int style = pool[hash(lotX, lotZ, 4) % pool.length];
@@ -757,8 +795,9 @@ public final class CityGen {
      * departure boards; stairs up to two covered platforms either side of the track, which ends at a buffer stop.
      */
     private void station(int x, int z, int bx, int lx, int lz) {
-        int s = bx > 0 ? lx : 51 - lx;                                       // 0 on the city side, 51 where the line comes in
-        Direction out = bx > 0 ? Direction.EAST : Direction.WEST;
+        boolean east = local(bx) > 0;
+        int s = east ? lx : 51 - lx;                                         // 0 on the city side, 51 where the line comes in
+        Direction out = east ? Direction.EAST : Direction.WEST;
         int dz = Math.abs(lz - RAIL_LZ);
         set(x, GROUND, z, lz <= 5 ? PLAZA : Blocks.GRASS_BLOCK.getDefaultState());
         // embankment where the line comes in past the platforms
@@ -1150,11 +1189,12 @@ public final class CityGen {
                 }
             }
         } else if (k == Kind.STATION) {
-            double s = 30, tx = bx > 0 ? ox + s + 0.5 : ox + 51 - s + 0.5, tz = oz + RAIL_LZ + 0.5;
+            boolean east = local(bx) > 0;
+            double s = 30, tx = east ? ox + s + 0.5 : ox + 51 - s + 0.5, tz = oz + RAIL_LZ + 0.5;
             String id = new String[]{"diesel_locomotive", "steam_train", "bullet_train"}[hash(bx, bz, 227) % 3];
-            if (inChunk(tx, tz, x0, z0)) spawnType(tx, RAIL_Y, tz, bx > 0 ? -90f : 90f, id, hash(bx, bz, 228), false);
+            if (inChunk(tx, tz, x0, z0)) spawnType(tx, RAIL_Y, tz, east ? -90f : 90f, id, hash(bx, bz, 228), false);
             for (int i = 0; i < 3; i++) {
-                double cx = bx > 0 ? ox + 45 + i * 2.5 : ox + 6 - i * 2.5, cz = oz + 3.5;
+                double cx = east ? ox + 45 + i * 2.5 : ox + 6 - i * 2.5, cz = oz + 3.5;
                 if (inChunk(cx, cz, x0, z0) && rnd(bx, bz * 5 + i, 229) < 0.7f) spawnType(cx, BASE, cz, 0f, "taxi", hash(bx * 5 + i, bz, 230));
             }
         }
@@ -1427,7 +1467,9 @@ public final class CityGen {
 
     /** planes on the stands, a plane and a helicopter in the hangar, cars in the car park, and (with Outbreak) the dead */
     private void airportEntities(int x0, int z0) {
-        double X = AIR_X0, Z = AIR_Z0;
+        int[] o = airportOrigin(x0, z0);
+        if (o == null || x0 + 15 < o[0] || x0 >= o[0] + AIR_W || z0 + 15 < o[1] || z0 >= o[1] + AIR_H) return;
+        double X = o[0], Z = o[1];
         Object[][] craft = {
                 {"airliner", 51.5, 60.0, 180f}, {"airliner", 91.5, 60.0, 180f}, {"airliner", 131.5, 60.0, 180f},
                 {"jet", 171.5, 60.0, 180f}, {"jet", 211.5, 60.0, 180f}, {"prop_plane", 215.0, 22.0, 0f}, {"helicopter", 245.0, 26.0, 0f},
@@ -1453,7 +1495,7 @@ public final class CityGen {
         // the airport was where everyone tried to get out: a dense, finite crowd of the dead
         for (int i = 0; i < 4; i++) {                                        // ~200 across the whole airport
             int lx = hash(x0, z0 * 7 + i, 246) & 15, lz = hash(x0 * 7 + i, z0, 247) & 15;
-            int x = x0 + lx, z = z0 + lz, ax = x - AIR_X0, az = z - AIR_Z0;
+            int x = x0 + lx, z = z0 + lz, ax = x - o[0], az = z - o[1];
             if (!inAirport(x, z)) continue;
             float density = ax >= 30 && ax <= 150 && az >= 4 && az <= 38 ? 0.9f          // terminal
                     : az >= 39 && az <= 76 ? 0.5f                                         // apron
@@ -3009,7 +3051,7 @@ public final class CityGen {
 
     /** Parked vehicles for every city cell this chunk touches (cells are 81 wide, so a chunk can span two). */
     void parkedCars(int x0, int z0) {
-        if (x0 + 15 >= AIR_X0 && x0 < AIR_X0 + AIR_W && z0 + 15 >= AIR_Z0 && z0 < AIR_Z0 + AIR_H) airportEntities(x0, z0);
+        airportEntities(x0, z0);
         for (int bx = Math.floorDiv(x0, CELL); bx <= Math.floorDiv(x0 + 15, CELL); bx++) {
             for (int bz = Math.floorDiv(z0, CELL); bz <= Math.floorDiv(z0 + 15, CELL); bz++) {
                 parkedInCell(bx, bz, x0, z0);
