@@ -170,5 +170,7 @@
  "action.outbreak.rip_clothes": "Rip %s into rags",
  "msg.outbreak.need_tool": "You need a crowbar, pipe wrench, hammer, sledgehammer or fire axe.",
  "msg.outbreak.stripped": "This one has already been stripped.",
- "msg.outbreak.salvaged": "Salvaged."
+ "msg.outbreak.salvaged": "Salvaged.",
+ "msg.outbreak.airport_clear": "Silence. The airport is clear.",
+ "msg.outbreak.airport_left": "You can hear them all over the airport. %s still shambling around."
 }

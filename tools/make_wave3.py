@@ -172,6 +172,7 @@ lang.update({
     'action.outbreak.salvage_metal': 'Scrap for metal', 'action.outbreak.salvage_metal_no_tool': 'Scrap for metal (needs a tool)',
     'action.outbreak.rip_clothes': 'Rip %s into rags',
     'msg.outbreak.need_tool': 'You need a crowbar, pipe wrench, hammer, sledgehammer or fire axe.',
+    'msg.outbreak.airport_clear': 'Silence. The airport is clear.', 'msg.outbreak.airport_left': 'You can hear them all over the airport. %s still shambling around.',
     'msg.outbreak.stripped': 'This one has already been stripped.', 'msg.outbreak.salvaged': 'Salvaged.',
 })
 json.dump(lang, open(LP, 'w'), indent=1)

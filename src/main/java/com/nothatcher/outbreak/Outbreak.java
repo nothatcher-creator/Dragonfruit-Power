@@ -74,7 +74,9 @@ public class Outbreak implements ModInitializer {
             ZombieSpawner.tick(w);
             Noise.vehicleNoise(w);
             Actions.tick(w);
+            Airport.tick();
         });
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (entity instanceof ZombieEntity && entity.getWorld() instanceof ServerWorld sw)
                 Population.of(sw).onKill(sw, entity.getBlockPos());

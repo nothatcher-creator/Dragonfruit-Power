@@ -238,7 +238,8 @@ public final class Actions {
                 ItemStack s = p.getInventory().getStack(slot);
                 if (s.getItem() instanceof BackpackItem) BackpackItem.open(p, s, slot);
             }
-            case LISTEN -> p.sendMessage(Population.of(w).describe(w, p.getBlockPos()).copy().formatted(Formatting.GRAY), true);
+            case LISTEN -> p.sendMessage((Airport.at(w, p.getBlockPos()) ? Airport.report(w, p.getBlockPos())
+                    : Population.of(w).describe(w, p.getBlockPos())).copy().formatted(Formatting.GRAY), true);
             case SALVAGE_VEHICLE -> salvageVehicle(p, w, w.getEntityById(entityId));
             case SALVAGE_PROP -> salvageProp(p, w, pos);
             case RIP_CLOTHES -> {

@@ -61,6 +61,7 @@ public final class ZombieSpawner {
         if (spot == null) return;
         if (w.getClosestPlayer(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5, 24, false) != null) return;
         if (r.nextFloat() > pop.remaining(w, spot)) return;
+        if (Airport.at(w, spot)) return;                                     // the airport's dead are all already there
         if (inSight(w, p, spot)) return;
         int n = 1 + r.nextInt(2) + (w.isNight() && r.nextBoolean() ? 1 : 0);
         for (int i = 0; i < n; i++) {
