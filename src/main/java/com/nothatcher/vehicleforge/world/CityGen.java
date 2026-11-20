@@ -74,7 +74,10 @@ public final class CityGen {
     /** the first city always has an airport; others about half the time (never where a river would cut it) */
     static boolean hasAirport(int mx, int mz) {
         if (riverRow(mz * METRO + AIR_BZ) || riverRow(mz * METRO + AIR_BZ + 1)) return false;
-        return (mx == 0 && mz == 0) || Math.floorMod(mx * 31 + mz * 17 + mx * mz, 2) == 0;
+        if (mx == 0 && mz == 0) return true;
+        int v = (mx * 0x9E3779B1) ^ (mz * 0x85EBCA77);
+        v ^= v >>> 15; v *= 0x2C1B3C6D; v ^= v >>> 12;
+        return (v & 1) == 0;
     }
 
     /** the airport's north-west corner for the metro containing (x, z), or null if there isn't one there */
