@@ -16,7 +16,18 @@ import java.util.Map;
  */
 public class Population extends PersistentState {
     private static final int REGROW_TICKS = 600;
-    private final Map<Long, float[]> killed = new HashMap<>();   // area -> {kills, lastUpdateTick}
+    /** kills still counted against an area, as of a tick (a long: a float tick loses precision in old worlds) */
+    private static final class Area {
+        float kills;
+        long tick;
+
+        Area(float kills, long tick) {
+            this.kills = kills;
+            this.tick = tick;
+        }
+    }
+
+    private final Map<Long, Area> killed = new HashMap<>();
 
     static long key(int x, int z) {
         return ((long) (x >> 7) << 32) ^ ((z >> 7) & 0xffffffffL);
@@ -27,9 +38,9 @@ public class Population extends PersistentState {
     }
 
     private float kills(long k, long now) {
-        float[] v = killed.get(k);
+        Area v = killed.get(k);
         if (v == null) return 0;
-        float left = Math.max(0, v[0] - (now - (long) v[1]) / (float) REGROW_TICKS);
+        float left = Math.max(0, v.kills - (now - v.tick) / (float) REGROW_TICKS);
         if (left <= 0) {
             killed.remove(k);
             markDirty();
@@ -47,7 +58,7 @@ public class Population extends PersistentState {
     public void onKill(ServerWorld w, BlockPos at) {
         long k = key(at.getX(), at.getZ());
         float now = kills(k, w.getTime());
-        killed.put(k, new float[]{now + 1, w.getTime()});
+        killed.put(k, new Area(now + 1, w.getTime()));
         markDirty();
     }
 
@@ -63,7 +74,7 @@ public class Population extends PersistentState {
         for (String k : areas.getKeys()) {
             NbtCompound a = areas.getCompound(k);
             try {
-                p.killed.put(Long.parseLong(k), new float[]{a.getFloat("Kills"), a.getLong("Tick")});
+                p.killed.put(Long.parseLong(k), new Area(a.getFloat("Kills"), a.getLong("Tick")));
             } catch (NumberFormatException ignored) {
             }
         }
@@ -75,8 +86,8 @@ public class Population extends PersistentState {
         NbtCompound areas = new NbtCompound();
         killed.forEach((k, v) -> {
             NbtCompound a = new NbtCompound();
-            a.putFloat("Kills", v[0]);
-            a.putLong("Tick", (long) v[1]);
+            a.putFloat("Kills", v.kills);
+            a.putLong("Tick", v.tick);
             areas.put(Long.toString(k), a);
         });
         nbt.put("Areas", areas);

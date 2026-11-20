@@ -27,14 +27,18 @@ public final class Airport {
 
     /** is this spot at the airport? (looks a short way down for the buried marker) */
     public static boolean at(ServerWorld w, BlockPos pos) {
+        if (marker == null) marker = Registries.BLOCK.containsId(MARKER) ? Registries.BLOCK.get(MARKER) : net.minecraft.block.Blocks.AIR;
+        if (marker == net.minecraft.block.Blocks.AIR) return false;          // Vehicle Forge isn't installed: no airports
         BlockPos.Mutable m = pos.mutableCopy();
         int bottom = Math.max(w.getBottomY(), pos.getY() - 48);
         for (int y = pos.getY(); y >= bottom; y--) {
             m.setY(y);
-            if (Registries.BLOCK.getId(w.getBlockState(m).getBlock()).equals(MARKER)) return true;
+            if (w.getBlockState(m).isOf(marker)) return true;
         }
         return false;
     }
+
+    private static net.minecraft.block.Block marker;
 
     /** called as entities are added to the world: just note them; the checks need loaded chunks, so they wait a tick */
     static void onLoad(Entity e, ServerWorld w) {

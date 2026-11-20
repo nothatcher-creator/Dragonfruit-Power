@@ -38,6 +38,7 @@ public final class ZombieSpawner {
     static void tick(ServerWorld w) {
         if (w.getTime() % 60 != 0 || w.getRegistryKey() != World.OVERWORLD) return;
         if (!w.getGameRules().getBoolean(Outbreak.ZOMBIES) || w.getDifficulty() == Difficulty.PEACEFUL) return;
+        cullStragglers(w);
         int cap = w.getGameRules().getInt(Outbreak.CAP);
         if (w.isNight()) cap = cap * 7 / 5;
         Population pop = Population.of(w);
@@ -49,6 +50,18 @@ public final class ZombieSpawner {
             float fill = near / (float) Math.max(1, cap);
             if (w.random.nextFloat() > 0.65f * (1f - fill * 0.6f)) continue;
             spawnGroup(w, p, pop);
+        }
+    }
+
+    /**
+     * The cap only counts zombies within 64 blocks, and vanilla only clears ordinary zombies once they're 128 blocks
+     * away (and barely at all at night), so as you travel a trail of them built up behind you, all still running
+     * their AI. Ones well out of reach, not chasing anyone, are let go. Horde, named, and turned zombies are kept.
+     */
+    private static void cullStragglers(ServerWorld w) {
+        for (ZombieEntity z : w.getEntitiesByType(net.minecraft.util.TypeFilter.instanceOf(ZombieEntity.class),
+                z -> z.isAlive() && !z.isPersistent() && !z.hasCustomName() && z.getTarget() == null && !z.getCommandTags().contains(Airport.TAG))) {
+            if (w.getClosestPlayer(z, 96) == null) z.discard();
         }
     }
 

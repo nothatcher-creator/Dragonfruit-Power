@@ -58,7 +58,10 @@ public abstract class FogMixin {
 
     @Inject(method = "applyFog", at = @At("TAIL"))
     private static void outbreak$fogDistance(Camera camera, BackgroundRenderer.FogType type, float viewDistance, boolean thick, float td, CallbackInfo ci) {
-        if (thick || !outbreak$active(camera)) return;
+        if (thick || !outbreak$active(camera)) {
+            if (type == BackgroundRenderer.FogType.FOG_TERRAIN) OutbreakClient.cullDist = 0f;
+            return;
+        }
         ClientWorld w = MinecraftClient.getInstance().world;
         float night = outbreak$night(w, td);
         float thickness = 1f + w.getRainGradient(td) * 0.35f;
@@ -67,6 +70,7 @@ public abstract class FogMixin {
         if (type == BackgroundRenderer.FogType.FOG_TERRAIN) {
             RenderSystem.setShaderFogStart(MathHelper.lerp(night, 4f, 0f));
             RenderSystem.setShaderFogEnd(end);
+            OutbreakClient.cullDist = end;
         } else {
             // haze the sky toward the fog colour too, so the horizon disappears
             RenderSystem.setShaderFogStart(0f);

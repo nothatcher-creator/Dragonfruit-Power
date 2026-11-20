@@ -29,6 +29,8 @@ public class OutbreakClient implements ClientModInitializer {
     private static final Identifier SCOPE = new Identifier("textures/misc/spyglass_scope.png");
     public static KeyBinding RELOAD, SHOVE, ACTIONS, FOG;
     public static boolean fogOn = true;
+    /** entities further than this from the camera are lost in the fog, so they aren't drawn (0 = fog off, draw all) */
+    public static volatile float cullDist = 0f;
     private static boolean ctrlWasDown;
     // timed action progress, from the server
     private static long progressStart, progressEnd;
