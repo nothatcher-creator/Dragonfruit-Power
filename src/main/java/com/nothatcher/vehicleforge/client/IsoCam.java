@@ -21,8 +21,9 @@ import org.lwjgl.glfw.GLFW;
  * your head, the near side of a tower. The cut leans back toward level as it moves in, so the street at your feet
  * is never cut away.
  *
- * It turns in 90-degree steps to keep the diagonal closest to the way you're facing, so forward on the keys stays
- * roughly up the screen. Zoom with the zoom keys (= and - by default).
+ * It holds its diagonal; the rotate keys ([ and ]) turn it a quarter at a time, and zoom is = and -. In this view
+ * you steer a cursor rather than your head, movement is relative to the screen, and clicks act where the cursor
+ * points (see the iso package).
  */
 public final class IsoCam {
     /** true isometric: atan(1 / sqrt 2) */
@@ -46,13 +47,15 @@ public final class IsoCam {
     public static float cut0 = 2f, cutSlope = 0f;
     private static float cutE = 0f, lastDt = 0f;
 
-    private static KeyBinding zoomIn, zoomOut;
+    private static KeyBinding zoomIn, zoomOut, rotLeft, rotRight;
 
     private IsoCam() {}
 
     public static void registerKeys() {
         zoomIn = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.iso_zoom_in", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.vehicleforge"));
         zoomOut = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.iso_zoom_out", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.vehicleforge"));
+        rotLeft = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.iso_rotate_left", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_BRACKET, "category.vehicleforge"));
+        rotRight = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.vehicleforge.iso_rotate_right", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.vehicleforge"));
     }
 
     /** is the isometric view in use right now? */
@@ -94,9 +97,11 @@ public final class IsoCam {
         zoom = zoomTarget;
         lastNanos = 0;
         cutE = 0f;
+        com.nothatcher.vehicleforge.client.iso.IsoCursor.reset();
         if (mc.inGameHud != null) {
             mc.inGameHud.setOverlayMessage(Text.translatable("msg.vehicleforge.iso_on",
-                    zoomIn.getBoundKeyLocalizedText(), zoomOut.getBoundKeyLocalizedText()).formatted(Formatting.GRAY), false);
+                    zoomIn.getBoundKeyLocalizedText(), zoomOut.getBoundKeyLocalizedText(),
+                    rotLeft.getBoundKeyLocalizedText(), rotRight.getBoundKeyLocalizedText()).formatted(Formatting.GRAY), false);
         }
     }
 
@@ -109,6 +114,12 @@ public final class IsoCam {
         if (active && (mc.world == null || mc.options.getPerspective() != Perspective.THIRD_PERSON_BACK)) active = false;
         while (zoomIn.wasPressed()) if (active) zoomTarget = Math.max(MIN_ZOOM, zoomTarget / 1.25f);
         while (zoomOut.wasPressed()) if (active) zoomTarget = Math.min(MAX_ZOOM, zoomTarget * 1.25f);
+        while (rotLeft.wasPressed()) if (active) targetYaw -= 90f;
+        while (rotRight.wasPressed()) if (active) targetYaw += 90f;
+        if (!active) {
+            com.nothatcher.vehicleforge.client.iso.IsoWalker.cancel();
+            com.nothatcher.vehicleforge.client.iso.IsoActions.stopBreaking();
+        }
     }
 
     /**
@@ -153,15 +164,19 @@ public final class IsoCam {
         return !st.getCollisionShape(w, pos).isEmpty();
     }
 
+    /** the camera's current yaw (movement is relative to it) */
+    public static float cameraYaw() {
+        return yaw;
+    }
+
     /** per frame: ease the turn and the zoom */
     public static float frameYaw(Entity focused, float tickDelta) {
         long now = System.nanoTime();
         float dt = lastNanos == 0 ? 0f : Math.min(0.1f, (now - lastNanos) / 1.0e9f);
         lastNanos = now;
         lastDt = dt;
-        float facing = focused.getYaw(tickDelta);
-        // a little past the halfway point before it turns, so it doesn't flick back and forth
-        if (Math.abs(MathHelper.wrapDegrees(facing - targetYaw)) > 60f) targetYaw = nearestDiagonal(facing);
+        // the camera holds its diagonal (you face the cursor, so following your facing would spin it); the rotate
+        // keys turn it a quarter at a time
         float k = dt <= 0 ? 1f : Math.min(1f, dt * 7f);
         yaw += MathHelper.wrapDegrees(targetYaw - yaw) * k;
         zoom += (zoomTarget - zoom) * k;

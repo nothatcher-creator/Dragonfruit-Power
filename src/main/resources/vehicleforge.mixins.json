@@ -16,7 +16,12 @@
     "client.VfIsoPerspectiveMixin",
     "client.VfIsoWorldMixin",
     "client.VfIsoFrustumMixin",
-    "client.VfIsoFogMixin"
+    "client.VfIsoFogMixin",
+    "client.VfClientAccessor",
+    "client.VfIsoMouseMixin",
+    "client.VfIsoTargetMixin",
+    "client.VfIsoClickMixin",
+    "client.VfIsoInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1

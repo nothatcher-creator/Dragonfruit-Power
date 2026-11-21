@@ -265,6 +265,7 @@ public class VehicleClient implements ClientModInitializer {
 
     /** Speedometer, altitude, throttle and the controls for whatever you're driving. */
     private static void hud(DrawContext ctx, float td) {
+        com.nothatcher.vehicleforge.client.iso.IsoCursor.render(ctx, MinecraftClient.getInstance());
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.options.hudHidden || !(mc.player.getVehicle() instanceof VehicleEntity v)) return;
         TextRenderer tr = mc.textRenderer;
