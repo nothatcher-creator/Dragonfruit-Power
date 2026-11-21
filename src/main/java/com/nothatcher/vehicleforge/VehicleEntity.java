@@ -1095,13 +1095,14 @@ public class VehicleEntity extends Entity {
         turn(yawDelta);
     }
 
-    private enum Surface { ROAD, SOFT, SNOW, MUD, ICE }
+    private enum Surface { ROAD, TRACK, SOFT, SNOW, MUD, ICE }
 
     private Surface surface() {
         BlockState st = getWorld().getBlockState(BlockPos.ofFloored(getX(), getY() - 0.2, getZ()));
         if (st.isIn(BlockTags.ICE)) return Surface.ICE;
         if (st.isIn(BlockTags.SNOW)) return Surface.SNOW;
         if (st.isOf(Blocks.MUD) || st.isOf(Blocks.SOUL_SAND) || st.isOf(Blocks.SOUL_SOIL)) return Surface.MUD;
+        if (st.isOf(Blocks.DIRT_PATH) || st.isOf(Blocks.COARSE_DIRT)) return Surface.TRACK;   // dirt roads
         if (st.isIn(BlockTags.DIRT) || st.isIn(BlockTags.SAND) || st.isIn(BlockTags.SNOW) || st.isOf(Blocks.GRAVEL)
                 || st.isOf(Blocks.FARMLAND) || st.isOf(Blocks.CLAY) || st.isOf(Blocks.DIRT_PATH)) return Surface.SOFT;
         return Surface.ROAD;
@@ -1119,6 +1120,10 @@ public class VehicleEntity extends Entity {
         float max = type.maxSpeed;
         float grip = 0.8f;
         switch (surf) {
+            case TRACK -> {                                               // packed dirt: a bit slower, a bit looser
+                max *= type.offroad ? 0.97f : 0.85f;
+                grip = 0.68f;
+            }
             case SOFT, SNOW -> {
                 max *= type.offroad ? 0.92f : 0.6f;
                 grip = 0.55f;

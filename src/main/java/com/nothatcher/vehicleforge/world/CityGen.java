@@ -713,29 +713,25 @@ public final class CityGen {
         return !(ux < C && uz < C) || countryCell(bx - 1, bz - 1);
     }
 
-    /** a two-lane country road: asphalt, edge lines, a dashed centre line, gravel shoulders, fences and power lines */
+    /** a two-lane dirt road: packed dirt with worn ruts and potholes, grassy shoulders, fences and power lines */
     private void countryRoad(int x, int z, int ux, int uz) {
         boolean ns = ux < C, ew = uz < C;
         set(x, GROUND, z, Blocks.GRASS_BLOCK.getDefaultState());
         if (ns && ew) {                                                      // crossroads
-            if ((ux >= 9 && ux <= 19) || (uz >= 9 && uz <= 19)) set(x, GROUND, z, ASPHALT);
-            else if ((ux >= 7 && ux <= 21) || (uz >= 7 && uz <= 21)) set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            if ((ux >= 9 && ux <= 19) || (uz >= 9 && uz <= 19)) dirtRoad(x, z, -1);
+            else if ((ux >= 7 && ux <= 21) || (uz >= 7 && uz <= 21)) shoulder(x, z);
             if ((ux == 6 || ux == 22) && (uz == 6 || uz == 22)) set(x, BASE, z, CityBlocks.facing(CityBlocks.STOP_SIGN, uz == 6 ? Direction.NORTH : Direction.SOUTH));
             return;
         }
         int u = ns ? ux : uz;
-        int along = ns ? z : x;
         int v = ns ? uz : ux;
-        Direction.Axis axis = ns ? Direction.Axis.Z : Direction.Axis.X;
+        int along = ns ? z : x;
         if (u >= 9 && u <= 19) {
-            BlockState sfc = ASPHALT;
-            if (u == 14 && Math.floorMod(along, 10) < 5) sfc = CityBlocks.axis(CityBlocks.LINE_DOUBLE_YELLOW, axis);
-            else if (u == 9 || u == 19) sfc = CityBlocks.axis(CityBlocks.LINE_WHITE, axis);
-            set(x, GROUND, z, sfc);
+            dirtRoad(x, z, u);
             return;
         }
         if (u == 7 || u == 8 || u == 20 || u == 21) {
-            set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            shoulder(x, z);
             return;
         }
         boolean nearEnd = v < C + 3 || v > CELL - 4;
@@ -750,6 +746,52 @@ public final class CityGen {
         float f = rnd(x, z, 200);
         if (f < 0.12f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
         else if (f < 0.15f) set(x, BASE, z, FLOWERS[hash(x, z, 201) % FLOWERS.length]);
+    }
+
+    /**
+     * One column of dirt road. u is the distance across the road (9 to 19), or -1 at a crossroads.
+     * Packed dirt, with coarse dirt worn into the wheel ruts and the crown, and potholes: dry ones a block deep,
+     * or full of muddy rainwater.
+     */
+    private void dirtRoad(int x, int z, int u) {
+        int hole = pothole(x, z);
+        if (hole == 1) {
+            set(x, GROUND, z, AIR);
+            set(x, GROUND - 1, z, Blocks.COARSE_DIRT.getDefaultState());
+            return;
+        }
+        if (hole == 2) {
+            set(x, GROUND, z, Blocks.WATER.getDefaultState());
+            set(x, GROUND - 1, z, Blocks.MUD.getDefaultState());
+            return;
+        }
+        float f = rnd(x, z, 310);
+        boolean rut = u == 11 || u == 12 || u == 16 || u == 17;
+        boolean crown = u == 14;
+        boolean worn = hole == 3 || f < (rut ? 0.35f : crown ? 0.5f : 0.08f);
+        set(x, GROUND, z, worn ? Blocks.COARSE_DIRT.getDefaultState() : Blocks.DIRT_PATH.getDefaultState());
+    }
+
+    /** gravel and bare dirt mixed into the grass beside a dirt road */
+    private void shoulder(int x, int z) {
+        float f = rnd(x, z, 320);
+        if (f < 0.12f) set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+        else if (f < 0.4f) set(x, GROUND, z, Blocks.COARSE_DIRT.getDefaultState());
+    }
+
+    /**
+     * Potholes are scattered on a 5x5 grid: about one grid square in six holds one, a rough blob one to three
+     * blocks across. 0 = none, 1 = a dry hole, 2 = a hole full of water, 3 = the broken rim around a hole.
+     */
+    private int pothole(int x, int z) {
+        int gx = Math.floorDiv(x, 5), gz = Math.floorDiv(z, 5);
+        if (rnd(gx, gz, 300) >= 0.17f) return 0;
+        float cx = gx * 5 + 1.5f + rnd(gx, gz, 301) * 2f, cz = gz * 5 + 1.5f + rnd(gx, gz, 302) * 2f;
+        float r = 0.6f + rnd(gx, gz, 303) * 1.0f;
+        float dx = x + 0.5f - cx, dz = z + 0.5f - cz;
+        float d2 = dx * dx + dz * dz + (rnd(x, z, 304) - 0.5f) * 0.8f;
+        if (d2 <= r * r) return rnd(gx, gz, 305) < 0.4f ? 2 : 1;
+        return d2 <= (r + 1f) * (r + 1f) ? 3 : 0;
     }
 
     /** the railway embankment and track running east-west through a countryside block */
