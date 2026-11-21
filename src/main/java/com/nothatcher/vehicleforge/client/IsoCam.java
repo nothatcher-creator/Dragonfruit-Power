@@ -131,13 +131,17 @@ public final class IsoCam {
         float hh = zoom;
         // how much nearer the camera the street at the bottom of the screen is than your eyes, plus a margin
         float ground = (float) Math.max(1.5, (hh * COS_P - eyeAboveGround) / SIN_P + 1.5);
-        float back = ground + 4f;
+        // the camera sits well back, so buildings that aren't in the way are left whole (as in Zomboid); not so
+        // far that you end up near the fog at the edge of the render distance
+        int view = net.minecraft.client.MinecraftClient.getInstance().options.getClampedViewDistance() * 16;
+        float far = Math.max(ground + 4f, Math.min(96f, view * 0.45f));
+        float back = far + 2f;
         // look back toward the camera for anything solid in the way
         net.minecraft.util.math.Vec3d toCam = net.minecraft.util.math.Vec3d.fromPolar(PITCH, camYaw).multiply(-1);
         net.minecraft.util.math.BlockPos.Mutable at = new net.minecraft.util.math.BlockPos.Mutable();
         float hit = Float.MAX_VALUE;
         long last = Long.MIN_VALUE;
-        for (float t = 0.3f; t < ground + 0.75f; t += 0.25f) {
+        for (float t = 0.3f; t < far; t += 0.25f) {
             at.set(eye.x + toCam.x * t, eye.y + toCam.y * t, eye.z + toCam.z * t);
             long key = at.asLong();
             if (key == last) continue;
@@ -147,11 +151,13 @@ public final class IsoCam {
                 break;
             }
         }
-        float target = Math.min(Math.max(0.3f, hit - 0.75f), ground);
+        // nothing in the way: the cut stays back by the camera and nothing is sliced
+        float target = hit == Float.MAX_VALUE ? far : Math.min(Math.max(0.3f, hit - 0.75f), far);
         // move in at once (so you're never hidden), ease back out (so walking past things doesn't flicker)
-        cutE = target < cutE || cutE <= 0 ? target : Math.min(target, cutE + (target - cutE) * Math.min(1f, lastDt * 4f) + lastDt * 2f);
+        cutE = target < cutE || cutE <= 0 ? target : Math.min(target, cutE + (target - cutE) * Math.min(1f, lastDt * 4f) + lastDt * 6f);
         float e = cutE;
-        cutSlope = (ground - e) / hh;
+        // close in, the cut leans back so the street at your feet is never cut away; further out it can stand square
+        cutSlope = e < ground ? (ground - e) / hh : 0f;
         cut0 = back - e;
         camDist = back;
         return back;
