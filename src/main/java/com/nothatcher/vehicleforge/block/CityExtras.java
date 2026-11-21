@@ -26,6 +26,11 @@ public final class CityExtras {
 
     private CityExtras() {}
 
+    /** what headlights put on the road ahead at night (no item) */
+    public static final HeadlightBlock HEADLIGHT = Registry.register(Registries.BLOCK, VehicleForge.id("headlight_light"),
+            new HeadlightBlock(net.minecraft.block.AbstractBlock.Settings.create().replaceable().noCollision().dropsNothing().air()
+                    .noBlockBreakParticles().luminance(st -> st.get(HeadlightBlock.LEVEL))));
+
     public static void register() {
         STORAGE_BE = Registry.register(Registries.BLOCK_ENTITY_TYPE, VehicleForge.id("prop_storage"),
                 FabricBlockEntityTypeBuilder.create(PropStorageBlockEntity::new, CityBlocks.STORAGE).build());

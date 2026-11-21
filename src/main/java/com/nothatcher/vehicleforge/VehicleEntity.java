@@ -890,7 +890,28 @@ public class VehicleEntity extends Entity {
         return getY() - 1.5;
     }
 
+    /** at night (or in rain, darkness, underwater) a driven vehicle's headlights light up the road ahead */
+    private void headlights() {
+        if (getControllingPassenger() == null || (age + getId()) % 2 != 0 || !(getWorld() instanceof ServerWorld w)) return;
+        switch (type.category) {
+            case ANIMAL, BALL, BALLOON -> { return; }
+            default -> { }
+        }
+        long t = w.getTimeOfDay() % 24000L;
+        boolean dark = t > 12600 && t < 23400 || w.isRaining() || w.getLightLevel(LightType.SKY, getBlockPos().up()) < 8 || isSubmergedInWater();
+        if (!dark) return;
+        float[] ahead = {2.5f, 7f, 12f, 17f};
+        int[] level = {15, 14, 13, 11};
+        for (int i = 0; i < ahead.length; i++) {
+            Vec3d at = toWorld(0, 0.7, type.frontZ + ahead[i] * Math.max(0.6f, scaleNow));
+            BlockPos p = BlockPos.ofFloored(at);
+            if (!w.getBlockState(p).isAir() && !w.getBlockState(p).isOf(com.nothatcher.vehicleforge.block.CityExtras.HEADLIGHT)) p = p.up();
+            com.nothatcher.vehicleforge.block.CityExtras.HEADLIGHT.shine(w, p, level[i]);
+        }
+    }
+
     private void serverTick() {
+        headlights();
         if (type.interiorRoom && age % 20 == 0) InteriorManager.track(this);
         if (sprayOn()) Weapons.sprayTick(this);
         if (sirenOn() && age % 34 == 0) {

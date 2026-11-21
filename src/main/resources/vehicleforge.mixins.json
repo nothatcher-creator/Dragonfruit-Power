@@ -21,7 +21,8 @@
     "client.VfIsoMouseMixin",
     "client.VfIsoTargetMixin",
     "client.VfIsoClickMixin",
-    "client.VfIsoInputMixin"
+    "client.VfIsoInputMixin",
+    "client.VfIsoScrollMixin"
   ],
   "injectors": {
     "defaultRequire": 1

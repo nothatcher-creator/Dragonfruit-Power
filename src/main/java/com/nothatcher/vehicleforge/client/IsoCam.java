@@ -29,7 +29,7 @@ public final class IsoCam {
     /** true isometric: atan(1 / sqrt 2) */
     public static final float PITCH = 35.264f;
     private static final float COS_P = (float) Math.cos(Math.toRadians(PITCH)), SIN_P = (float) Math.sin(Math.toRadians(PITCH));
-    private static final float MIN_ZOOM = 16f, MAX_ZOOM = 64f;
+    private static final float MIN_ZOOM = 4f, MAX_ZOOM = 80f;
 
     private static boolean active;
     private static float targetYaw = 45f, yaw = 45f;
@@ -168,6 +168,12 @@ public final class IsoCam {
         net.minecraft.block.BlockState st = w.getBlockState(pos);
         if (st.isAir() || !st.isOpaque() || st.isIn(net.minecraft.registry.tag.BlockTags.LEAVES) || st.isIn(net.minecraft.registry.tag.BlockTags.LOGS)) return false;
         return !st.getCollisionShape(w, pos).isEmpty();
+    }
+
+    /** the mouse wheel zooms the isometric view, as in Zomboid (one notch = 15%) */
+    public static void scroll(double amount) {
+        if (amount == 0) return;
+        zoomTarget = MathHelper.clamp(zoomTarget * (float) Math.pow(1.15, -amount), MIN_ZOOM, MAX_ZOOM);
     }
 
     /** the camera's current yaw (movement is relative to it) */

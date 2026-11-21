@@ -354,7 +354,7 @@
   "block.vehicleforge.airport_marker": "Dirt",
   "key.vehicleforge.iso_zoom_in": "Isometric view: zoom in",
   "key.vehicleforge.iso_zoom_out": "Isometric view: zoom out",
-  "msg.vehicleforge.iso_on": "Isometric view: drag to aim, zoom %s / %s, rotate %s / %s, F5 to leave",
+  "msg.vehicleforge.iso_on": "Isometric view: drag to aim, scroll (or %s / %s) to zoom, rotate %s / %s, F5 to leave",
   "key.vehicleforge.iso_rotate_left": "Isometric view: rotate left",
   "key.vehicleforge.iso_rotate_right": "Isometric view: rotate right",
   "msg.vehicleforge.iso.far": "%s (too far: click for options)",
@@ -372,5 +372,6 @@
   "container.vehicleforge.bed": "%s: Cargo",
   "container.vehicleforge.hold": "%s: Cargo Hold",
   "container.vehicleforge.saddlebags": "%s: Saddlebags",
-  "menu.vehicleforge.iso.trunk": "Open %s's trunk"
+  "menu.vehicleforge.iso.trunk": "Open %s's trunk",
+  "block.vehicleforge.headlight_light": "Headlight Beam"
 }
