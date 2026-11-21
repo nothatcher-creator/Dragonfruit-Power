@@ -37,7 +37,7 @@ public class OutbreakTitleScreen extends Screen {
     /** set by "Classic menu": lets the vanilla title screen through for the rest of the session */
     public static boolean classic = false;
     private static boolean firstOpen = true;
-    private static final int TIPS = 15;
+    private static final int TIPS = 16;
 
     private enum Panel { MAIN, PLAY, SETTINGS, EXTRAS }
 

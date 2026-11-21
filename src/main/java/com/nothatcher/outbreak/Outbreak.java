@@ -32,8 +32,8 @@ public class Outbreak implements ModInitializer {
     public static final String MOD_ID = "outbreak";
     public static final Logger LOG = LoggerFactory.getLogger("Outbreak");
 
-    public static GameRules.Key<GameRules.BooleanRule> ZOMBIES, DAYLIGHT, INFECTION;
-    public static GameRules.Key<GameRules.IntRule> CAP, SPRINTERS, AREA_POP;
+    public static GameRules.Key<GameRules.BooleanRule> ZOMBIES, DAYLIGHT, INFECTION, CORPSES;
+    public static GameRules.Key<GameRules.IntRule> CAP, SPRINTERS, AREA_POP, CORPSE_MINUTES, MAX_CORPSES;
 
     public static final Identifier RELOAD = id("reload");
     public static final Identifier SHOVE = id("shove");
@@ -59,6 +59,9 @@ public class Outbreak implements ModInitializer {
         INFECTION = GameRuleRegistry.register("outbreakInfection", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
         CAP = GameRuleRegistry.register("outbreakMaxZombies", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(30, 0, 400));
         SPRINTERS = GameRuleRegistry.register("outbreakSprinterChance", GameRules.Category.MOBS, GameRuleFactory.createIntRule(3, 0, 100));
+        CORPSES = GameRuleRegistry.register("outbreakCorpses", GameRules.Category.MOBS, GameRuleFactory.createBooleanRule(true));
+        CORPSE_MINUTES = GameRuleRegistry.register("outbreakCorpseMinutes", GameRules.Category.MOBS, GameRuleFactory.createIntRule(20, 0, 10000));
+        MAX_CORPSES = GameRuleRegistry.register("outbreakMaxCorpses", GameRules.Category.MOBS, GameRuleFactory.createIntRule(40, 1, 1000));
         AREA_POP = GameRuleRegistry.register("outbreakAreaPopulation", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(60, 1, 2000));
 
         for (String s : new String[]{"pistol_fire", "shotgun_fire", "rifle_fire", "smg_fire", "silenced_fire", "revolver_fire", "sniper_fire", "reload", "empty_click"}) {
@@ -76,6 +79,7 @@ public class Outbreak implements ModInitializer {
             Actions.tick(w);
             Airport.tick();
             CarKeys.tick();
+            Flashlights.tick(w);
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(CarKeys::onLoad);

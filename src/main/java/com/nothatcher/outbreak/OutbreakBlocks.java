@@ -100,6 +100,11 @@ public final class OutbreakBlocks {
 
     public static final Feature<DefaultFeatureConfig> OVERRUN = new OverrunFeature(DefaultFeatureConfig.CODEC);
 
+    /** a flashlight's invisible light (no item; it cleans itself up) */
+    public static final Block FLASHLIGHT_LIGHT = net.minecraft.registry.Registry.register(net.minecraft.registry.Registries.BLOCK,
+            Outbreak.id("flashlight_light"), new FlashlightLightBlock(net.minecraft.block.AbstractBlock.Settings.create()
+                    .replaceable().noCollision().dropsNothing().air().luminance(s -> 14).noBlockBreakParticles()));
+
     private OutbreakBlocks() {}
 
     private static Block reg(String name, Block b) {

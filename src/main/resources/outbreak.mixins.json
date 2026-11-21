@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "LivingEntityMixin",
-    "ZombieEntityMixin"
+    "ZombieEntityMixin",
+    "CorpseDropMixin",
+    "CorpseStackMixin"
   ],
   "client": [
     "client.ClientPlayerFovMixin",
@@ -15,7 +17,8 @@
     "client.TitleSwapMixin",
     "client.ScreenBackgroundMixin",
     "client.ListBackgroundMixin",
-    "client.GradeMixin"
+    "client.GradeMixin",
+    "client.DarkNightMixin"
   ],
   "injectors": {
     "defaultRequire": 1

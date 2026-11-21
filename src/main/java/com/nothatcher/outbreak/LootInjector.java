@@ -109,6 +109,7 @@ public final class LootInjector {
     private static void city(String kind, LootTable.Builder t) {
         switch (kind) {
             case "house", "apartment" -> {
+                new P(0, 1, 9).add(FLASHLIGHT, 1, 1, 1).into(t);
                 food(1, 3, 4).into(t);
                 meds(0, 1, 6).into(t);
                 homeDefence(18).into(t);
@@ -124,7 +125,7 @@ public final class LootInjector {
             case "mail" -> new P(0, 1, 10).add(DUCT_TAPE, 2, 1, 1).add(ELECTRONICS, 1, 1, 1).add(BANDAGE, 2, 1, 1).into(t);
             case "bunker" -> {
                 new P(2, 4, 1).add(MRE, 8, 1, 3).add(BOTTLED_WATER, 8, 2, 4).add(CANNED_BEANS, 5, 1, 3).add(FIRST_AID_KIT, 3, 1, 1)
-                        .add(ANTIBIOTICS, 3, 1, 2).add(AMMO_9MM, 5, 8, 24).add(AMMO_SHELLS, 4, 4, 12).add(DUCT_TAPE, 3, 1, 3).add(CAR_BATTERY, 2, 1, 1).into(t);
+                        .add(ANTIBIOTICS, 3, 1, 2).add(AMMO_9MM, 5, 8, 24).add(AMMO_SHELLS, 4, 4, 12).add(DUCT_TAPE, 3, 1, 3).add(CAR_BATTERY, 2, 1, 1).add(FLASHLIGHT, 3, 1, 1).into(t);
                 new P(0, 1, 3).gun(SHOTGUN, 3).gun(PISTOL, 3).gun(HUNTING_RIFLE, 2).add(GAS_MASK, 2, 1, 1).into(t);
             }
             case "bunker_vault" -> new P(2, 4, 0).gun(ASSAULT_RIFLE, 3).gun(SNIPER_RIFLE, 2).gun(LIGHT_MACHINE_GUN, 1).add(KEVLAR_VEST, 3, 1, 1)
@@ -148,6 +149,7 @@ public final class LootInjector {
                     .add(MACHETE, 3, 1, 1).add(RAG, 3, 1, 3).add(CANNED_TUNA, 3, 1, 2).add(BEANIE, 2, 1, 1).into(t);
             case "garage" -> {
                 mats(1, 3, 3).into(t);
+                new P(0, 1, 3).add(FLASHLIGHT, 1, 1, 1).add(CAR_BATTERY, 1, 1, 1).into(t);
                 new P(1, 2, 3).add(CROWBAR, 6, 1, 1).add(SLEDGEHAMMER, 4, 1, 1).add(PIPE_WRENCH, 6, 1, 1).add(CLAW_HAMMER, 6, 1, 1)
                         .add(FIRE_AXE, 2, 1, 1).add(HARD_HAT, 3, 1, 1).add(WORK_BOOTS, 3, 1, 1).add(GOLF_CLUB, 3, 1, 1)
                         .add(HOCKEY_STICK, 3, 1, 1).add(BOTTLED_WATER, 4, 1, 3).into(t);
@@ -167,6 +169,7 @@ public final class LootInjector {
                 new P(0, 1, 8).add(GUN_PARTS, 5, 1, 2).add(KEVLAR_VEST, 1, 1, 1).add(TACTICAL_HELMET, 1, 1, 1).add(PIPE_BOMB, 1, 1, 2)
                         .add(NIGHT_VISION_GOGGLES, 1, 1, 1).into(t);
                 meds(0, 1, 4).into(t);
+                new P(0, 1, 2).add(FLASHLIGHT, 1, 1, 1).into(t);
             }
             case "hospital" -> {
                 meds(2, 4, 2).into(t);
