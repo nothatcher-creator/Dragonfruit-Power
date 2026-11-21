@@ -126,7 +126,7 @@ public final class CarKeys {
 
         // lock or unlock with its key
         if (p.isSneaking() && CarKeyItem.fits(held, car)) {
-            if (locked) car.removeCommandTag(LOCKED);
+            if (locked) car.removeScoreboardTag(LOCKED);
             else car.addCommandTag(LOCKED);
             w.playSound(null, car.getX(), car.getY(), car.getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, SoundCategory.PLAYERS, 0.5f, locked ? 1.6f : 1.3f);
             tell(p, locked ? "msg.outbreak.car_unlock" : "msg.outbreak.car_lock", Formatting.GRAY);
@@ -134,7 +134,7 @@ public final class CarKeys {
         }
         if (locked && !hasKey(p, car)) {
             if (p.isSneaking() && Actions.isTool(held)) {                 // break in
-                car.removeCommandTag(LOCKED);
+                car.removeScoreboardTag(LOCKED);
                 w.playSound(null, car.getX(), car.getY(), car.getZ(), SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1.0f, 0.9f);
                 Noise.emit(w, car.getPos(), 24);
                 held.damage(2, p, pl -> pl.sendToolBreakStatus(Hand.MAIN_HAND));
