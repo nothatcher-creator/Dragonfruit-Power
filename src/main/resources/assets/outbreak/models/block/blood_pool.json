@@ -1,0 +1,33 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "outbreak:block/blood_pool",
+  "t": "outbreak:block/blood_pool"
+ },
+ "elements": [
+  {
+   "from": [
+    -16,
+    0.07,
+    -16
+   ],
+   "to": [
+    32,
+    0.08,
+    32
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/blood_spray",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/blood_spray",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/blood_spray",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/blood_spray",
+    "y": 270
+   }
+  ]
+ }
+}

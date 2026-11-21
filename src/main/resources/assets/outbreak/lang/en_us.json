@@ -273,5 +273,12 @@
   "moodle.outbreak.wet.2": "Wet",
   "moodle.outbreak.wet.3": "Soaking",
   "moodle.outbreak.wet.4": "Drenched",
-  "menu.outbreak.tip.15": "Nights are dark. Find a flashlight."
+  "menu.outbreak.tip.15": "Nights are dark. Find a flashlight.",
+  "block.outbreak.blood_pool": "Blood Pool",
+  "block.outbreak.blood_spray": "Blood Spray",
+  "block.outbreak.blood_drag": "Blood Trail",
+  "block.outbreak.dried_blood": "Dried Blood",
+  "block.outbreak.dirt_scuff": "Dirt Scuff",
+  "block.outbreak.oil_stain": "Oil Stain",
+  "block.outbreak.skid_marks": "Skid Marks"
 }

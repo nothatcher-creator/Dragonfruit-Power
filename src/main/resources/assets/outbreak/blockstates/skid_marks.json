@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/skid_marks",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/skid_marks",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/skid_marks",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/skid_marks",
+    "y": 270
+   }
+  ]
+ }
+}

@@ -85,6 +85,7 @@ public class CorpseEntity extends Entity {
         }
         thinOut(w, c.getPos());
         w.spawnEntity(c);
+        if (w.random.nextFloat() < 0.7f) Blood.splash(w, c.getBlockPos(), OutbreakBlocks.BLOOD_POOL.getDefaultState(), 0);
     }
 
     /** an area keeps at most outbreakMaxCorpses bodies: the oldest go first */

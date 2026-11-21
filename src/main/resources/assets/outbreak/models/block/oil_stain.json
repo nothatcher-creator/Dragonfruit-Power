@@ -1,0 +1,33 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "outbreak:block/oil_stain",
+  "t": "outbreak:block/oil_stain"
+ },
+ "elements": [
+  {
+   "from": [
+    -8,
+    0.05,
+    -8
+   ],
+   "to": [
+    24,
+    0.060000000000000005,
+    24
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}

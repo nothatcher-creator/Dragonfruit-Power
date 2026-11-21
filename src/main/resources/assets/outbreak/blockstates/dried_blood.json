@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/dried_blood",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/dried_blood",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/dried_blood",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/dried_blood",
+    "y": 270
+   }
+  ]
+ }
+}

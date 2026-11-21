@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/dirt_scuff",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/dirt_scuff",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/dirt_scuff",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/dirt_scuff",
+    "y": 270
+   }
+  ]
+ }
+}

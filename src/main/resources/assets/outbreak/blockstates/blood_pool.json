@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/blood_pool",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/blood_pool",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/blood_pool",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/blood_pool",
+    "y": 270
+   }
+  ]
+ }
+}

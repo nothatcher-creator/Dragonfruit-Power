@@ -91,6 +91,22 @@ public final class OutbreakBlocks {
     }
 
     public static final Block BLOOD = reg("blood_splatter", new Decal(decal(MapColor.DARK_RED, BlockSoundGroup.HONEY)));
+    /** big stains: drawn across up to 3x3 blocks, but each is still a single, replaceable, walk-through block */
+    public static final List<Block> BIG_DECALS = new ArrayList<>();
+    public static final Block BLOOD_POOL = big("blood_pool", MapColor.DARK_RED, BlockSoundGroup.HONEY);
+    public static final Block BLOOD_SPRAY = big("blood_spray", MapColor.DARK_RED, BlockSoundGroup.HONEY);
+    public static final Block BLOOD_DRAG = big("blood_drag", MapColor.DARK_RED, BlockSoundGroup.HONEY);
+    public static final Block DRIED_BLOOD = big("dried_blood", MapColor.TERRACOTTA_RED, BlockSoundGroup.HONEY);
+    public static final Block DIRT_SCUFF = big("dirt_scuff", MapColor.DIRT_BROWN, BlockSoundGroup.SAND);
+    public static final Block OIL_STAIN = big("oil_stain", MapColor.BLACK, BlockSoundGroup.HONEY);
+    public static final Block SKID_MARKS = big("skid_marks", MapColor.BLACK, BlockSoundGroup.SAND);
+
+    private static Block big(String name, MapColor c, BlockSoundGroup sound) {
+        Block b = reg(name, new Decal(decal(c, sound)));
+        BIG_DECALS.add(b);
+        return b;
+    }
+
     public static final Block LITTER = reg("litter", new Decal(decal(MapColor.WHITE, BlockSoundGroup.WOOL)));
     public static final Block BROKEN_GLASS = reg("broken_glass", new Decal(decal(MapColor.CLEAR, BlockSoundGroup.GLASS)));
     public static final Block SCORCH = reg("scorch_mark", new Decal(decal(MapColor.BLACK, BlockSoundGroup.SAND)));

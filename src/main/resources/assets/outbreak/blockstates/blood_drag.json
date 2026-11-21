@@ -1,0 +1,22 @@
+{
+ "variants": {
+  "": [
+   {
+    "model": "outbreak:block/blood_drag",
+    "y": 0
+   },
+   {
+    "model": "outbreak:block/blood_drag",
+    "y": 90
+   },
+   {
+    "model": "outbreak:block/blood_drag",
+    "y": 180
+   },
+   {
+    "model": "outbreak:block/blood_drag",
+    "y": 270
+   }
+  ]
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "outbreak:block/blood_spray",
+  "t": "outbreak:block/blood_spray"
+ },
+ "elements": [
+  {
+   "from": [
+    -16,
+    0.11,
+    -16
+   ],
+   "to": [
+    32,
+    0.12,
+    32
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}

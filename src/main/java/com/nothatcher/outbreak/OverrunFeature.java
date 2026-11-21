@@ -48,6 +48,20 @@ public class OverrunFeature extends Feature<DefaultFeatureConfig> {
                 if (!w.getBlockState(below).isSideSolidFullSquare(w, below, Direction.UP)) continue;
                 BlockState put = null;
                 float f = r.nextFloat();
+                boolean road = w.getBlockState(below).getMapColor(w, below) == net.minecraft.block.MapColor.STONE_GRAY
+                        || net.minecraft.registry.Registries.BLOCK.getId(w.getBlockState(below).getBlock()).getPath().startsWith("asphalt");
+                float g = r.nextFloat();
+                if (!smashed && g < 0.026f) {                                // the big stains
+                    BlockState big = g < 0.004f ? OutbreakBlocks.BLOOD_POOL.getDefaultState()
+                            : g < 0.007f ? OutbreakBlocks.BLOOD_SPRAY.getDefaultState()
+                            : g < 0.009f ? OutbreakBlocks.BLOOD_DRAG.getDefaultState()
+                            : g < 0.013f ? OutbreakBlocks.DRIED_BLOOD.getDefaultState()
+                            : g < 0.019f ? OutbreakBlocks.DIRT_SCUFF.getDefaultState()
+                            : road && g < 0.023f ? OutbreakBlocks.OIL_STAIN.getDefaultState()
+                            : road ? OutbreakBlocks.SKID_MARKS.getDefaultState() : OutbreakBlocks.DIRT_SCUFF.getDefaultState();
+                    w.setBlockState(m, big, 2);
+                    continue;
+                }
                 if (smashed || f < 0.006f) put = OutbreakBlocks.BROKEN_GLASS.getDefaultState();
                 else if (f < 0.018f) put = OutbreakBlocks.BLOOD.getDefaultState();
                 else if (f < 0.042f) put = OutbreakBlocks.LITTER.getDefaultState();

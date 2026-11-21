@@ -1,0 +1,33 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "outbreak:block/skid_marks",
+  "t": "outbreak:block/skid_marks"
+ },
+ "elements": [
+  {
+   "from": [
+    -16,
+    0.03,
+    -16
+   ],
+   "to": [
+    32,
+    0.04,
+    32
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}

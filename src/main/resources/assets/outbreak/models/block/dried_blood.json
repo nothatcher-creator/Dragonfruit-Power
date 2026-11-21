@@ -1,0 +1,33 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "particle": "outbreak:block/dried_blood",
+  "t": "outbreak:block/dried_blood"
+ },
+ "elements": [
+  {
+   "from": [
+    -16,
+    0.09,
+    -16
+   ],
+   "to": [
+    32,
+    0.09999999999999999,
+    32
+   ],
+   "shade": false,
+   "faces": {
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#t"
+    }
+   }
+  }
+ ]
+}
