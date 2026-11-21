@@ -367,5 +367,10 @@
   "menu.vehicleforge.iso.break": "Break %s",
   "menu.vehicleforge.iso.place": "Place %s here",
   "menu.vehicleforge.iso.attack": "Attack %s",
-  "menu.vehicleforge.iso.cancel": "Cancel"
+  "menu.vehicleforge.iso.cancel": "Cancel",
+  "container.vehicleforge.trunk": "%s: Trunk",
+  "container.vehicleforge.bed": "%s: Cargo",
+  "container.vehicleforge.hold": "%s: Cargo Hold",
+  "container.vehicleforge.saddlebags": "%s: Saddlebags",
+  "menu.vehicleforge.iso.trunk": "Open %s's trunk"
 }

@@ -3245,6 +3245,9 @@ public final class CityGen {
             pos.set(Math.floor(x), BASE, Math.floor(z));
             if (w.isAir(pos)) w.setBlockState(pos.toImmutable(), CityBlocks.SMOKE_SOURCE.getDefaultState(), Block.NOTIFY_LISTENERS);
         }
+        v.addCommandTag("vehicleforge_parked");                          // the city parked it (Outbreak gives these keys)
+        // something left in the back
+        v.setCargoLoot(new net.minecraft.util.Identifier("vehicleforge", wreck ? "vehicles/wreck" : "vehicles/trunk"), ((long) h << 16) ^ (long) (x * 31 + z));
         if (wreck) {
             v.setWreck(true);
             if ((h >>> 3) % 3 != 0) v.setPaint(BURNT[(h >>> 7) % BURNT.length]);

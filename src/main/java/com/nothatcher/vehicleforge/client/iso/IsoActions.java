@@ -297,6 +297,19 @@ public final class IsoActions {
         });
     }
 
+    /** walk round to the back of a vehicle and open its cargo (a click on the back, as if you'd clicked there) */
+    static void walkAndOpenCargo(MinecraftClient mc, VehicleEntity v) {
+        IsoWalker.start(mc, within(v.cargoPoint(), IsoCursor.reach(mc)), v.cargoPoint(), () -> {
+            if (v.isAlive() && mc.player != null) {
+                Vec3d at = v.cargoPoint();
+                IsoCursor.lookAt(mc.player, at);
+                ActionResult res = mc.interactionManager.interactEntityAtLocation(mc.player, v,
+                        new net.minecraft.util.hit.EntityHitResult(v, at), Hand.MAIN_HAND);
+                if (res.shouldSwingHand()) mc.player.swingHand(Hand.MAIN_HAND);
+            }
+        });
+    }
+
     static void walkTo(MinecraftClient mc, BlockPos spot) {
         IsoWalker.start(mc, feet -> feet.equals(spot), Vec3d.ofBottomCenter(spot), null);
     }

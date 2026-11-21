@@ -263,6 +263,7 @@ public class VehicleEntity extends Entity {
         }
         interiorId = nbt.contains("Interior") ? nbt.getInt("Interior") : -1;
         dataTracker.set(WRECK, nbt.getBoolean("Wreck"));
+        readCargo(nbt);
     }
 
     @Override
@@ -274,6 +275,7 @@ public class VehicleEntity extends Entity {
         nbt.putFloat("Fuel", dataTracker.get(FUEL));
         nbt.putFloat("Scale", dataTracker.get(SCALE));
         nbt.putInt("Interior", interiorId);
+        writeCargo(nbt);
     }
 
     @Override
@@ -452,6 +454,147 @@ public class VehicleEntity extends Entity {
         return super.updatePassengerForDismount(passenger);
     }
 
+    // ------------------------------------------------------------- cargo: the trunk, bed, hold or saddlebags
+
+    /** what's in the back; made on first use, sized to the vehicle */
+    private Cargo cargo;
+    /** loot not yet rolled into the cargo (parked cars in the city), and its seed */
+    private net.minecraft.util.Identifier cargoLoot;
+    private long cargoSeed;
+
+    /** an inventory that only stays open while you're next to the (still existing) vehicle */
+    private final class Cargo extends net.minecraft.inventory.SimpleInventory {
+        Cargo(int size) {
+            super(size);
+        }
+
+        @Override
+        public boolean canPlayerUse(PlayerEntity player) {
+            return isAlive() && player.squaredDistanceTo(VehicleEntity.this) < 100.0;
+        }
+    }
+
+    /** rows of nine: saddlebags on bikes and animals, a trunk on cars, a whole bed or hold on trucks and big craft */
+    public int cargoRows() {
+        switch (type.category) {
+            case BIKE, ANIMAL, BALL, BALLOON -> { return 1; }
+            case TRUCK, RV, TRAIN -> { return 6; }
+            default -> { }
+        }
+        float len = type.frontZ - type.rearZ;
+        float size = type.width * type.height * Math.max(1f, len);
+        return size < 8 ? 2 : size < 30 ? 3 : size < 60 ? 4 : 6;
+    }
+
+    public net.minecraft.inventory.Inventory getCargo() {
+        if (cargo == null) cargo = new Cargo(cargoRows() * 9);
+        return cargo;
+    }
+
+    /** fill the cargo from a loot table the first time it's opened */
+    public void setCargoLoot(net.minecraft.util.Identifier table, long seed) {
+        cargoLoot = table;
+        cargoSeed = seed;
+    }
+
+    private void rollCargoLoot(PlayerEntity opener) {
+        if (cargoLoot == null || !(getWorld() instanceof ServerWorld w)) return;
+        net.minecraft.loot.LootTable table = w.getServer().getLootManager().getLootTable(cargoLoot);
+        cargoLoot = null;
+        net.minecraft.loot.context.LootContextParameterSet params = new net.minecraft.loot.context.LootContextParameterSet.Builder(w)
+                .add(net.minecraft.loot.context.LootContextParameters.ORIGIN, getPos())
+                .luck(opener.getLuck()).add(net.minecraft.loot.context.LootContextParameters.THIS_ENTITY, opener)
+                .build(net.minecraft.loot.context.LootContextTypes.CHEST);
+        table.supplyInventory(getCargo(), params, cargoSeed);
+    }
+
+    private void readCargo(NbtCompound nbt) {
+        cargoLoot = nbt.contains("CargoLoot") ? new net.minecraft.util.Identifier(nbt.getString("CargoLoot")) : null;
+        cargoSeed = nbt.getLong("CargoSeed");
+        if (!nbt.contains("Cargo")) return;
+        net.minecraft.inventory.Inventory inv = getCargo();
+        net.minecraft.nbt.NbtList list = nbt.getList("Cargo", net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+        for (int i = 0; i < list.size(); i++) {
+            NbtCompound e = list.getCompound(i);
+            int slot = e.getByte("Slot") & 255;
+            if (slot < inv.size()) inv.setStack(slot, ItemStack.fromNbt(e));
+        }
+    }
+
+    private void writeCargo(NbtCompound nbt) {
+        if (cargoLoot != null) {
+            nbt.putString("CargoLoot", cargoLoot.toString());
+            nbt.putLong("CargoSeed", cargoSeed);
+        }
+        if (cargo == null) return;
+        net.minecraft.nbt.NbtList list = new net.minecraft.nbt.NbtList();
+        for (int i = 0; i < cargo.size(); i++) {
+            ItemStack st = cargo.getStack(i);
+            if (st.isEmpty()) continue;
+            NbtCompound e = new NbtCompound();
+            e.putByte("Slot", (byte) i);
+            st.writeNbt(e);
+            list.add(e);
+        }
+        nbt.put("Cargo", list);
+    }
+
+    /** does a click at this point (relative to the vehicle) land on the back, where the cargo is? */
+    public boolean atCargo(Vec3d rel) {
+        double yaw = Math.toRadians(getYaw());
+        double along = -rel.x * Math.sin(yaw) + rel.z * Math.cos(yaw);         // + toward the front
+        double len = type.frontZ - type.rearZ;
+        double share = switch (type.category) {
+            case TRUCK -> 0.45;                                                // pickup beds, vans, box trucks
+            case BIKE, ANIMAL, BALL, BALLOON -> 0.35;
+            default -> 0.3;
+        };
+        return along <= type.rearZ + len * share;
+    }
+
+    /** a local point at the back of the vehicle, for opening the cargo without a click position (the iso menu) */
+    public Vec3d cargoPoint() {
+        return toWorld(0, type.height * 0.5, type.rearZ + 0.3);
+    }
+
+    public void openCargo(PlayerEntity player) {
+        if (getWorld().isClient) return;
+        rollCargoLoot(player);
+        int rows = cargoRows();
+        net.minecraft.screen.ScreenHandlerType<net.minecraft.screen.GenericContainerScreenHandler> handler = switch (rows) {
+            case 1 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X1;
+            case 2 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X2;
+            case 3 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X3;
+            case 4 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X4;
+            case 5 -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X5;
+            default -> net.minecraft.screen.ScreenHandlerType.GENERIC_9X6;
+        };
+        String kind = switch (type.category) {
+            case BIKE, ANIMAL, BALL, BALLOON -> "saddlebags";
+            case CAR, MILITARY -> "trunk";
+            case TRUCK -> "bed";
+            default -> "hold";
+        };
+        Text title = Text.translatable("container.vehicleforge." + kind, getName());
+        net.minecraft.inventory.Inventory inv = getCargo();
+        player.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
+                (syncId, playerInv, p) -> new net.minecraft.screen.GenericContainerScreenHandler(handler, syncId, playerInv, inv, rows), title));
+        getWorld().playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN, SoundCategory.NEUTRAL, 0.6f, 0.8f);
+    }
+
+    /** a click on the back of the vehicle opens its cargo; anywhere else gets you in (see interact) */
+    @Override
+    public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
+        if (hand != Hand.MAIN_HAND || player.shouldCancelInteraction() || hasPassenger(player)) return ActionResult.PASS;
+        ItemStack stack = player.getStackInHand(hand);
+        // items that do something to the vehicle itself take priority
+        if (stack.getItem() instanceof DyeItem || stack.isOf(ModRegistry.FUEL_CAN) || stack.isOf(Items.IRON_INGOT)
+                || stack.isOf(ModRegistry.CARRIAGE_ITEM) || (type.category == Category.ANIMAL && stack.isOf(Items.WHEAT))) return ActionResult.PASS;
+        if (!atCargo(hitPos)) return ActionResult.PASS;
+        openCargo(player);
+        return ActionResult.success(getWorld().isClient);
+    }
+
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
@@ -535,6 +678,7 @@ public class VehicleEntity extends Entity {
 
     /** drop = broken up by a player (gives the item back); otherwise it's a wreck and goes up in flames */
     private void destroy(boolean drop, boolean quiet) {
+        if (cargo != null) net.minecraft.util.ItemScatterer.spawn(getWorld(), this, cargo);   // whatever was in the back
         if (drop && isWreck()) {
             dropStack(new ItemStack(Items.IRON_INGOT, 1 + random.nextInt(3)));   // scrap, not a free car
         } else if (drop) {

@@ -43,6 +43,9 @@ public class IsoMenuScreen extends Screen {
         var mc = client;
         if (entity != null) {
             title = entity.getDisplayName();
+            if (entity instanceof com.nothatcher.vehicleforge.VehicleEntity ve) {
+                options.add(new Option(Text.translatable("menu.vehicleforge.iso.trunk", entity.getDisplayName()), () -> IsoActions.walkAndOpenCargo(mc, ve)));
+            }
             if (IsoActions.usable(entity)) {
                 options.add(new Option(Text.translatable("menu.vehicleforge.iso.use", entity.getDisplayName()), () -> IsoActions.walkAndUseEntity(mc, entity)));
             }
