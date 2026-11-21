@@ -18,7 +18,13 @@ public abstract class VfIsoProjectionMixin {
         MinecraftClient mc = MinecraftClient.getInstance();
         float aspect = (float) mc.getWindow().getFramebufferWidth() / Math.max(1, mc.getWindow().getFramebufferHeight());
         float hh = IsoCam.halfHeight(), hw = hh * aspect;
-        float far = Math.max(256f, ((GameRenderer) (Object) this).getFarPlaneDistance());
-        cir.setReturnValue(new Matrix4f().setOrtho(-hw, hw, -hh, hh, 0.05f, far));
+        float range = Math.max(256f, ((GameRenderer) (Object) this).getFarPlaneDistance()) + IsoCam.camDist;
+        // orthographic, but with the near plane replaced by IsoCam's cut: depth (-z) is clipped where it's less
+        // than cut0 + cutSlope * y, and the far plane sits `range` beyond that
+        Matrix4f m = new Matrix4f().setOrtho(-hw, hw, -hh, hh, IsoCam.cut0, IsoCam.cut0 + range);
+        m.m12(-2f * IsoCam.cutSlope / range);
+        m.m22(-2f / range);
+        m.m32(-2f * IsoCam.cut0 / range - 1f);
+        cir.setReturnValue(m);
     }
 }

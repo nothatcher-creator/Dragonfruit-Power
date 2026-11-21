@@ -16,9 +16,10 @@ import org.lwjgl.glfw.GLFW;
  * A fourth F5 view: true isometric. The camera looks down at 35.26 degrees along a diagonal, with an orthographic
  * projection (no perspective: things don't shrink with distance, like a classic isometric game).
  *
- * The camera sits a short way back and is pulled in by walls and ceilings like the normal third-person camera.
- * Because the projection is orthographic, pulling it in doesn't zoom anything; it just moves the near clipping
- * plane, which slices away whatever is between the camera and you (the roof over your head, the tower in front).
+ * With no perspective the camera can sit anywhere along its line without changing the picture, so it stays back
+ * out of the way and a clipping cut (see {@link #place}) slices off whatever is between it and you: the roof over
+ * your head, the near side of a tower. The cut leans back toward level as it moves in, so the street at your feet
+ * is never cut away.
  *
  * It turns in 90-degree steps to keep the diagonal closest to the way you're facing, so forward on the keys stays
  * roughly up the screen. Zoom with the zoom keys (= and - by default).
@@ -26,16 +27,24 @@ import org.lwjgl.glfw.GLFW;
 public final class IsoCam {
     /** true isometric: atan(1 / sqrt 2) */
     public static final float PITCH = 35.264f;
-    /** how far back the camera sits before walls pull it in */
-    public static final double DIST = 28.0;
+    private static final float COS_P = (float) Math.cos(Math.toRadians(PITCH)), SIN_P = (float) Math.sin(Math.toRadians(PITCH));
     private static final float MIN_ZOOM = 16f, MAX_ZOOM = 64f;
 
     private static boolean active;
     private static float targetYaw = 45f, yaw = 45f;
     private static float zoomTarget = 20f, zoom = 20f;
     private static long lastNanos;
-    /** how far the camera actually ended up from you this frame (fog is pushed back by this much) */
-    public static float camDist = (float) DIST;
+    /** how far the camera sits back from your eyes this frame (fog is pushed back by this much) */
+    public static float camDist = 30f;
+    /**
+     * The cut that slices away whatever is between the camera and you, as used by the projection: depth from the
+     * camera at the middle of the screen, and how much deeper it gets per block up the screen. With nothing in the
+     * way it's square to the view and well short of the street. When something is in the way it moves in to just
+     * short of it and leans back toward level, so it takes off what's above and in front of you (roofs, upper floors,
+     * the near side of a tower) without ever dipping into the ground at your feet.
+     */
+    public static float cut0 = 2f, cutSlope = 0f;
+    private static float cutE = 0f, lastDt = 0f;
 
     private static KeyBinding zoomIn, zoomOut;
 
@@ -84,6 +93,7 @@ public final class IsoCam {
         yaw = targetYaw;
         zoom = zoomTarget;
         lastNanos = 0;
+        cutE = 0f;
         if (mc.inGameHud != null) {
             mc.inGameHud.setOverlayMessage(Text.translatable("msg.vehicleforge.iso_on",
                     zoomIn.getBoundKeyLocalizedText(), zoomOut.getBoundKeyLocalizedText()).formatted(Formatting.GRAY), false);
@@ -101,11 +111,54 @@ public final class IsoCam {
         while (zoomOut.wasPressed()) if (active) zoomTarget = Math.min(MAX_ZOOM, zoomTarget * 1.25f);
     }
 
+    /**
+     * Per frame: where the camera goes and where the cut sits. {@code eye} is where you look from;
+     * {@code eyeAboveGround} is how high that is above what you're standing on (or the vehicle's bottom).
+     * Returns how far back from the eye to put the camera.
+     */
+    public static double place(net.minecraft.world.World w, net.minecraft.util.math.Vec3d eye, float camYaw, double eyeAboveGround) {
+        float hh = zoom;
+        // how much nearer the camera the street at the bottom of the screen is than your eyes, plus a margin
+        float ground = (float) Math.max(1.5, (hh * COS_P - eyeAboveGround) / SIN_P + 1.5);
+        float back = ground + 4f;
+        // look back toward the camera for anything solid in the way
+        net.minecraft.util.math.Vec3d toCam = net.minecraft.util.math.Vec3d.fromPolar(PITCH, camYaw).multiply(-1);
+        net.minecraft.util.math.BlockPos.Mutable at = new net.minecraft.util.math.BlockPos.Mutable();
+        float hit = Float.MAX_VALUE;
+        long last = Long.MIN_VALUE;
+        for (float t = 0.3f; t < ground + 0.75f; t += 0.25f) {
+            at.set(eye.x + toCam.x * t, eye.y + toCam.y * t, eye.z + toCam.z * t);
+            long key = at.asLong();
+            if (key == last) continue;
+            last = key;
+            if (blocks(w, at)) {
+                hit = t;
+                break;
+            }
+        }
+        float target = Math.min(Math.max(0.3f, hit - 0.75f), ground);
+        // move in at once (so you're never hidden), ease back out (so walking past things doesn't flicker)
+        cutE = target < cutE || cutE <= 0 ? target : Math.min(target, cutE + (target - cutE) * Math.min(1f, lastDt * 4f) + lastDt * 2f);
+        float e = cutE;
+        cutSlope = (ground - e) / hh;
+        cut0 = back - e;
+        camDist = back;
+        return back;
+    }
+
+    /** solid things you can't see through; leaves, glass, posts and the like don't count */
+    private static boolean blocks(net.minecraft.world.World w, net.minecraft.util.math.BlockPos pos) {
+        net.minecraft.block.BlockState st = w.getBlockState(pos);
+        if (st.isAir() || !st.isOpaque() || st.isIn(net.minecraft.registry.tag.BlockTags.LEAVES) || st.isIn(net.minecraft.registry.tag.BlockTags.LOGS)) return false;
+        return !st.getCollisionShape(w, pos).isEmpty();
+    }
+
     /** per frame: ease the turn and the zoom */
     public static float frameYaw(Entity focused, float tickDelta) {
         long now = System.nanoTime();
         float dt = lastNanos == 0 ? 0f : Math.min(0.1f, (now - lastNanos) / 1.0e9f);
         lastNanos = now;
+        lastDt = dt;
         float facing = focused.getYaw(tickDelta);
         // a little past the halfway point before it turns, so it doesn't flick back and forth
         if (Math.abs(MathHelper.wrapDegrees(facing - targetYaw)) > 60f) targetYaw = nearestDiagonal(facing);
