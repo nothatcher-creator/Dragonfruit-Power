@@ -52,6 +52,7 @@ public final class OutbreakItems {
     // melee
     public static final Item BASEBALL_BAT = reg("baseball_bat", new SwordItem(ToolMaterials.WOOD, 4, -2.7f, new Item.Settings().maxDamage(160)));
     public static final Item SPIKED_BAT = reg("spiked_bat", new SwordItem(ToolMaterials.WOOD, 6, -2.8f, new Item.Settings().maxDamage(220)));
+    public static final Item CAR_KEY = reg("car_key", new CarKeyItem(new Item.Settings().maxCount(1)));
     public static final Item CROWBAR = reg("crowbar", new SwordItem(ToolMaterials.IRON, 2, -2.5f, new Item.Settings().maxDamage(700)));
     public static final Item MACHETE = reg("machete", new SwordItem(ToolMaterials.IRON, 4, -2.3f, new Item.Settings().maxDamage(380)));
     public static final Item SLEDGEHAMMER = reg("sledgehammer", new SwordItem(ToolMaterials.IRON, 8, -3.3f, new Item.Settings().maxDamage(300)));

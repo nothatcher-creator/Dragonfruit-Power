@@ -220,7 +220,7 @@
   "guide.outbreak.3.title": "Actions",
   "guide.outbreak.3.body": "Open the action menu with Left Alt, or Ctrl while standing still. From it you can search, loot all, smash windows, cook, craft, salvage, rip clothes into rags and listen.\nTimed actions stop if you move or get hurt.\nShove (B) knocks a zombie back. Reload with R.",
   "guide.outbreak.4.title": "Scavenging",
-  "guide.outbreak.4.body": "Cupboards, fridges, mailboxes, cars and luggage all hold loot.\nWith a tool you can salvage cars for scrap, gun parts and batteries, and strip computers and TVs for electronics.\nRags become bandages; scrap, nails and duct tape become better weapons and armour.",
+  "guide.outbreak.4.body": "Cupboards, fridges, mailboxes, cars and luggage all hold loot.\nWith a tool you can salvage cars for scrap, gun parts and batteries, and strip computers and TVs for electronics.\nRags become bandages; scrap, nails and duct tape become better weapons and armour.\nMost parked cars still have their keys in them. Locked ones have their key close by: on a zombie, or on the ground. Sneak and use a crowbar or hammer to smash a window instead.",
   "guide.outbreak.5.title": "Crafting tiers",
   "guide.outbreak.5.body": "Start makeshift: bandages, nail boards, spears and bats.\nThen reinforced bats, scrap armour and spiked weapons.\nAt the top: Kevlar vests, tactical helmets, night vision goggles, pipe bombs, molotovs, and guns built from gun parts.",
   "guide.outbreak.6.title": "Clearing an area",
@@ -229,5 +229,14 @@
   "guide.outbreak.7.body": "The airport fell early and is packed with the dead: a fixed horde, and nothing new ever spawns there. Kill them all and it's yours for good.\nListen tells you how many are left. The hangars are worth the trip.",
   "guide.outbreak.8.title": "Power",
   "guide.outbreak.8.body": "The city grid is down. Lights, TVs, vending machines, ATMs and stoves need your own power.\nGenerators run on fuel; solar panels work by day; wind turbines never stop. Batteries store the surplus, and power poles carry it, each within 16 blocks of the next.\nA redstone signal works in a pinch.",
-  "pack.outbreak.zomboid_look": "Outbreak: Zomboid Look"
+  "pack.outbreak.zomboid_look": "Outbreak: Zomboid Look",
+  "item.outbreak.car_key": "Car Key",
+  "item.outbreak.car_key.named": "Car Key (%s)",
+  "item.outbreak.car_key.tip": "Opens its car while it's in your pockets. Sneak and use it on the car to lock or unlock.",
+  "msg.outbreak.car_locked": "Locked. The keys can't be far... a zombie, or on the ground nearby.",
+  "msg.outbreak.car_lock": "Locked.",
+  "msg.outbreak.car_unlock": "Unlocked.",
+  "msg.outbreak.car_smashed": "You smash a window in. That was loud.",
+  "msg.outbreak.keys_in_ignition": "The keys were in the ignition. You pocket them.",
+  "menu.outbreak.tip.14": "Check the zombie. It has the keys."
 }

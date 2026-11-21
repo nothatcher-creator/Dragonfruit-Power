@@ -93,6 +93,15 @@ public final class LootInjector {
                     new P(1, 1, 6).add(net.minecraft.registry.Registries.ITEM.get(can), 2, 1, 1).into(table);
                 mats(0, 2, 4).into(table);
             }
+            else if (ns.equals("vehicleforge") && path.equals("vehicles/trunk")) {
+                // the back of a parked car: road-trip supplies, now and then something useful
+                Identifier can = new Identifier("vehicleforge", "fuel_can");
+                if (net.minecraft.registry.Registries.ITEM.containsId(can))
+                    new P(1, 1, 5).add(net.minecraft.registry.Registries.ITEM.get(can), 2, 1, 1).into(table);
+                new P(1, 1, 3).add(BOTTLED_WATER, 5, 1, 2).add(CHIPS, 4, 1, 2).add(ENERGY_BAR, 3, 1, 2).add(BANDAGE, 3, 1, 2).add(DUCT_TAPE, 2, 1, 1).into(table);
+                mats(0, 2, 4).into(table);
+            }
+            else if (ns.equals("vehicleforge") && path.equals("vehicles/wreck")) mats(0, 1, 3).into(table);
             else if (ns.equals(Identifier.DEFAULT_NAMESPACE)) vanilla(path, table);
         });
     }
