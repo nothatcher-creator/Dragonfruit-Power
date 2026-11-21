@@ -14,7 +14,8 @@
     "client.EntityFogCullMixin",
     "client.TitleSwapMixin",
     "client.ScreenBackgroundMixin",
-    "client.ListBackgroundMixin"
+    "client.ListBackgroundMixin",
+    "client.GradeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

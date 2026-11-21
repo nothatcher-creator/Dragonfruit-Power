@@ -228,5 +228,6 @@
   "guide.outbreak.7.title": "The airport",
   "guide.outbreak.7.body": "The airport fell early and is packed with the dead: a fixed horde, and nothing new ever spawns there. Kill them all and it's yours for good.\nListen tells you how many are left. The hangars are worth the trip.",
   "guide.outbreak.8.title": "Power",
-  "guide.outbreak.8.body": "The city grid is down. Lights, TVs, vending machines, ATMs and stoves need your own power.\nGenerators run on fuel; solar panels work by day; wind turbines never stop. Batteries store the surplus, and power poles carry it, each within 16 blocks of the next.\nA redstone signal works in a pinch."
+  "guide.outbreak.8.body": "The city grid is down. Lights, TVs, vending machines, ATMs and stoves need your own power.\nGenerators run on fuel; solar panels work by day; wind turbines never stop. Batteries store the surplus, and power poles carry it, each within 16 blocks of the next.\nA redstone signal works in a pinch.",
+  "pack.outbreak.zomboid_look": "Outbreak: Zomboid Look"
 }

@@ -38,6 +38,24 @@ public class OutbreakClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        // the built-in "Zomboid Look" pack (on by default; Resource Packs can switch it off) and its colour grade
+        net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer("outbreak").ifPresent(mod ->
+                net.fabricmc.fabric.api.resource.ResourceManagerHelper.registerBuiltinResourcePack(
+                        new net.minecraft.util.Identifier("outbreak", "zomboid_look"), mod,
+                        net.minecraft.text.Text.translatable("pack.outbreak.zomboid_look"),
+                        net.fabricmc.fabric.api.resource.ResourcePackActivationType.DEFAULT_ENABLED));
+        net.fabricmc.fabric.api.resource.ResourceManagerHelper.get(net.minecraft.resource.ResourceType.CLIENT_RESOURCES).registerReloadListener(
+                new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
+                    @Override
+                    public net.minecraft.util.Identifier getFabricId() {
+                        return new net.minecraft.util.Identifier("outbreak", "zomboid_grade");
+                    }
+
+                    @Override
+                    public void reload(net.minecraft.resource.ResourceManager manager) {
+                        ZomboidGrade.reload();
+                    }
+                });
         RELOAD = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.reload", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "category.outbreak"));
         SHOVE = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.shove", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_B, "category.outbreak"));
         ACTIONS = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.actions", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT, "category.outbreak"));
