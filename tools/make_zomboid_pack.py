@@ -2,7 +2,9 @@
 """
 Builds the "Zomboid Look" resource pack that ships inside Outbreak (src/main/resources/resourcepacks/zomboid_look).
 
-Everything here is original, generated artwork: soft, painterly, low-saturation 32x32 textures in a muted palette
+The hand-painted 64px textures (grass, dirt, asphalt, sidewalk, floorboards, bricks, siding, shingles, carpet,
+wallpaper, kitchen tiles, corrugated metal) come from tools/zomboid_src: seamless 256px masters cut from images the
+author generated with ChatGPT. Everything else is generated here: soft, painterly, low-saturation 32x32 textures in a muted palette
 (the feel of Project Zomboid's hand-painted tiles), dull olive grass and foliage colour maps, dark slate UI widgets,
 and a colour-grading post shader (desaturate, warm olive tint, softer contrast, vignette, a little grain).
 
@@ -478,6 +480,48 @@ def widgets():
     return img
 
 
+# ---------------------------------------------------------------- hand-painted textures (tools/zomboid_src)
+# 256px seamless masters cut from images the author generated with ChatGPT; scaled to 64px for the game.
+
+SRC = os.path.join(os.path.dirname(__file__), 'zomboid_src')
+P = 64
+
+
+def painted(name, tint=(1.0, 1.0, 1.0), size=P, desat=0.0):
+    path = os.path.join(SRC, name + '_256.png')
+    if not os.path.exists(path):
+        return None
+    im = Image.open(path).convert('RGB').resize((size, size), Image.LANCZOS)
+    a = np.asarray(im, float)
+    if desat:
+        lum = (a * np.array([0.299, 0.587, 0.114])).sum(axis=2, keepdims=True)
+        a = a * (1 - desat) + lum * desat
+    a = a * np.array(tint)[None, None, :]
+    return np.clip(a, 0, 255)
+
+
+def painted_road(name_mask_paint, seed):
+    """the painted asphalt with Vehicle Forge's lane paint laid over it (same columns as the original)"""
+    base = painted('asphalt')
+    if base is None:
+        return None
+    path, kind, paint = name_mask_paint
+    im = Image.open(path).convert('RGB').resize((P, P), Image.NEAREST)
+    a = np.asarray(im, float)
+    m = (a[..., 0] > 150) & (a[..., 1] > 120) & (a[..., 2] < 110) if kind == 'yellow' else a.mean(axis=2) > 170
+    cols = m.mean(axis=0) > 0.45
+    rng = np.random.default_rng(seed)
+    wear = fbm(P, rng)
+    rgb = base.copy()
+    p = hexc(paint)
+    for x in np.nonzero(cols)[0]:
+        for y in range(P):
+            if wear[y, x] > 0.2:
+                # paint picks up the texture of the road underneath
+                rgb[y, x] = p * (0.78 + 0.22 * base[y, x].mean() / 90.0) * (0.9 + rng.random() * 0.1)
+    return to_img(np.clip(rgb, 0, 255))
+
+
 # ---------------------------------------------------------------- the pack
 
 def main():
@@ -518,6 +562,7 @@ def main():
     # Vehicle Forge's street, repainted with the same paint layout
     VB = os.path.join(VF, 'assets/vehicleforge/textures/block/')
     VO = 'assets/vehicleforge/textures/block/'
+    B = 'assets/minecraft/textures/block/'
     if os.path.isdir(VB):
         out(VO + 'asphalt.png', to_img(asphalt(50)))
         out(VO + 'asphalt_white_line.png', road_line(51, paint_mask(VB + 'asphalt_white_line.png', 'white'), '#d8d6cc'))
@@ -529,8 +574,65 @@ def main():
         out(VO + 'curb.png', smooth_stone(57))
         out(VO + 'curb_side.png', smooth_stone(58))
 
-    # dull olive grass and foliage everywhere
-    out('assets/minecraft/textures/colormap/grass.png', colormap('#8d8a52', '#5e6a3c'))
+    # ---- the hand-painted set, where present, replaces the generated textures above
+    grass_tint = None
+    g = painted('grass')
+    if g is not None:
+        # the game multiplies grass by the colour map, so divide the map's colour out of the painting
+        # brighter than the lawn itself, so tall grass and ferns (grey in the game files) come out the same olive
+        grass_tint = (np.percentile(g.reshape(-1, 3), 97, axis=0) * 1.4).clip(60, 255)
+        out(B + 'grass_block_top.png', to_img(g / grass_tint[None, None, :] * 255))
+    d = painted('dirt')
+    if d is not None:
+        out(B + 'dirt.png', to_img(d))
+        if g is not None:
+            rng = np.random.default_rng(41)
+            side = d.copy()
+            over = np.zeros((P, P, 4))
+            depth = (12 + 6 * vnoise(P, 8, rng)[0] + rng.random(P) * 5).astype(int)
+            for x in range(P):
+                for y in range(depth[x]):
+                    c = g[(y * 3) % P, (x * 5) % P]
+                    side[y, x] = c
+                    over[y, x, :3] = np.clip(c / grass_tint * 255, 0, 255)
+                    over[y, x, 3] = 255
+            out(B + 'grass_block_side.png', to_img(side))
+            out(B + 'grass_block_side_overlay.png', Image.fromarray(over.astype(np.uint8), 'RGBA'))
+    for name, targets in {
+        'planks': {'spruce_planks': (1.0, 1.0, 1.0), 'oak_planks': ((1.2, 1.14, 1.04), 0.2), 'birch_planks': ((1.55, 1.52, 1.42), 0.45),
+                   'dark_oak_planks': ((0.72, 0.68, 0.64), 0.1)},
+        'bricks': {'bricks': (1.0, 1.0, 1.0)},
+        'siding': {'light_blue_terracotta': (1.0, 1.0, 1.0)},
+        'shingles': {'deepslate_tiles': (1.0, 1.0, 1.0)},
+        'carpet': {'brown_wool': (1.0, 1.0, 1.0)},
+        'wallpaper': {'pink_terracotta': (1.0, 1.0, 1.0)},
+        'tiles': {'quartz_block_bottom': (1.0, 1.0, 1.0)},
+        'corrugated': {'iron_block': (1.0, 1.0, 1.0)},
+    }.items():
+        for target, tint in targets.items():
+            ds = 0.0
+            if isinstance(tint[0], tuple):
+                tint, ds = tint
+            t = painted(name, tint, desat=ds)
+            if t is not None:
+                out(B + target + '.png', to_img(t))
+    if os.path.isdir(VB):
+        a = painted('asphalt')
+        if a is not None:
+            out(VO + 'asphalt.png', to_img(a))
+            for fname, kind, paint, seed in (('asphalt_white_line', 'white', '#d8d6cc', 61), ('asphalt_yellow_line', 'yellow', '#c9a23e', 62),
+                                             ('asphalt_double_yellow_line', 'yellow', '#c9a23e', 63), ('asphalt_crosswalk', 'white', '#d8d6cc', 64)):
+                out(VO + fname + '.png', painted_road((VB + fname + '.png', kind, paint), seed))
+        sw = painted('sidewalk')
+        if sw is not None:
+            out(VO + 'sidewalk.png', to_img(sw))
+
+    # dull olive grass and foliage everywhere (grass matches the painted lawn when there is one)
+    if grass_tint is not None:
+        gt = '#%02x%02x%02x' % tuple(int(v) for v in grass_tint)
+        out('assets/minecraft/textures/colormap/grass.png', colormap(gt, gt))
+    else:
+        out('assets/minecraft/textures/colormap/grass.png', colormap('#8d8a52', '#5e6a3c'))
     out('assets/minecraft/textures/colormap/foliage.png', colormap('#7f7c48', '#4f5c34'))
 
     # dark slate UI
