@@ -1,0 +1,454 @@
+{
+ "variants": {
+  "boards=0,facing=north,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_0"
+  },
+  "boards=0,facing=north,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_0"
+  },
+  "boards=0,facing=north,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0"
+  },
+  "boards=0,facing=north,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=0,facing=north,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=0,facing=north,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=1,facing=north,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_1"
+  },
+  "boards=1,facing=north,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1"
+  },
+  "boards=1,facing=north,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0"
+  },
+  "boards=1,facing=north,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=1,facing=north,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=1,facing=north,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=2,facing=north,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_2"
+  },
+  "boards=2,facing=north,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1"
+  },
+  "boards=2,facing=north,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1"
+  },
+  "boards=2,facing=north,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=2,facing=north,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=2,facing=north,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=3,facing=north,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_3"
+  },
+  "boards=3,facing=north,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2"
+  },
+  "boards=3,facing=north,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1"
+  },
+  "boards=3,facing=north,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=3,facing=north,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=3,facing=north,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=4,facing=north,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_4"
+  },
+  "boards=4,facing=north,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2"
+  },
+  "boards=4,facing=north,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_2"
+  },
+  "boards=4,facing=north,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=4,facing=north,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=4,facing=north,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal"
+  },
+  "boards=0,facing=east,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_0",
+   "y": 90
+  },
+  "boards=0,facing=east,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_0",
+   "y": 90
+  },
+  "boards=0,facing=east,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 90
+  },
+  "boards=0,facing=east,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=0,facing=east,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=0,facing=east,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_1",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=1,facing=east,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_2",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=2,facing=east,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_3",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=3,facing=east,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_4",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_2",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=4,facing=east,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 90
+  },
+  "boards=0,facing=south,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_0",
+   "y": 180
+  },
+  "boards=0,facing=south,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_0",
+   "y": 180
+  },
+  "boards=0,facing=south,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 180
+  },
+  "boards=0,facing=south,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=0,facing=south,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=0,facing=south,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_1",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=1,facing=south,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_2",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=2,facing=south,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_3",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=3,facing=south,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_4",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_2",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=4,facing=south,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 180
+  },
+  "boards=0,facing=west,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_0",
+   "y": 270
+  },
+  "boards=0,facing=west,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_0",
+   "y": 270
+  },
+  "boards=0,facing=west,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 270
+  },
+  "boards=0,facing=west,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=0,facing=west,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=0,facing=west,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_1",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_0",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=1,facing=west,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_2",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_1",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=2,facing=west,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_3",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_1",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=3,facing=west,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=false,part=single": {
+   "model": "outbreak:block/barricade_single_4",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=false,part=lower": {
+   "model": "outbreak:block/barricade_lower_2",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=false,part=upper": {
+   "model": "outbreak:block/barricade_upper_2",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=true,part=single": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=true,part=lower": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  },
+  "boards=4,facing=west,metal=true,part=upper": {
+   "model": "outbreak:block/barricade_metal",
+   "y": 270
+  }
+ }
+}

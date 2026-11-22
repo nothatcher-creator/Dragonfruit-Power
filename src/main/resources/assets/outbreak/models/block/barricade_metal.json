@@ -1,0 +1,78 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "board": "outbreak:block/barricade_board",
+  "metal": "outbreak:block/barricade_metal",
+  "particle": "outbreak:block/barricade_board"
+ },
+ "elements": [
+  {
+   "from": [
+    -1,
+    0,
+    -1
+   ],
+   "to": [
+    17,
+    16,
+    0
+   ],
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      16,
+      16
+     ],
+     "texture": "#metal"
+    },
+    "south": {
+     "uv": [
+      16,
+      0,
+      0,
+      16
+     ],
+     "texture": "#metal"
+    },
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      1
+     ],
+     "texture": "#metal"
+    },
+    "down": {
+     "uv": [
+      0,
+      15,
+      16,
+      16
+     ],
+     "texture": "#metal"
+    },
+    "east": {
+     "uv": [
+      0,
+      0,
+      1,
+      16
+     ],
+     "texture": "#metal"
+    },
+    "west": {
+     "uv": [
+      15,
+      0,
+      16,
+      16
+     ],
+     "texture": "#metal"
+    }
+   }
+  }
+ ]
+}

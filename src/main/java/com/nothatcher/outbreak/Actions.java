@@ -41,7 +41,8 @@ import java.util.UUID;
 public final class Actions {
     public enum Type {
         USE(0), LOOT_ALL(30), SMASH(8), FILL_BOTTLE(20), ENTER(0), SEARCH_VEHICLE(70), SHOVE(0),
-        RELOAD(0), USE_ITEM(-1), OPEN_BACKPACK(0), LISTEN(30), SALVAGE_VEHICLE(100), SALVAGE_PROP(60), RIP_CLOTHES(30);
+        RELOAD(0), USE_ITEM(-1), OPEN_BACKPACK(0), LISTEN(30), SALVAGE_VEHICLE(100), SALVAGE_PROP(60), RIP_CLOTHES(30),
+        BARRICADE(60), BARRICADE_METAL(100), UNBARRICADE(50);
 
         public final int ticks;
 
@@ -78,6 +79,60 @@ public final class Actions {
         return ItemStack.EMPTY;
     }
 
+    private static int count(net.minecraft.entity.player.PlayerEntity p, Item item) {
+        int n = 0;
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) if (inv.getStack(i).isOf(item)) n += inv.getStack(i).getCount();
+        return n;
+    }
+
+    private static int plankSlot(net.minecraft.entity.player.PlayerEntity p) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size(); i++) if (Barricades.isPlank(inv.getStack(i))) return i;
+        return -1;
+    }
+
+    public static boolean canPry(net.minecraft.entity.player.PlayerEntity p) {
+        return count(p, OutbreakItems.CLAW_HAMMER) > 0 || count(p, OutbreakItems.CROWBAR) > 0;
+    }
+
+    /** what's missing to barricade ("hammer", "planks", "sheet_metal" or "nails"), or null if you have it all */
+    public static String barricadeMissing(net.minecraft.entity.player.PlayerEntity p, boolean metal) {
+        if (count(p, OutbreakItems.CLAW_HAMMER) == 0) return "hammer";
+        if (metal ? count(p, OutbreakItems.SHEET_METAL) == 0 : plankSlot(p) < 0) return metal ? "sheet_metal" : "planks";
+        if (count(p, OutbreakItems.NAILS) < (metal ? Barricades.NAILS_PER_METAL : Barricades.NAILS_PER_BOARD)) return "nails";
+        return null;
+    }
+
+    private static void take(ServerPlayerEntity p, Item item, int n) {
+        var inv = p.getInventory();
+        for (int i = 0; i < inv.size() && n > 0; i++) {
+            ItemStack s = inv.getStack(i);
+            if (!s.isOf(item)) continue;
+            int k = Math.min(n, s.getCount());
+            s.decrement(k);
+            n -= k;
+        }
+    }
+
+    private static void wearHammer(ServerPlayerEntity p, Item first) {
+        var inv = p.getInventory();
+        for (Item it : new Item[]{first, OutbreakItems.CLAW_HAMMER, OutbreakItems.CROWBAR}) {
+            for (int i = 0; i < inv.size(); i++) {
+                ItemStack s = inv.getStack(i);
+                if (s.isOf(it)) {
+                    s.damage(1, p, pl -> pl.sendToolBreakStatus(Hand.MAIN_HAND));
+                    return;
+                }
+            }
+        }
+    }
+
+    /** start an action from outside the menu (sneak-using a hammer on a door or window) */
+    public static void begin(ServerPlayerEntity p, Type t, BlockPos pos) {
+        start(p, t, pos, -1, -1);
+    }
+
     public static String propName(BlockState st) {
         net.minecraft.util.Identifier id = net.minecraft.registry.Registries.BLOCK.getId(st.getBlock());
         return id.getNamespace().equals("vehicleforge") ? id.getPath() : "";
@@ -105,6 +160,26 @@ public final class Actions {
             tell(p, "msg.outbreak.need_tool");
             return;
         }
+        if (t == Type.BARRICADE || t == Type.BARRICADE_METAL) {
+            boolean metal = t == Type.BARRICADE_METAL;
+            if (!(metal ? Barricades.canMetal(p.getWorld(), pos) : Barricades.canBoard(p.getWorld(), pos))) {
+                tell(p, Barricades.isBarricade(p.getWorld(), pos) ? "msg.outbreak.barricade_full" : "msg.outbreak.cant_barricade");
+                return;
+            }
+            String miss = barricadeMissing(p, metal);
+            if (miss != null) {
+                tell(p, "msg.outbreak.need_" + miss);
+                return;
+            }
+            Noise.emit(p.getServerWorld(), Vec3d.ofCenter(pos), 20);                 // hammering is loud from the first nail
+        }
+        if (t == Type.UNBARRICADE) {
+            if (!Barricades.isBarricade(p.getWorld(), pos)) return;
+            if (!canPry(p)) {
+                tell(p, "msg.outbreak.need_pry");
+                return;
+            }
+        }
         int ticks = t == Type.USE_ITEM ? useTicks(p.getInventory().getStack(slot)) : t.ticks;
         cancel(p, false);
         if (ticks <= 0) {
@@ -118,7 +193,7 @@ public final class Actions {
 
     private static boolean valid(ServerPlayerEntity p, Type t, BlockPos pos, int entity, int slot) {
         switch (t) {
-            case USE, LOOT_ALL, SMASH, FILL_BOTTLE, SALVAGE_PROP -> {
+            case USE, LOOT_ALL, SMASH, FILL_BOTTLE, SALVAGE_PROP, BARRICADE, BARRICADE_METAL, UNBARRICADE -> {
                 return p.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) < 49 && p.getWorld().isChunkLoaded(pos);
             }
             case ENTER, SEARCH_VEHICLE, SALVAGE_VEHICLE -> {
@@ -242,6 +317,18 @@ public final class Actions {
                     : Population.of(w).describe(w, p.getBlockPos())).copy().formatted(Formatting.GRAY), true);
             case SALVAGE_VEHICLE -> salvageVehicle(p, w, w.getEntityById(entityId));
             case SALVAGE_PROP -> salvageProp(p, w, pos);
+            case BARRICADE, BARRICADE_METAL -> barricade(p, w, pos, t == Type.BARRICADE_METAL);
+            case UNBARRICADE -> {
+                if (!canPry(p)) return;
+                ItemStack back = Barricades.removeTop(w, pos);
+                if (back.isEmpty()) return;
+                p.getInventory().offerOrDrop(back);
+                wearHammer(p, OutbreakItems.CROWBAR);
+                w.playSound(null, pos, SoundEvents.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, SoundCategory.PLAYERS, 0.4f, 1.6f);
+                Noise.emit(w, Vec3d.ofCenter(pos), 12);
+                if (Barricades.isBarricade(w, pos)) p.sendMessage(Barricades.describe(w, pos).copy().formatted(Formatting.GRAY), true);
+                else tell(p, "msg.outbreak.barricade_removed");
+            }
             case RIP_CLOTHES -> {
                 ItemStack s = p.getInventory().getStack(slot);
                 if (!isRaggable(s)) return;
@@ -250,6 +337,36 @@ public final class Actions {
                 w.playSound(null, p.getX(), p.getY(), p.getZ(), SoundEvents.ENTITY_SHEEP_SHEAR, SoundCategory.PLAYERS, 0.8f, 1.2f);
             }
         }
+    }
+
+    private static void barricade(ServerPlayerEntity p, ServerWorld w, BlockPos pos, boolean metal) {
+        if (barricadeMissing(p, metal) != null) return;
+        Direction side = Barricades.side(w, pos, p);
+        boolean ok;
+        if (metal) {
+            ok = Barricades.addMetal(w, pos, side);
+            if (ok) {
+                take(p, OutbreakItems.SHEET_METAL, 1);
+                take(p, OutbreakItems.NAILS, Barricades.NAILS_PER_METAL);
+            }
+        } else {
+            int slot = plankSlot(p);
+            ItemStack plank = p.getInventory().getStack(slot);
+            ok = Barricades.addBoard(w, pos, side, net.minecraft.registry.Registries.ITEM.getId(plank.getItem()).toString());
+            if (ok) {
+                plank.decrement(1);
+                take(p, OutbreakItems.NAILS, Barricades.NAILS_PER_BOARD);
+            }
+        }
+        if (!ok) {
+            tell(p, "msg.outbreak.cant_barricade");
+            return;
+        }
+        wearHammer(p, OutbreakItems.CLAW_HAMMER);
+        w.playSound(null, pos, metal ? SoundEvents.ENTITY_ZOMBIE_ATTACK_IRON_DOOR : SoundEvents.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR,
+                SoundCategory.PLAYERS, 0.5f, 1.5f);
+        Noise.emit(w, Vec3d.ofCenter(pos), 20);
+        p.sendMessage(Barricades.describe(w, pos).copy().formatted(Formatting.GRAY), true);
     }
 
     static Inventory inventoryAt(ServerWorld w, BlockPos pos) {
@@ -306,6 +423,7 @@ public final class Actions {
         if (r.nextFloat() < 0.3f) give(p, OutbreakItems.ELECTRONICS, 1 + r.nextInt(2));
         if (r.nextFloat() < 0.3f) give(p, OutbreakItems.RAG, 1 + r.nextInt(2));
         if (r.nextFloat() < 0.2f) give(p, OutbreakItems.DUCT_TAPE, 1);
+        if (r.nextFloat() < 0.3f) give(p, OutbreakItems.SHEET_METAL, 1);                 // a door panel or the hood
         wearTool(p);
         w.playSound(null, e.getX(), e.getY(), e.getZ(), SoundEvents.BLOCK_ANVIL_PLACE, SoundCategory.PLAYERS, 0.5f, 1.5f);
         Noise.emit(w, e.getPos(), 20);

@@ -121,6 +121,15 @@ public final class OutbreakBlocks {
             Outbreak.id("flashlight_light"), new FlashlightLightBlock(net.minecraft.block.AbstractBlock.Settings.create()
                     .replaceable().noCollision().dropsNothing().air().luminance(s -> 14).noBlockBreakParticles()));
 
+    /** a barricaded door, window or gap (no item: you build it with a hammer, planks and nails) */
+    public static final Block BARRICADE = Registry.register(Registries.BLOCK, Outbreak.id("barricade"),
+            new BarricadeBlock(AbstractBlock.Settings.create().mapColor(MapColor.OAK_TAN).strength(-1f, 1200f).nonOpaque().dropsNothing()
+                    .sounds(BlockSoundGroup.WOOD).pistonBehavior(PistonBehavior.BLOCK).blockVision((st, w, p) -> false)
+                    .solidBlock((st, w, p) -> false).suffocates((st, w, p) -> false)));
+    public static final net.minecraft.block.entity.BlockEntityType<BarricadeBlockEntity> BARRICADE_BE = Registry.register(
+            Registries.BLOCK_ENTITY_TYPE, Outbreak.id("barricade"),
+            net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder.create(BarricadeBlockEntity::new, BARRICADE).build());
+
     private OutbreakBlocks() {}
 
     private static Block reg(String name, Block b) {

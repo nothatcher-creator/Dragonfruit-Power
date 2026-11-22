@@ -1,0 +1,9 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "board": "outbreak:block/barricade_board",
+  "metal": "outbreak:block/barricade_metal",
+  "particle": "outbreak:block/barricade_board"
+ },
+ "elements": []
+}

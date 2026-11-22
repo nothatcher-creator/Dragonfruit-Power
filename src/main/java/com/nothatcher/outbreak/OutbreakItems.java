@@ -114,6 +114,7 @@ public final class OutbreakItems {
     public static final Item ELECTRONICS = reg("electronics", new Item(new Item.Settings()));
     public static final Item DUCT_TAPE = reg("duct_tape", new Item(new Item.Settings().maxCount(16)));
     public static final Item NAILS = reg("nails", new Item(new Item.Settings()));
+    public static final Item SHEET_METAL = reg("sheet_metal", new Item(new Item.Settings().maxCount(16)));
     public static final Item RAG = reg("rag", new Item(new Item.Settings()));
     public static final Item GUN_PARTS = reg("gun_parts", new Item(new Item.Settings().maxCount(16)));
     public static final Item CAR_BATTERY = reg("car_battery", new Item(new Item.Settings().maxCount(4)));

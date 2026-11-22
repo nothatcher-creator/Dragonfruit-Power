@@ -11,7 +11,7 @@ import java.util.List;
 
 /** The Survival Guide: a few pages on how Outbreak works, flipped with the buttons (or the arrow keys). */
 public class GuideScreen extends Screen {
-    private static final int PAGES = 9;
+    private static final int PAGES = 10;
     private final Screen parent;
     private int page = 0;
     private MenuButton prev, next;

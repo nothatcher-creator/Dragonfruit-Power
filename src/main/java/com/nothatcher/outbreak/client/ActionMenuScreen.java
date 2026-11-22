@@ -112,6 +112,28 @@ public class ActionMenuScreen extends Screen {
                 if (h >= 0 && h < 1) out.add(new Entry(tr("smash"), Actions.Type.SMASH, pos, -1, -1));
             }
         }
+        // barricades: board up a door, window or gap, add planks, or pry them off
+        BlockPos bp = com.nothatcher.outbreak.Barricades.target(mc.world, p, 4.5);
+        if (bp != null) {
+            var w = mc.world;
+            boolean barricaded = com.nothatcher.outbreak.Barricades.isBarricade(w, bp);
+            if (barricaded) title = com.nothatcher.outbreak.Barricades.describe(w, bp);
+            if (com.nothatcher.outbreak.Barricades.canBoard(w, bp)) {
+                String miss = Actions.barricadeMissing(p, false);
+                String key = barricaded ? "add_plank" : "board_up";
+                out.add(new Entry(miss == null ? tr(key) : tr(key + "_need", Text.translatable("need.outbreak." + miss)), Actions.Type.BARRICADE, bp, -1, -1));
+            }
+            if (com.nothatcher.outbreak.Barricades.canMetal(w, bp) && has(p, OutbreakItems.SHEET_METAL) >= 0) {
+                String miss = Actions.barricadeMissing(p, true);
+                out.add(new Entry(miss == null ? tr("cover_metal") : tr("cover_metal_need", Text.translatable("need.outbreak." + miss)),
+                        Actions.Type.BARRICADE_METAL, bp, -1, -1));
+            }
+            if (barricaded) {
+                boolean metal = w.getBlockState(com.nothatcher.outbreak.Barricades.master(w, bp)).get(com.nothatcher.outbreak.BarricadeBlock.METAL);
+                String key = metal ? "pry_metal" : "pry_plank";
+                out.add(new Entry(tr(Actions.canPry(p) ? key : key + "_need"), Actions.Type.UNBARRICADE, bp, -1, -1));
+            }
+        }
         // water to fill a bottle from
         HitResult water = p.raycast(4.5, 1f, true);
         if (water instanceof BlockHitResult wh && water.getType() == HitResult.Type.BLOCK

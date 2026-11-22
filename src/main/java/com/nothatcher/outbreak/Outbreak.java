@@ -84,6 +84,18 @@ public class Outbreak implements ModInitializer {
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(CarKeys::onLoad);
         CarKeys.register();
+        // shortcut: sneak and use a claw hammer on a door or window to board it up, or a crowbar to pry a board off
+        net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+            if (hand != net.minecraft.util.Hand.MAIN_HAND || !player.isSneaking() || player.isSpectator()) return net.minecraft.util.ActionResult.PASS;
+            ItemStack s = player.getMainHandStack();
+            var pos = hit.getBlockPos();
+            Actions.Type t = null;
+            if (s.isOf(OutbreakItems.CLAW_HAMMER) && Barricades.canBoard(world, pos)) t = Actions.Type.BARRICADE;
+            else if (s.isOf(OutbreakItems.CROWBAR) && Barricades.isBarricade(world, pos)) t = Actions.Type.UNBARRICADE;
+            if (t == null) return net.minecraft.util.ActionResult.PASS;
+            if (player instanceof net.minecraft.server.network.ServerPlayerEntity sp) Actions.begin(sp, t, pos);
+            return net.minecraft.util.ActionResult.SUCCESS;
+        });
         Blood.register();
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (entity instanceof ZombieEntity && entity.getWorld() instanceof ServerWorld sw)

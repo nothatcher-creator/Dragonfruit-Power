@@ -66,6 +66,8 @@ public class OutbreakClient implements ClientModInitializer {
                 net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
         for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
         for (Block b : OutbreakBlocks.BIG_DECALS) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getTranslucent());
+        BlockRenderLayerMap.INSTANCE.putBlock(OutbreakBlocks.BARRICADE, RenderLayer.getCutout());
+        net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(OutbreakBlocks.BARRICADE_BE, ctx -> new BarricadeRenderer());
 
         ClientTickEvents.END_CLIENT_TICK.register(OutbreakHud::tick);
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {

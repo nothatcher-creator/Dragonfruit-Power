@@ -1,0 +1,223 @@
+{
+ "ambientocclusion": false,
+ "textures": {
+  "board": "outbreak:block/barricade_board",
+  "metal": "outbreak:block/barricade_metal",
+  "particle": "outbreak:block/barricade_board"
+ },
+ "elements": [
+  {
+   "from": [
+    -1,
+    9,
+    -1.5
+   ],
+   "to": [
+    17,
+    12,
+    0.0
+   ],
+   "rotation": {
+    "origin": [
+     8,
+     10.5,
+     -0.75
+    ],
+    "axis": "z",
+    "angle": 22.5
+   },
+   "faces": {
+    "north": {
+     "uv": [
+      0,
+      0,
+      16,
+      3
+     ],
+     "texture": "#board"
+    },
+    "south": {
+     "uv": [
+      16,
+      0,
+      0,
+      3
+     ],
+     "texture": "#board"
+    },
+    "up": {
+     "uv": [
+      0,
+      0,
+      16,
+      1.5
+     ],
+     "texture": "#board"
+    },
+    "down": {
+     "uv": [
+      0,
+      1.5,
+      16,
+      3
+     ],
+     "texture": "#board"
+    },
+    "east": {
+     "uv": [
+      0,
+      0,
+      1.5,
+      3
+     ],
+     "texture": "#board"
+    },
+    "west": {
+     "uv": [
+      0,
+      0,
+      1.5,
+      3
+     ],
+     "texture": "#board"
+    }
+   }
+  },
+  {
+   "from": [
+    0.5,
+    10,
+    -1.9
+   ],
+   "to": [
+    1.5,
+    11,
+    -1.5
+   ],
+   "rotation": {
+    "origin": [
+     8,
+     10.5,
+     -0.75
+    ],
+    "axis": "z",
+    "angle": 22.5
+   },
+   "faces": {
+    "north": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "up": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "down": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "east": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "west": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    }
+   }
+  },
+  {
+   "from": [
+    14.5,
+    10,
+    -1.9
+   ],
+   "to": [
+    15.5,
+    11,
+    -1.5
+   ],
+   "rotation": {
+    "origin": [
+     8,
+     10.5,
+     -0.75
+    ],
+    "axis": "z",
+    "angle": 22.5
+   },
+   "faces": {
+    "north": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "up": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "down": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "east": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    },
+    "west": {
+     "uv": [
+      14,
+      14,
+      16,
+      16
+     ],
+     "texture": "#board"
+    }
+   }
+  }
+ ]
+}

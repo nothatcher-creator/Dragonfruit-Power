@@ -35,6 +35,7 @@ public abstract class ZombieEntityMixin extends HostileEntity {
     @Inject(method = "initCustomGoals", at = @At("TAIL"))
     private void outbreak$noiseGoal(CallbackInfo ci) {
         this.goalSelector.add(4, new NoiseGoal((ZombieEntity) (Object) this));
+        this.goalSelector.add(1, new com.nothatcher.outbreak.BarricadeGoal((ZombieEntity) (Object) this));
     }
 
     /** bites can infect: less likely through armour */
