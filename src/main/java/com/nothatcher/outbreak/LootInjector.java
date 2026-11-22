@@ -109,7 +109,8 @@ public final class LootInjector {
     private static void city(String kind, LootTable.Builder t) {
         kind = switch (kind) {                       // Vehicle Forge's newer places stock like the older ones
             case "diner" -> "kitchen";
-            case "motel" -> "house";
+            case "motel", "trailer" -> "house";
+            case "prison" -> "police";
             case "mechanic" -> "garage";
             case "bank", "dealership" -> "office";
             default -> kind;
@@ -129,6 +130,19 @@ public final class LootInjector {
             }
             case "kitchen" -> new P(0, 2, 5).add(KITCHEN_KNIFE, 5, 1, 1).add(FRYING_PAN, 3, 1, 1).add(CANNED_BEANS, 5, 1, 2)
                     .add(CANNED_SOUP, 4, 1, 2).add(CANNED_TUNA, 3, 1, 2).add(RAG, 4, 1, 2).add(DUCT_TAPE, 1, 1, 1).into(t);
+            case "pharmacy" -> {
+                meds(2, 4, 1).into(t);
+                new P(0, 2, 3).add(ANTIBIOTICS, 4, 1, 2).add(FIRST_AID_KIT, 3, 1, 1).add(PAINKILLERS, 5, 1, 3).add(BANDAGE, 5, 2, 4).into(t);
+            }
+            case "gun_store" -> {
+                new P(1, 3, 1).gun(PISTOL, 5).gun(REVOLVER, 3).gun(SHOTGUN, 4).gun(HUNTING_RIFLE, 3).gun(DOUBLE_BARREL, 3).gun(SNIPER_RIFLE, 1).into(t);
+                new P(1, 3, 1).add(AMMO_9MM, 6, 8, 24).add(AMMO_SHELLS, 5, 4, 12).add(AMMO_RIFLE, 4, 6, 16).add(AMMO_MAGNUM, 3, 4, 12).into(t);
+            }
+            case "hardware" -> {
+                new P(1, 3, 2).add(CLAW_HAMMER, 4, 1, 1).add(CROWBAR, 3, 1, 1).add(SLEDGEHAMMER, 2, 1, 1).add(FIRE_AXE, 2, 1, 1).add(PIPE_WRENCH, 3, 1, 1)
+                        .add(NAILS, 8, 6, 24).add(DUCT_TAPE, 6, 1, 3).add(SHEET_METAL, 3, 1, 2).add(FLASHLIGHT, 3, 1, 1).into(t);
+                mats(1, 2, 2).into(t);
+            }
             case "mail" -> new P(0, 1, 10).add(DUCT_TAPE, 2, 1, 1).add(ELECTRONICS, 1, 1, 1).add(BANDAGE, 2, 1, 1).into(t);
             case "bunker" -> {
                 new P(2, 4, 1).add(MRE, 8, 1, 3).add(BOTTLED_WATER, 8, 2, 4).add(CANNED_BEANS, 5, 1, 3).add(FIRST_AID_KIT, 3, 1, 1)
