@@ -83,6 +83,7 @@ public class Outbreak implements ModInitializer {
             Flashlights.tick(w);
             Events.tick(w);
             Characters.tick(w);
+            Skills.tick(w);
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(CarKeys::onLoad);
@@ -103,6 +104,10 @@ public class Outbreak implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (entity instanceof ZombieEntity && entity.getWorld() instanceof ServerWorld sw)
                 Population.of(sw).onKill(sw, entity.getBlockPos());
+            if (entity instanceof net.minecraft.entity.mob.HostileEntity && source.getAttacker() instanceof net.minecraft.server.network.ServerPlayerEntity killer) {
+                boolean gun = killer.getMainHandStack().getItem() instanceof GunItem;
+                Skills.add(killer, gun ? Skills.Skill.AIMING : Skills.Skill.MELEE, gun ? 3 : 8);
+            }
             if (entity instanceof ZombieEntity zb && ZombieVariant.of(zb) == ZombieVariant.BLOATER && entity.getWorld() instanceof ServerWorld sw2)
                 Events.burst(sw2, zb);
         });
@@ -112,6 +117,7 @@ public class Outbreak implements ModInitializer {
         net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             Characters.Sheet sh = Characters.get(newPlayer);
             if (sh != null) Characters.apply(newPlayer, sh);
+            Skills.apply(newPlayer);
         });
         ServerPlayNetworking.registerGlobalReceiver(ACTION, (server, player, handler, buf, sender) -> Actions.receive(server, player, buf));
         ServerPlayNetworking.registerGlobalReceiver(RELOAD, (server, player, handler, buf, sender) -> server.execute(() -> {

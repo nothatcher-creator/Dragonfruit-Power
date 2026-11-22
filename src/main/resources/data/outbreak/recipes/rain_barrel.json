@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "S S",
+  "S S",
+  "SBS"
+ ],
+ "key": {
+  "S": {
+   "item": "outbreak:scrap_metal"
+  },
+  "B": {
+   "item": "minecraft:bucket"
+  }
+ },
+ "result": {
+  "item": "outbreak:rain_barrel"
+ }
+}

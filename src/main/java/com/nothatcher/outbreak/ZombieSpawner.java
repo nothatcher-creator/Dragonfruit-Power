@@ -109,7 +109,7 @@ public final class ZombieSpawner {
     private static boolean ok(ServerWorld w, BlockPos at) {
         BlockState below = w.getBlockState(at.down());
         return below.isSideSolidFullSquare(w, at.down(), Direction.UP) && w.isAir(at) && w.isAir(at.up())
-                && w.getFluidState(at).isEmpty() && at.getY() > w.getBottomY();
+                && w.getFluidState(at).isEmpty() && at.getY() > w.getBottomY() && !Skills.Safehouses.inside(w, at);
     }
 
     static void dress(ZombieEntity z, Random r, ServerWorld w) {

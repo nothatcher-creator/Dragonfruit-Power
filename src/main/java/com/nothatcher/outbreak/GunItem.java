@@ -204,7 +204,8 @@ public class GunItem extends Item {
         Noise.emit(w, p.getPos(), noise);
 
         boolean steady = p.isSneaking();
-        float sp = spread * (steady ? (scope ? 0.1f : 0.5f) : 1f) * (p.isSprinting() ? 1.8f : 1f);
+        int aim = Skills.level(p, Skills.Skill.AIMING);
+        float sp = spread * (steady ? (scope ? 0.1f : 0.5f) : 1f) * (p.isSprinting() ? 1.8f : 1f) * (1f - 0.05f * aim);
         for (int i = 0; i < pellets; i++) {
             float pitch = p.getPitch() + (float) w.random.nextGaussian() * sp;
             float yaw = p.getYaw() + (float) w.random.nextGaussian() * sp;
@@ -227,6 +228,9 @@ public class GunItem extends Item {
             float dmg = damage * (float) (1 - 0.35 * eye.distanceTo(hit) / range);
             boolean head = t instanceof LivingEntity le && hit.y > le.getEyeY() - 0.3;
             if (head) dmg *= 2f;
+            dmg *= 1f + 0.04f * aim;
+            if (t instanceof net.minecraft.entity.mob.HostileEntity && p instanceof net.minecraft.server.network.ServerPlayerEntity sp2)
+                Skills.add(sp2, Skills.Skill.AIMING, head ? 3 : 1);
             t.timeUntilRegen = 0;
             t.damage(w.getDamageSources().playerAttack(p), dmg);
             if (t instanceof LivingEntity le) le.takeKnockback(pellets == 1 ? 0.25 : 0.06, -dir.x, -dir.z);

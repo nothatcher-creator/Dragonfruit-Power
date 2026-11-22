@@ -132,6 +132,9 @@ public final class OutbreakBlocks {
 
     private OutbreakBlocks() {}
 
+    public static final Block RAIN_BARREL = reg("rain_barrel", new RainBarrelBlock(AbstractBlock.Settings.create()
+            .mapColor(MapColor.BLUE).strength(1.5f).sounds(BlockSoundGroup.WOOD).nonOpaque()));
+
     private static Block reg(String name, Block b) {
         Registry.register(Registries.BLOCK, Outbreak.id(name), b);
         Registry.register(Registries.ITEM, Outbreak.id(name), new BlockItem(b, new Item.Settings()));

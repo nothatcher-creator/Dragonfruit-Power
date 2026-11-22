@@ -138,6 +138,8 @@ public final class Characters {
         if (server == null) return;
         State st = state(server);
         sendAll(p);
+        Skills.apply(p);
+        Skills.sync(p);
         Sheet sh = st.sheets.get(p.getUuid());
         if (sh != null) {
             apply(p, sh);
@@ -220,6 +222,7 @@ public final class Characters {
         p.setSpawnPoint(w.getRegistryKey(), at, 0f, true, false);
         apply(p, sh);
         kit(p, occ);
+        Skills.startWith(p, occ);
         p.setHealth(p.getMaxHealth());
         p.getHungerManager().setFoodLevel(20);
         w.playSound(null, at, SoundEvents.ENTITY_ZOMBIE_AMBIENT, SoundCategory.HOSTILE, 0.6f, 0.6f);
@@ -399,10 +402,10 @@ public final class Characters {
     public static float actionSpeed(PlayerEntity p, Actions.Type t) {
         String occ = occupation(p);
         return switch (t) {
-            case BARRICADE, BARRICADE_METAL, UNBARRICADE -> occ.equals("construction_worker") ? 0.5f : 1f;
-            case SALVAGE_VEHICLE, SALVAGE_PROP -> occ.equals("mechanic") ? 0.5f : 1f;
-            case SEARCH_VEHICLE, LOOT_ALL -> occ.equals("burglar") ? 0.6f : 1f;
-            case USE_ITEM -> occ.equals("doctor") ? 0.6f : 1f;
+            case BARRICADE, BARRICADE_METAL, UNBARRICADE -> (occ.equals("construction_worker") ? 0.7f : 1f) * Skills.speed(p, Skills.Skill.CARPENTRY);
+            case SALVAGE_VEHICLE, SALVAGE_PROP -> (occ.equals("mechanic") ? 0.7f : 1f) * Skills.speed(p, Skills.Skill.MECHANICS);
+            case SEARCH_VEHICLE, LOOT_ALL -> (occ.equals("burglar") ? 0.75f : 1f) * Skills.speed(p, Skills.Skill.SCAVENGING);
+            case USE_ITEM -> (occ.equals("doctor") ? 0.75f : 1f) * Skills.speed(p, Skills.Skill.FIRST_AID);
             default -> 1f;
         };
     }

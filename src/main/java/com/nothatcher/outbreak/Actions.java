@@ -42,7 +42,7 @@ public final class Actions {
     public enum Type {
         USE(0), LOOT_ALL(30), SMASH(8), FILL_BOTTLE(20), ENTER(0), SEARCH_VEHICLE(70), SHOVE(0),
         RELOAD(0), USE_ITEM(-1), OPEN_BACKPACK(0), LISTEN(30), SALVAGE_VEHICLE(100), SALVAGE_PROP(60), RIP_CLOTHES(30),
-        BARRICADE(60), BARRICADE_METAL(100), UNBARRICADE(50);
+        BARRICADE(60), BARRICADE_METAL(100), UNBARRICADE(50), CLAIM_SAFEHOUSE(40), ABANDON_SAFEHOUSE(0);
 
         public final int ticks;
 
@@ -194,6 +194,9 @@ public final class Actions {
 
     private static boolean valid(ServerPlayerEntity p, Type t, BlockPos pos, int entity, int slot) {
         switch (t) {
+            case CLAIM_SAFEHOUSE, ABANDON_SAFEHOUSE -> {
+                return true;
+            }
             case USE, LOOT_ALL, SMASH, FILL_BOTTLE, SALVAGE_PROP, BARRICADE, BARRICADE_METAL, UNBARRICADE -> {
                 return p.getEyePos().squaredDistanceTo(Vec3d.ofCenter(pos)) < 49 && p.getWorld().isChunkLoaded(pos);
             }
@@ -255,7 +258,21 @@ public final class Actions {
 
     private static void execute(ServerPlayerEntity p, Type t, BlockPos pos, int entityId, int slot) {
         ServerWorld w = p.getServerWorld();
+        // practice makes perfect
         switch (t) {
+            case BARRICADE, BARRICADE_METAL, UNBARRICADE -> Skills.add(p, Skills.Skill.CARPENTRY, 8);
+            case SALVAGE_VEHICLE, SALVAGE_PROP -> Skills.add(p, Skills.Skill.MECHANICS, 8);
+            case SEARCH_VEHICLE, LOOT_ALL -> Skills.add(p, Skills.Skill.SCAVENGING, 4);
+            case USE_ITEM -> {
+                ItemStack s = slot >= 0 && slot < p.getInventory().size() ? p.getInventory().getStack(slot) : ItemStack.EMPTY;
+                if (s.isOf(OutbreakItems.BANDAGE) || s.isOf(OutbreakItems.FIRST_AID_KIT) || s.isOf(OutbreakItems.ANTIBIOTICS) || s.isOf(OutbreakItems.PAINKILLERS))
+                    Skills.add(p, Skills.Skill.FIRST_AID, 6);
+            }
+            default -> { }
+        }
+        switch (t) {
+            case CLAIM_SAFEHOUSE -> Skills.Safehouses.claim(p);
+            case ABANDON_SAFEHOUSE -> Skills.Safehouses.abandon(p);
             case USE -> {
                 BlockState st = w.getBlockState(pos);
                 st.onUse(w, p, Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(pos), Direction.UP, pos, false));

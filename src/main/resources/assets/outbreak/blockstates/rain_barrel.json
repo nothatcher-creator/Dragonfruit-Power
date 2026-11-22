@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "level=0": {
+   "model": "outbreak:block/rain_barrel_0"
+  },
+  "level=1": {
+   "model": "outbreak:block/rain_barrel_1"
+  },
+  "level=2": {
+   "model": "outbreak:block/rain_barrel_2"
+  },
+  "level=3": {
+   "model": "outbreak:block/rain_barrel_3"
+  }
+ }
+}

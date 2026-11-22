@@ -237,7 +237,10 @@ public final class OutbreakHud {
             int solid = w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
             BlockPos at = new BlockPos(x, top, z);
             BlockState s = w.getBlockState(at);
-            if (solid >= groundY + 2) return ((x + z) & 15) == 0 ? 0x6E6EC8 : 0x7878D2;   // a building
+            if (solid >= groundY + 2) {
+                if (SkillsClient.inSafehouse(new BlockPos(x, groundY, z))) return ((x + z) & 7) == 0 ? 0x5E9E5E : 0x6EB46E;   // your safehouse
+                return ((x + z) & 15) == 0 ? 0x6E6EC8 : 0x7878D2;   // a building
+            }
             if (!s.getFluidState().isEmpty()) return 0x5A82BE;
             if (s.isIn(BlockTags.LEAVES)) return 0x6F8C52;
             Identifier bid = Registries.BLOCK.getId(s.getBlock());

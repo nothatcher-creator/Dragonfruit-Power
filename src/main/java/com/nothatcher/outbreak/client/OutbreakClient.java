@@ -67,6 +67,7 @@ public class OutbreakClient implements ClientModInitializer {
         for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
         for (Block b : OutbreakBlocks.BIG_DECALS) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getTranslucent());
         BlockRenderLayerMap.INSTANCE.putBlock(OutbreakBlocks.BARRICADE, RenderLayer.getCutout());
+        net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry.BLOCK.register((st, world, pos, tint) -> 0x3F76E4, OutbreakBlocks.RAIN_BARREL);
         net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(OutbreakBlocks.BARRICADE_BE, ctx -> new BarricadeRenderer());
 
         ClientTickEvents.END_CLIENT_TICK.register(OutbreakHud::tick);
@@ -109,6 +110,7 @@ public class OutbreakClient implements ClientModInitializer {
             });
         });
         CharacterClient.register();
+        SkillsClient.register();
         ClientTickEvents.END_CLIENT_TICK.register(CharacterClient::tick);
         HudRenderCallback.EVENT.register(OutbreakClient::hud);
         HudRenderCallback.EVENT.register(OutbreakHud::render);
