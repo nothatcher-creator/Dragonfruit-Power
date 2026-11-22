@@ -251,6 +251,19 @@ def make(seed, job=None, alive=False):
     return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), 'RGBA')
 
 
+def with_left_limbs(skin):
+    """players (unlike zombies) take their left arm and leg from their own part of a 64x64 skin: mirror the right ones in"""
+    out = skin.copy()
+    for (su, sv), (du, dv) in (((0, 16), (16, 48)), ((40, 16), (32, 48))):
+        src, dst = faces(su, sv, 4, 12, 4), faces(du, dv, 4, 12, 4)
+        for name, (dx, dy, w, h) in dst.items():
+            from_name = {'right': 'left', 'left': 'right'}.get(name, name)
+            sx, sy, _, _ = src[from_name]
+            part = skin.crop((sx, sy, sx + w, sy + h)).transpose(Image.FLIP_LEFT_RIGHT)
+            out.paste(part, (dx, dy))
+    return out
+
+
 def front_view(skin):
     """a quick standing front view for checking: head, body, arms, legs"""
     a = skin
@@ -283,7 +296,7 @@ if __name__ == '__main__':
     os.makedirs(surv, exist_ok=True)
     sv = Image.new('RGBA', (12 * 72, 140), (60, 66, 60, 255))
     for k in range(12):
-        s = make(5000 + k * 53, None, True)
+        s = with_left_limbs(make(5000 + k * 53, None, True))
         s.save(os.path.join(surv, 'survivor_%d.png' % k))
         sv.alpha_composite(front_view(s).resize((64, 128), Image.NEAREST), (k * 72 + 4, 6))
     sv.save('/tmp/survivors.png')

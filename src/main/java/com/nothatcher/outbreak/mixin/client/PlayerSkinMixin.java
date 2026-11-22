@@ -16,4 +16,10 @@ public abstract class PlayerSkinMixin {
         Identifier look = CharacterClient.skin(((AbstractClientPlayerEntity) (Object) this).getUuid());
         if (look != null) cir.setReturnValue(look);
     }
+
+    /** survivor looks are drawn for the wide arm model, so use it even if the player's own skin is slim */
+    @Inject(method = "getModel", at = @At("HEAD"), cancellable = true)
+    private void outbreak$wideArms(CallbackInfoReturnable<String> cir) {
+        if (CharacterClient.skin(((AbstractClientPlayerEntity) (Object) this).getUuid()) != null) cir.setReturnValue("default");
+    }
 }
