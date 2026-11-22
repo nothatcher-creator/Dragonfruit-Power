@@ -35,6 +35,26 @@ public class CivilianZombieRenderer extends ZombieEntityRenderer {
         return TEXTURES[(int) Math.floorMod(h ^ (h >>> 29), (long) SKINS)];
     }
 
+    /** brutes are big, bloaters swollen */
+    @Override
+    protected void scale(ZombieEntity z, net.minecraft.client.util.math.MatrixStack ms, float amount) {
+        super.scale(z, ms, amount);
+        switch (com.nothatcher.outbreak.ZombieVariant.of(z)) {
+            case BRUTE -> ms.scale(1.2f, 1.15f, 1.2f);
+            case BLOATER -> ms.scale(1.4f, 1.02f, 1.35f);
+            default -> { }
+        }
+    }
+
+    /** crawlers lie face down and drag themselves along, like a player swimming */
+    @Override
+    protected void setupTransforms(ZombieEntity z, net.minecraft.client.util.math.MatrixStack ms, float progress, float bodyYaw, float td) {
+        super.setupTransforms(z, ms, progress, bodyYaw, td);
+        if (z.deathTime > 0 || com.nothatcher.outbreak.ZombieVariant.of(z) != com.nothatcher.outbreak.ZombieVariant.CRAWLER) return;
+        ms.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_X.rotationDegrees(-90f));
+        ms.translate(0f, -1.0f, 0.3f);
+    }
+
     @Override
     public Identifier getTexture(ZombieEntity zombie) {
         return skinFor(zombie.getUuid(), com.nothatcher.outbreak.ZombieJob.of(zombie));

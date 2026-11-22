@@ -22,6 +22,11 @@ public enum ZombieJob {
         ZombieJob outbreak$job();
 
         void outbreak$setJob(ZombieJob job);
+
+        /** ZombieVariant ordinal */
+        int outbreak$variant();
+
+        void outbreak$setVariant(int variant);
     }
 
     public String id() {

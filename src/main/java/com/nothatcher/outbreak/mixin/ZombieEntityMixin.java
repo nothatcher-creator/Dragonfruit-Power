@@ -32,21 +32,33 @@ public abstract class ZombieEntityMixin extends HostileEntity implements com.not
 
     @Override
     public com.nothatcher.outbreak.ZombieJob outbreak$job() {
-        return com.nothatcher.outbreak.ZombieJob.byOrdinal(this.dataTracker.get(OUTBREAK_JOB));
+        return com.nothatcher.outbreak.ZombieJob.byOrdinal(this.dataTracker.get(OUTBREAK_JOB) & 15);
     }
 
     @Override
     public void outbreak$setJob(com.nothatcher.outbreak.ZombieJob job) {
-        this.dataTracker.set(OUTBREAK_JOB, job.ordinal());
+        this.dataTracker.set(OUTBREAK_JOB, (this.dataTracker.get(OUTBREAK_JOB) & ~15) | job.ordinal());
+    }
+
+    @Override
+    public int outbreak$variant() {
+        return this.dataTracker.get(OUTBREAK_JOB) >> 4;
+    }
+
+    @Override
+    public void outbreak$setVariant(int variant) {
+        this.dataTracker.set(OUTBREAK_JOB, (this.dataTracker.get(OUTBREAK_JOB) & 15) | (variant << 4));
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void outbreak$saveJob(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
         nbt.putString("OutbreakJob", outbreak$job().id());
+        nbt.putInt("OutbreakVariant", outbreak$variant());
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
     private void outbreak$loadJob(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        outbreak$setVariant(nbt.getInt("OutbreakVariant"));
         if (!nbt.contains("OutbreakJob")) return;
         for (com.nothatcher.outbreak.ZombieJob j : com.nothatcher.outbreak.ZombieJob.values())
             if (j.id().equals(nbt.getString("OutbreakJob"))) outbreak$setJob(j);

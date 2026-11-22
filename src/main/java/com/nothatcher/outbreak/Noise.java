@@ -32,6 +32,11 @@ public final class Noise {
         }
     }
 
+    /** send one zombie somewhere, for a while (hordes on the move) */
+    public static void send(MobEntity m, Vec3d at, int ticks) {
+        TARGETS.put(m, new Target(at, m.getWorld().getTime() + ticks));
+    }
+
     public static Target get(MobEntity m) {
         Target t = TARGETS.get(m);
         if (t != null && t.until < m.getWorld().getTime()) {

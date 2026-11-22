@@ -212,7 +212,7 @@
   "menu.outbreak.tip.12": "Rags make bandages.",
   "menu.outbreak.tip.13": "Check the cars. Then check them again.",
   "guide.outbreak.0.title": "The dead",
-  "guide.outbreak.0.body": "The dead turn up in small groups, always out of sight, a few dozen blocks away. More come at night.\nThey don't burn in daylight, and they can break doors down. Most shamble, but a few sprint.\nMany still wear their work clothes: cops near police cars, doctors by ambulances, firefighters, builders, mechanics, prisoners, and pilots and soldiers at the airport. What they carried for work is often still on them.",
+  "guide.outbreak.0.body": "The dead turn up in small groups, always out of sight, a few dozen blocks away. More come at night.\nThey don't burn in daylight, and they can break doors down. Most shamble, but a few sprint.\nMany still wear their work clothes: cops near police cars, doctors by ambulances, firefighters, builders, mechanics, prisoners, and pilots and soldiers at the airport. What they carried for work is often still on them.\nNot all of them walk: crawlers drag themselves through the grass, bloaters burst into a sickening cloud when they fall, and brutes are big, tough and hard to push back.\nNow and then a horde roams the streets towards you, and every few days a helicopter passes low overhead and draws every zombie for miles.",
   "guide.outbreak.1.title": "Noise",
   "guide.outbreak.1.body": "Sound draws them. Gunshots and running engines send nearby zombies to the spot for about twenty seconds, and they'll attack whatever they find there.\nDriving is loud while you're moving, and so are smashing windows and salvaging. A silenced pistol is quieter.\nThrow a noise maker to pull them somewhere else.",
   "guide.outbreak.2.title": "Bites and infection",
@@ -311,5 +311,7 @@
   "msg.outbreak.barricade_boards": "Barricade: %s planks (%s%%)",
   "msg.outbreak.barricade_metal": "Sheet metal barricade (%s%%)",
   "guide.outbreak.9.title": "Barricades",
-  "guide.outbreak.9.body": "Board up doors, windows and gaps in walls: look at one, open the action menu and pick Board up. You need a claw hammer, a plank and 2 nails each time, and up to 4 planks fit. Sneaking and using a claw hammer on a door or window does the same.\nSheet metal (4 scrap metal, or salvaged from cars) takes 4 nails and is far tougher than wood.\nZombies chasing you, or a noise behind a barricade, will beat on it until it gives. Each plank breaks in turn, so listen for the banging and nail on more.\nHammering is loud. Barricade before dark, and pry planks off with a hammer or crowbar to get them back."
+  "guide.outbreak.9.body": "Board up doors, windows and gaps in walls: look at one, open the action menu and pick Board up. You need a claw hammer, a plank and 2 nails each time, and up to 4 planks fit. Sneaking and using a claw hammer on a door or window does the same.\nSheet metal (4 scrap metal, or salvaged from cars) takes 4 nails and is far tougher than wood.\nZombies chasing you, or a noise behind a barricade, will beat on it until it gives. Each plank breaks in turn, so listen for the banging and nail on more.\nHammering is loud. Barricade before dark, and pry planks off with a hammer or crowbar to get them back.",
+  "msg.outbreak.horde": "A horde is shambling this way. You can hear them coming.",
+  "msg.outbreak.helicopter": "A helicopter roars overhead... and every zombie for miles heard it."
 }

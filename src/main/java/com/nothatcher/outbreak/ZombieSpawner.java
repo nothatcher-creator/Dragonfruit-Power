@@ -97,7 +97,7 @@ public final class ZombieSpawner {
     }
 
     /** a free spot near the player's own height (so zombies turn up inside buildings too), else the surface */
-    private static BlockPos findSpot(ServerWorld w, int x, int y, int z) {
+    static BlockPos findSpot(ServerWorld w, int x, int y, int z) {
         for (int dy = 8; dy >= -16; dy--) {
             BlockPos at = new BlockPos(x, y + dy, z);
             if (ok(w, at)) return at;
@@ -123,6 +123,7 @@ public final class ZombieSpawner {
         // the job they had: a uniform (their skin), the gear that went with it, and what's in their pockets
         ZombieJob job = ZombieJob.pick(w, z.getX(), z.getY(), z.getZ(), r);
         if (z instanceof ZombieJob.Holder h) h.outbreak$setJob(job);
+        ZombieVariant variant = sprinter ? ZombieVariant.NORMAL : ZombieVariant.roll(r);
         switch (job) {
             case COP -> {
                 wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.POLICE_VEST), 0.35f);
@@ -183,6 +184,7 @@ public final class ZombieSpawner {
                 if (r.nextInt(40) == 0) wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.GAS_MASK), 0.3f);
             }
         }
+        variant.apply(z);
         boolean uniform = job == ZombieJob.PILOT || job == ZombieJob.DOCTOR || job == ZombieJob.MECHANIC || job == ZombieJob.PRISONER || job == ZombieJob.COP;
         if (uniform) return;                                   // the skin is the outfit: no random clothes over it
         // everyday clothes for whatever's left

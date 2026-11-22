@@ -32,7 +32,7 @@ public class Outbreak implements ModInitializer {
     public static final String MOD_ID = "outbreak";
     public static final Logger LOG = LoggerFactory.getLogger("Outbreak");
 
-    public static GameRules.Key<GameRules.BooleanRule> ZOMBIES, DAYLIGHT, INFECTION, CORPSES;
+    public static GameRules.Key<GameRules.BooleanRule> ZOMBIES, DAYLIGHT, INFECTION, CORPSES, EVENTS;
     public static GameRules.Key<GameRules.IntRule> CAP, SPRINTERS, AREA_POP, CORPSE_MINUTES, MAX_CORPSES;
 
     public static final Identifier RELOAD = id("reload");
@@ -62,6 +62,7 @@ public class Outbreak implements ModInitializer {
         CORPSES = GameRuleRegistry.register("outbreakCorpses", GameRules.Category.MOBS, GameRuleFactory.createBooleanRule(true));
         CORPSE_MINUTES = GameRuleRegistry.register("outbreakCorpseMinutes", GameRules.Category.MOBS, GameRuleFactory.createIntRule(20, 0, 10000));
         MAX_CORPSES = GameRuleRegistry.register("outbreakMaxCorpses", GameRules.Category.MOBS, GameRuleFactory.createIntRule(40, 1, 1000));
+        EVENTS = GameRuleRegistry.register("outbreakEvents", GameRules.Category.SPAWNING, GameRuleFactory.createBooleanRule(true));
         AREA_POP = GameRuleRegistry.register("outbreakAreaPopulation", GameRules.Category.SPAWNING, GameRuleFactory.createIntRule(60, 1, 2000));
 
         for (String s : new String[]{"pistol_fire", "shotgun_fire", "rifle_fire", "smg_fire", "silenced_fire", "revolver_fire", "sniper_fire", "reload", "empty_click"}) {
@@ -80,6 +81,7 @@ public class Outbreak implements ModInitializer {
             Airport.tick();
             CarKeys.tick();
             Flashlights.tick(w);
+            Events.tick(w);
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(CarKeys::onLoad);
@@ -100,6 +102,8 @@ public class Outbreak implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if (entity instanceof ZombieEntity && entity.getWorld() instanceof ServerWorld sw)
                 Population.of(sw).onKill(sw, entity.getBlockPos());
+            if (entity instanceof ZombieEntity zb && ZombieVariant.of(zb) == ZombieVariant.BLOATER && entity.getWorld() instanceof ServerWorld sw2)
+                Events.burst(sw2, zb);
         });
         ServerPlayNetworking.registerGlobalReceiver(SHOVE, (server, player, handler, buf, sender) -> server.execute(() -> Shove.shove(player)));
         ServerPlayNetworking.registerGlobalReceiver(ACTION, (server, player, handler, buf, sender) -> Actions.receive(server, player, buf));
