@@ -107,6 +107,13 @@ public final class LootInjector {
     }
 
     private static void city(String kind, LootTable.Builder t) {
+        kind = switch (kind) {                       // Vehicle Forge's newer places stock like the older ones
+            case "diner" -> "kitchen";
+            case "motel" -> "house";
+            case "mechanic" -> "garage";
+            case "bank", "dealership" -> "office";
+            default -> kind;
+        };
         switch (kind) {
             case "house", "apartment" -> {
                 new P(0, 1, 9).add(FLASHLIGHT, 1, 1, 1).into(t);
