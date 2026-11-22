@@ -228,7 +228,7 @@ public class GunItem extends Item {
             float dmg = damage * (float) (1 - 0.35 * eye.distanceTo(hit) / range);
             boolean head = t instanceof LivingEntity le && hit.y > le.getEyeY() - 0.3;
             if (head) dmg *= 2f;
-            dmg *= 1f + 0.04f * aim;
+            dmg *= 1f + 0.04f * Skills.level(p, Skills.Skill.AIMING);
             if (t instanceof net.minecraft.entity.mob.HostileEntity && p instanceof net.minecraft.server.network.ServerPlayerEntity sp2)
                 Skills.add(sp2, Skills.Skill.AIMING, head ? 3 : 1);
             t.timeUntilRegen = 0;
