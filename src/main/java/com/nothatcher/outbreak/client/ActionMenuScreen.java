@@ -68,7 +68,8 @@ public class ActionMenuScreen extends Screen {
 
     private static Text build(MinecraftClient mc, List<Entry> out) {
         ClientPlayerEntity p = mc.player;
-        Text title = p.getName();
+        CharacterClient.Info me = CharacterClient.mine();
+        Text title = me == null ? p.getName() : Text.literal(me.name()).append(Text.literal("  ").append(Text.translatable("occupation.outbreak." + me.occupation())).formatted(net.minecraft.util.Formatting.GRAY));
         BlockPos none = BlockPos.ORIGIN;
         HitResult hr = mc.crosshairTarget;
         if (hr instanceof EntityHitResult eh) {

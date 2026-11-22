@@ -60,7 +60,7 @@ def faces(u, v, w, h, d):
 SHADE = {'top': 1.08, 'bottom': 0.7, 'front': 1.0, 'back': 0.88, 'right': 0.92, 'left': 0.92}
 
 
-def make(seed, job=None):
+def make(seed, job=None, alive=False):
     r = random.Random(seed)
     img = np.zeros((64, 64, 4), float)
 
@@ -71,6 +71,8 @@ def make(seed, job=None):
     base = np.array(r.choice(SKINS), float)
     skin = base * 0.45 + ROT * 0.55
     skin *= 0.88 + r.random() * 0.1
+    if alive:
+        skin = base * (0.96 + r.random() * 0.08)
     hair = np.array(r.choice(HAIR), float)
     style = r.choice(['short', 'short', 'long', 'bald', 'cap', 'buzz'])
     cap = np.array(r.choice(SHIRTS), float)
@@ -99,7 +101,7 @@ def make(seed, job=None):
 
     def skin_at(x, y):
         c = skin.copy()
-        if r.random() < 0.08:
+        if r.random() < 0.08 and not alive:
             c = c * 0.78 + np.array([90, 60, 90]) * 0.22                # bruising
         return grime(c, x, y, 0.16)
 
@@ -135,6 +137,17 @@ def make(seed, job=None):
                         c = grime(hair, i, j)
                     if style == 'cap' and j == 0:
                         c = grime(cap * 0.8, i, j)
+                    if alive:
+                        if j == 3 and i in (1, 2, 5, 6):                      # living eyes
+                            c = np.array([44, 34, 30]) if i in (2, 5) else np.array([232, 232, 228])
+                        if j == 2 and i in (1, 2, 5, 6) and style != 'bald':
+                            c = hair * 0.9                                   # brows
+                        if j == 4 and i in (3, 4):
+                            c = skin * 0.88
+                        if j == 6 and i in (3, 4):
+                            c = skin * 0.72                                  # mouth
+                        put(fx + i, fy + j, c * SHADE[name])
+                        continue
                     if j == 3 and i in (1, 2, 5, 6):                          # sunken eyes
                         c = np.array([38, 26, 26]) if i in (2, 5) else skin * 0.55
                     if j == 4 and i in (2, 5) and r.random() < 0.7:
@@ -167,7 +180,7 @@ def make(seed, job=None):
                         c = cloth(pants, i, j) if j == 11 else c * 0.85       # waistband
                     if j == 10 and name in ('front', 'back'):
                         c = np.array([40, 32, 26])                           # belt
-                    if r.random() < 0.05:
+                    if r.random() < 0.05 and not alive:
                         c = skin_at(i, j) * 0.9                              # a tear
                 put(fx + i, fy + j, c * SHADE[name])
 
@@ -184,7 +197,7 @@ def make(seed, job=None):
                     c = cloth(shirt, i, j) if j < sleeve_len else skin_at(i, j)
                     if j >= 10:
                         c = skin_at(i, j) * 0.95                             # hands
-                    if j >= 10 and r.random() < 0.35:
+                    if j >= 10 and r.random() < 0.35 and not alive:
                         c = BLOOD * (0.85 + r.random() * 0.2)                # bloody hands
                 put(fx + i, fy + j, c * SHADE[name])
 
@@ -230,6 +243,8 @@ def make(seed, job=None):
             y = min(fh - 1, max(0, cy + int(r.gauss(0, 1.8))))
             c = BLOOD if r.random() < 0.6 else BLOOD_DRY
             img[fy + y, fx + x, :3] = img[fy + y, fx + x, :3] * 0.25 + c * 0.75
+    if alive:
+        return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), 'RGBA')
     splat(20, 20, 8, 12, 10 + r.randrange(10), r.randrange(2, 6), r.randrange(0, 4))    # chest
     for _ in range(r.randrange(1, 4)):
         splat(*r.choice([(20, 20, 8, 12), (32, 20, 8, 12), (4, 20, 4, 12), (44, 20, 4, 12)]), 4 + r.randrange(6))
@@ -264,4 +279,12 @@ if __name__ == '__main__':
             s.save(os.path.join(OUT, 'job_%s_%d.png' % (job, k)))
             sheet.alpha_composite(front_view(s).resize((64, 128), Image.NEAREST), ((j * 2 + k) % COUNT * 72, 4)) if False else None
     sheet.save('/tmp/zombie_sheet.png')
+    surv = os.path.join(OUT, '..', 'survivor')
+    os.makedirs(surv, exist_ok=True)
+    sv = Image.new('RGBA', (12 * 72, 140), (60, 66, 60, 255))
+    for k in range(12):
+        s = make(5000 + k * 53, None, True)
+        s.save(os.path.join(surv, 'survivor_%d.png' % k))
+        sv.alpha_composite(front_view(s).resize((64, 128), Image.NEAREST), (k * 72 + 4, 6))
+    sv.save('/tmp/survivors.png')
     print('wrote', COUNT, 'skins to', OUT)

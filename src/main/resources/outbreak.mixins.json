@@ -18,7 +18,8 @@
     "client.ScreenBackgroundMixin",
     "client.ListBackgroundMixin",
     "client.GradeMixin",
-    "client.DarkNightMixin"
+    "client.DarkNightMixin",
+    "client.PlayerSkinMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -108,6 +108,8 @@ public class OutbreakClient implements ClientModInitializer {
                 progressLabel = arg.isEmpty() ? Text.translatable(key) : Text.translatable(key, Text.translatable(arg));
             });
         });
+        CharacterClient.register();
+        ClientTickEvents.END_CLIENT_TICK.register(CharacterClient::tick);
         HudRenderCallback.EVENT.register(OutbreakClient::hud);
         HudRenderCallback.EVENT.register(OutbreakHud::render);
     }

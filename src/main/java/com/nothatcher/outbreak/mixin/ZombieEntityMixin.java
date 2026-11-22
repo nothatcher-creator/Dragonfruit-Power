@@ -87,7 +87,7 @@ public abstract class ZombieEntityMixin extends HostileEntity implements com.not
         if (!cir.getReturnValueZ() || this.getWorld().isClient) return;
         if (!(target instanceof PlayerEntity p) || p.getAbilities().creativeMode || p.isDead()) return;
         if (!this.getWorld().getGameRules().getBoolean(Outbreak.INFECTION) || p.hasStatusEffect(OutbreakEffects.INFECTION)) return;
-        float chance = 0.10f * Math.max(0.25f, 1f - p.getArmor() / 26f);
+        float chance = 0.10f * Math.max(0.25f, 1f - p.getArmor() / 26f) * com.nothatcher.outbreak.Characters.infectionMul(p);
         if (this.random.nextFloat() >= chance) return;
         p.addStatusEffect(new StatusEffectInstance(OutbreakEffects.INFECTION, InfectionEffect.DURATION, 0, false, false, true));
         p.sendMessage(Text.translatable("msg.outbreak.bitten").formatted(Formatting.DARK_RED), true);

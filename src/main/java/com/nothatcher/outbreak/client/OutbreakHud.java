@@ -155,6 +155,7 @@ public final class OutbreakHud {
             out.add(new Moodle("queasy", left > 16000 ? 1 : left > 8000 ? 2 : left > 3000 ? 3 : 4));
         }
         int near = mc.world.getEntitiesByClass(ZombieEntity.class, p.getBoundingBox().expand(10), z -> z.isAlive()).size();
+        near = CharacterClient.panicScale(near);
         if (near > 0) out.add(new Moodle("panic", near >= 10 ? 4 : near >= 6 ? 3 : near >= 3 ? 2 : 1));
         if (wetness > 200) out.add(new Moodle("wet", wetness > 2200 ? 4 : wetness > 1500 ? 3 : wetness > 800 ? 2 : 1));
         return out;

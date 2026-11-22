@@ -181,6 +181,7 @@ public final class Actions {
             }
         }
         int ticks = t == Type.USE_ITEM ? useTicks(p.getInventory().getStack(slot)) : t.ticks;
+        ticks = Math.round(ticks * Characters.actionSpeed(p, t));
         cancel(p, false);
         if (ticks <= 0) {
             execute(p, t, pos, entity, slot);

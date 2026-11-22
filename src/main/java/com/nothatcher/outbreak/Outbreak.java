@@ -82,6 +82,7 @@ public class Outbreak implements ModInitializer {
             CarKeys.tick();
             Flashlights.tick(w);
             Events.tick(w);
+            Characters.tick(w);
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(Airport::onLoad);
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents.ENTITY_LOAD.register(CarKeys::onLoad);
@@ -106,6 +107,12 @@ public class Outbreak implements ModInitializer {
                 Events.burst(sw2, zb);
         });
         ServerPlayNetworking.registerGlobalReceiver(SHOVE, (server, player, handler, buf, sender) -> server.execute(() -> Shove.shove(player)));
+        ServerPlayNetworking.registerGlobalReceiver(Characters.CREATE, (server, player, handler, buf, sender) -> Characters.receive(server, player, buf));
+        net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> Characters.onJoin(handler.player));
+        net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            Characters.Sheet sh = Characters.get(newPlayer);
+            if (sh != null) Characters.apply(newPlayer, sh);
+        });
         ServerPlayNetworking.registerGlobalReceiver(ACTION, (server, player, handler, buf, sender) -> Actions.receive(server, player, buf));
         ServerPlayNetworking.registerGlobalReceiver(RELOAD, (server, player, handler, buf, sender) -> server.execute(() -> {
             ItemStack st = player.getMainHandStack();
