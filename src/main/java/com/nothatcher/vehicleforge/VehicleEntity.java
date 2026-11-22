@@ -73,6 +73,8 @@ public class VehicleEntity extends Entity {
     private static final TrackedData<Float> SCALE = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.FLOAT);
     /** a burnt-out wreck: won't start or drive until it's been fully repaired with iron ingots */
     private static final TrackedData<Boolean> WRECK = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    /** build frame: the blocks on its deck */
+    private static final TrackedData<NbtCompound> BUILT = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
 
     /** Client hook (engine sounds etc.), set by the client mod. */
     public static Consumer<VehicleEntity> clientTickHook = e -> { };
@@ -148,6 +150,13 @@ public class VehicleEntity extends Entity {
         dataTracker.startTracking(ABILITY, false);
         dataTracker.startTracking(SCALE, 1f);
         dataTracker.startTracking(WRECK, false);
+        dataTracker.startTracking(BUILT, new NbtCompound());
+    }
+
+    @Override
+    public void onTrackedDataSet(TrackedData<?> data) {
+        super.onTrackedDataSet(data);
+        if (BUILT.equals(data) && type != null) setBoundingBox(calculateBoundingBox());
     }
 
     public boolean isWreck() {
@@ -263,6 +272,7 @@ public class VehicleEntity extends Entity {
         }
         interiorId = nbt.contains("Interior") ? nbt.getInt("Interior") : -1;
         dataTracker.set(WRECK, nbt.getBoolean("Wreck"));
+        if (nbt.contains("Built")) dataTracker.set(BUILT, nbt.getCompound("Built"));
         readCargo(nbt);
     }
 
@@ -275,6 +285,7 @@ public class VehicleEntity extends Entity {
         nbt.putFloat("Fuel", dataTracker.get(FUEL));
         nbt.putFloat("Scale", dataTracker.get(SCALE));
         nbt.putInt("Interior", interiorId);
+        if (type.buildable) nbt.put("Built", dataTracker.get(BUILT));
         writeCargo(nbt);
     }
 
@@ -329,7 +340,147 @@ public class VehicleEntity extends Entity {
             minZ = Math.min(minZ, wz);
             maxZ = Math.max(maxZ, wz);
         }
-        return new Box(x + minX, y, z + minZ, x + maxX, y + type.height * s, z + maxZ);
+        double top = type.height;
+        if (type.buildable) for (Built b : built()) top = Math.max(top, DECK + b.y() + 1);
+        return new Box(x + minX, y, z + minZ, x + maxX, y + top * s, z + maxZ);
+    }
+
+    // ------------------------------------------------------------- build frame
+
+    /** the top of the build frame's deck; built blocks stand on it in a grid x -1..1, z -2..2, y 0..4 */
+    public static final double DECK = 0.85;
+    private static final int BUILD_X = 1, BUILD_Z = 2, BUILD_Y = 4;
+
+    public record Built(int x, int y, int z, BlockState state) {}
+
+    private NbtCompound builtTag;
+    private List<Built> builtCache = List.of();
+
+    public List<Built> built() {
+        NbtCompound t = dataTracker.get(BUILT);
+        if (t != builtTag) {
+            builtTag = t;
+            List<Built> out = new ArrayList<>();
+            net.minecraft.nbt.NbtList list = t.getList("B", net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            for (int i = 0; i < list.size(); i++) {
+                NbtCompound c = list.getCompound(i);
+                BlockState st = net.minecraft.nbt.NbtHelper.toBlockState(net.minecraft.registry.Registries.BLOCK.getReadOnlyWrapper(), c.getCompound("S"));
+                if (!st.isAir()) out.add(new Built(c.getInt("X"), c.getInt("Y"), c.getInt("Z"), st));
+            }
+            builtCache = out;
+        }
+        return builtCache;
+    }
+
+    private void setBuilt(List<Built> list) {
+        NbtCompound t = new NbtCompound();
+        net.minecraft.nbt.NbtList l = new net.minecraft.nbt.NbtList();
+        for (Built b : list) {
+            NbtCompound c = new NbtCompound();
+            c.putInt("X", b.x());
+            c.putInt("Y", b.y());
+            c.putInt("Z", b.z());
+            c.put("S", net.minecraft.nbt.NbtHelper.fromBlockState(b.state()));
+            l.add(c);
+        }
+        t.put("B", l);
+        dataTracker.set(BUILT, t);
+    }
+
+    private Vec3d localOffset(Vec3d d) {
+        double r = Math.toRadians(getYaw()), c = Math.cos(r), sn = Math.sin(r);
+        return new Vec3d(d.x * c + d.z * sn, d.y, -d.x * sn + d.z * c);
+    }
+
+    /** what the player is pointing at on the frame: a built block (with the face they hit) or the bare deck */
+    private record BuildHit(int x, int y, int z, int nx, int ny, int nz, boolean deck, double t) {}
+
+    private BuildHit buildRay(PlayerEntity p) {
+        Vec3d o = localOffset(p.getEyePos().subtract(getPos())), d = localOffset(p.getRotationVec(1f));
+        double reach = 6;
+        BuildHit best = null;
+        for (Built b : built()) {
+            double[] lo = {b.x() - 0.5, DECK + b.y(), b.z() - 0.5}, hi = {b.x() + 0.5, DECK + b.y() + 1, b.z() + 0.5};
+            double[] oo = {o.x, o.y, o.z}, dd = {d.x, d.y, d.z};
+            double tIn = 0, tOut = reach;
+            int axis = -1;
+            boolean miss = false;
+            for (int a = 0; a < 3 && !miss; a++) {
+                if (Math.abs(dd[a]) < 1e-9) {
+                    if (oo[a] < lo[a] || oo[a] > hi[a]) miss = true;
+                    continue;
+                }
+                double t0 = (lo[a] - oo[a]) / dd[a], t1 = (hi[a] - oo[a]) / dd[a];
+                if (t0 > t1) {
+                    double tmp = t0;
+                    t0 = t1;
+                    t1 = tmp;
+                }
+                if (t0 > tIn) {
+                    tIn = t0;
+                    axis = a;
+                }
+                tOut = Math.min(tOut, t1);
+                if (tIn > tOut) miss = true;
+            }
+            if (miss || axis < 0 || (best != null && tIn >= best.t())) continue;
+            int sgn = dd[axis] > 0 ? -1 : 1;
+            best = new BuildHit(b.x(), b.y(), b.z(), axis == 0 ? sgn : 0, axis == 1 ? sgn : 0, axis == 2 ? sgn : 0, false, tIn);
+        }
+        if (d.y < -1e-6) {
+            double t = (DECK - o.y) / d.y;
+            if (t > 0 && t < reach && (best == null || t < best.t())) {
+                double x = o.x + d.x * t, z = o.z + d.z * t;
+                if (Math.abs(x) <= 1.5 && Math.abs(z) <= 2.5) best = new BuildHit((int) Math.round(x), -1, (int) Math.round(z), 0, 1, 0, true, t);
+            }
+        }
+        return best;
+    }
+
+    /** the empty grid cell a block held by this player would go into, or null */
+    private int[] placeCell(PlayerEntity p) {
+        BuildHit h = buildRay(p);
+        if (h == null) return null;
+        int x = h.x() + h.nx(), y = h.y() + h.ny(), z = h.z() + h.nz();
+        if (Math.abs(x) > BUILD_X || Math.abs(z) > BUILD_Z || y < 0 || y > BUILD_Y) return null;
+        if (x == 0 && z == 2 && y <= 1) return null;                     // the driver sits here
+        for (Built b : built()) if (b.x() == x && b.y() == y && b.z() == z) return null;
+        return new int[]{x, y, z};
+    }
+
+    private ActionResult buildPlace(PlayerEntity player, ItemStack stack, net.minecraft.item.BlockItem bi) {
+        int[] c = placeCell(player);
+        if (c == null) return ActionResult.PASS;
+        if (!getWorld().isClient) {
+            BlockState st = bi.getBlock().getDefaultState();
+            if (st.contains(net.minecraft.state.property.Properties.HORIZONTAL_FACING))
+                st = st.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING, net.minecraft.util.math.Direction.SOUTH);
+            List<Built> list = new ArrayList<>(built());
+            list.add(new Built(c[0], c[1], c[2], st));
+            setBuilt(list);
+            if (!player.getAbilities().creativeMode) stack.decrement(1);
+            var snd = st.getSoundGroup();
+            getWorld().playSound(null, getX(), getY() + 1, getZ(), snd.getPlaceSound(), SoundCategory.BLOCKS, (snd.getVolume() + 1f) / 2f, snd.getPitch() * 0.8f);
+        }
+        return ActionResult.success(getWorld().isClient);
+    }
+
+    /** a player hitting a built block knocks it off (and gets it back) instead of damaging the frame */
+    private boolean buildBreak(PlayerEntity p) {
+        BuildHit h = buildRay(p);
+        if (h == null || h.deck()) return false;
+        List<Built> list = new ArrayList<>(built());
+        for (Iterator<Built> it = list.iterator(); it.hasNext(); ) {
+            Built b = it.next();
+            if (b.x() != h.x() || b.y() != h.y() || b.z() != h.z()) continue;
+            it.remove();
+            setBuilt(list);
+            if (!p.getAbilities().creativeMode && b.state().getBlock().asItem() != Items.AIR) p.getInventory().offerOrDrop(new ItemStack(b.state().getBlock()));
+            var snd = b.state().getSoundGroup();
+            getWorld().playSound(null, getX(), getY() + 1, getZ(), snd.getBreakSound(), SoundCategory.BLOCKS, (snd.getVolume() + 1f) / 2f, snd.getPitch() * 0.8f);
+            return true;
+        }
+        return false;
     }
 
     /** Turn by delta degrees unless the longer footprint would swing into a wall (kerbs it can climb don't count). */
@@ -585,6 +736,10 @@ public class VehicleEntity extends Entity {
     /** a click on the back of the vehicle opens its cargo; anywhere else gets you in (see interact) */
     @Override
     public ActionResult interactAt(PlayerEntity player, Vec3d hitPos, Hand hand) {
+        if (type.buildable && hand == Hand.MAIN_HAND && !hasPassenger(player) && player.getStackInHand(hand).getItem() instanceof net.minecraft.item.BlockItem bi) {
+            ActionResult r = buildPlace(player, player.getStackInHand(hand), bi);
+            if (r != ActionResult.PASS) return r;
+        }
         if (hand != Hand.MAIN_HAND || player.shouldCancelInteraction() || hasPassenger(player)) return ActionResult.PASS;
         ItemStack stack = player.getStackInHand(hand);
         // items that do something to the vehicle itself take priority
@@ -668,6 +823,7 @@ public class VehicleEntity extends Entity {
     public boolean damage(DamageSource source, float amount) {
         if (isInvulnerableTo(source) || isRemoved()) return false;
         if (getWorld().isClient) return true;
+        if (type.buildable && source.getAttacker() instanceof PlayerEntity bp && source.getSource() == bp && buildBreak(bp)) return true;
         boolean creative = source.getAttacker() instanceof PlayerEntity p && p.getAbilities().creativeMode;
         dataTracker.set(WOBBLE, 10);
         float h = getHealth() - (creative ? type.health : amount * (source.getAttacker() instanceof PlayerEntity ? 4f : 1f));
@@ -679,6 +835,7 @@ public class VehicleEntity extends Entity {
     /** drop = broken up by a player (gives the item back); otherwise it's a wreck and goes up in flames */
     private void destroy(boolean drop, boolean quiet) {
         if (cargo != null) net.minecraft.util.ItemScatterer.spawn(getWorld(), this, cargo);   // whatever was in the back
+        if (!quiet) for (Built b : built()) if (b.state().getBlock().asItem() != Items.AIR) dropStack(new ItemStack(b.state().getBlock()));
         if (drop && isWreck()) {
             dropStack(new ItemStack(Items.IRON_INGOT, 1 + random.nextInt(3)));   // scrap, not a free car
         } else if (drop) {

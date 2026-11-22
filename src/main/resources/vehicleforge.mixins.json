@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "LivingEntityMixin",
-    "PlayerEntityMixin"
+    "PlayerEntityMixin",
+    "VehicleMoveMixin"
   ],
   "client": [
     "client.VfCameraAccessor",
@@ -22,7 +23,8 @@
     "client.VfIsoTargetMixin",
     "client.VfIsoClickMixin",
     "client.VfIsoInputMixin",
-    "client.VfIsoScrollMixin"
+    "client.VfIsoScrollMixin",
+    "client.VfIsoEntityDistMixin"
   ],
   "injectors": {
     "defaultRequire": 1

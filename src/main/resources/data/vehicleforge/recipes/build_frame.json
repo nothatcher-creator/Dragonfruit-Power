@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "W W"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "W": {
+      "item": "minecraft:iron_block"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:build_frame",
+    "count": 1
+  }
+}

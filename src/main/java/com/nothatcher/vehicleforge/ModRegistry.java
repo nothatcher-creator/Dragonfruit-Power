@@ -57,7 +57,7 @@ public final class ModRegistry {
         for (VehicleType t : VehicleTypes.ALL.values()) {
             EntityType<VehicleEntity> et = FabricEntityTypeBuilder.<VehicleEntity>create(SpawnGroup.MISC, VehicleEntity::new)
                     .dimensions(EntityDimensions.fixed(t.width, t.height))
-                    .trackRangeBlocks(t.flies() ? 160 : 96)          // aircraft are seen from far off; cars nearby only
+                    .trackRangeBlocks(t.flies() ? 160 : 128)         // far enough for the zoomed-out isometric view
                     .trackedUpdateRate(2)
                     .build();
             Registry.register(Registries.ENTITY_TYPE, VehicleForge.id(t.id), et);

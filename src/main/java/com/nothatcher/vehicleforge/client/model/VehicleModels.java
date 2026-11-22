@@ -91,6 +91,13 @@ public final class VehicleModels {
             case "road_roller" -> roller();
             case "mobile_crane" -> crane();
             case "tow_truck" -> towTruck();
+            case "houseboat" -> houseboat();
+            case "build_frame" -> buildFrame();
+            case "sailboat" -> sailboat();
+            case "armored_truck" -> armoredTruck();
+            case "food_truck" -> van(3);
+            case "police_motorcycle" -> policeBike();
+            case "rally_car" -> rally();
             default -> sedan();
         };
     }
@@ -234,7 +241,7 @@ public final class VehicleModels {
     }
 
     private static Model van(int kind) {
-        boolean ambulance = kind == 1, iceCream = kind == 2;
+        boolean ambulance = kind == 1, iceCream = kind == 2, food = kind == 3;
         Builder b = Model.builder();
         double w = 1.0;
         b.box(-w, 0.45, -2.6, w, 2.4, 1.4, Mat.PAINT);
@@ -284,6 +291,19 @@ public final class VehicleModels {
             b.cyl(0, 3.15, -0.9, 'y', 0.34, 0.0, 0.45, 10, Mat.WHITE, null);
             b.box(-0.06, 3.55, -0.96, 0.06, 3.68, -0.84, Mat.RED);
             b.pair(w, 0.75, -2.6, w + 0.012, 0.85, 1.4, Mat.RED);
+        } else if (food) {
+            b.sidePane(-w - 0.006, 1.3, 2.1, -2.2, -0.2, -2.2, -0.2, Mat.GLASS);         // serving hatch
+            b.box(-w - 0.6, 2.15, -2.3, -w, 2.2, -0.1, Mat.YELLOW);                      // awning
+            b.box(-w - 0.3, 1.25, -2.2, -w, 1.3, -0.2, Mat.STEEL);                       // counter
+            b.box(-0.95, 0.58, -2.4, -0.4, 1.25, -0.3, Mat.STEEL);                       // grill and fryers
+            b.box(-0.9, 1.25, -2.3, -0.45, 1.27, -1.3, Mat.BLACK);
+            b.box(0.5, 0.58, -2.45, 0.95, 2.0, -1.6, Mat.WHITE);                         // fridge
+            b.box(0.6, 1.9, -1.4, 0.95, 2.1, -0.4, Mat.METAL);                           // vent hood
+            b.cyl(0, 2.42, -0.9, 'y', 0.5, 0.5, 0.16, 12, Mat.ORANGE, Mat.ORANGE);      // giant burger
+            b.cyl(0, 2.58, -0.9, 'y', 0.53, 0.53, 0.1, 12, Mat.WOOD, Mat.WOOD);
+            b.cyl(0, 2.68, -0.9, 'y', 0.55, 0.55, 0.04, 12, Mat.YELLOW, Mat.YELLOW);
+            b.cyl(0, 2.72, -0.9, 'y', 0.5, 0.18, 0.34, 12, Mat.ORANGE, Mat.ORANGE);
+            b.pair(w, 0.75, -2.6, w + 0.012, 0.85, 1.4, Mat.YELLOW);
         } else {
             b.seat(0, 0.95, -0.2, 1.7, Mat.SEAT);
             b.seat(0, 0.95, -1.2, 1.7, Mat.SEAT);
@@ -836,6 +856,154 @@ public final class VehicleModels {
         b.seat(0, 1.05, -3.0, 2.0, Mat.SEAT);
         b.pair(w - 0.05, 0.5, -4.8, w, 1.15, 4.4, Mat.CHROME);
         b.box(-0.8, 0.45, 5.0, 0.8, 0.55, 5.9, Mat.DECK);
+        return b.build();
+    }
+
+    // ================================================================ wave 5
+
+    private static Model houseboat() {
+        Builder b = Model.builder();
+        double w = 1.6;
+        b.hull(-w + 0.15, w - 0.15, -4.5, 4.4, -0.55, -w, w, -4.7, 4.65, 0.3, Mat.WHITE, Mat.DECK);   // pontoon deck
+        b.pair(w - 0.01, -0.25, -4.7, w + 0.005, -0.05, 4.65, Mat.NAVY);
+        // the house: painted siding, white trim, a little roof deck
+        b.box(-1.45, 0.3, -2.8, 1.45, 2.55, 2.4, Mat.PAINT);
+        b.box(-1.65, 2.55, -3.4, 1.65, 2.7, 3.0, Mat.WHITE);
+        b.pair(1.45, 0.3, -2.85, 1.5, 2.55, -2.75, Mat.WHITE);
+        b.pair(1.45, 0.3, 2.35, 1.5, 2.55, 2.45, Mat.WHITE);
+        for (int sd = -1; sd <= 1; sd += 2) {
+            b.sidePane(sd * 1.455, 1.2, 2.1, -2.3, -0.9, -2.3, -0.9, Mat.GLASS);
+            b.sidePane(sd * 1.455, 1.2, 2.1, -0.2, 1.8, -0.2, 1.8, Mat.GLASS);
+            b.box(sd > 0 ? 1.45 : -1.6, 1.1, -2.4, sd > 0 ? 1.6 : -1.45, 1.17, -0.8, Mat.WOOD);   // flower boxes
+            b.box(sd > 0 ? 1.45 : -1.6, 1.17, -2.35, sd > 0 ? 1.58 : -1.47, 1.3, -0.85, Mat.RUG);
+        }
+        b.pane(1.3, 0.25, 1.2, 2.405, 1.3, 0.25, 2.1, 2.405, Mat.GLASS);                      // front windows
+        b.pane(-0.25, -1.3, 1.2, 2.405, -0.25, -1.3, 2.1, 2.405, Mat.GLASS);
+        b.box(-0.2, 0.3, 2.4, 0.2, 2.2, 2.43, Mat.WOOD);                                       // door
+        b.box(0.08, 1.2, 2.43, 0.14, 1.3, 2.46, Mat.BRASS);
+        b.pane(1.0, -1.0, 1.2, -2.805, 1.0, -1.0, 2.0, -2.805, Mat.GLASS);                     // back window
+        b.cyl(1.0, 2.7, -1.6, 'y', 0.09, 0.09, 0.7, 6, Mat.BLACK, Mat.BLACK);                 // stove pipe
+        b.box(0.9, 3.4, -1.7, 1.1, 3.45, -1.5, Mat.BLACK);
+        // roof deck rails, deck chairs on top
+        b.pair(1.6, 2.7, -3.4, 1.65, 3.25, 3.0, Mat.WHITE);
+        b.box(-1.65, 2.7, -3.45, 1.65, 3.25, -3.4, Mat.WHITE);
+        b.box(-1.3, 2.7, 0.4, -0.6, 3.0, 1.2, Mat.CANVAS);
+        b.box(0.6, 2.7, 0.4, 1.3, 3.0, 1.2, Mat.CANVAS);
+        // front porch: helm and seats, railings
+        b.box(-w + 0.05, 0.3, 2.45, w - 0.05, 0.34, 4.5, Mat.WOOD);
+        b.seat(0.6, 1.25, 3.3, 0.6, Mat.SEAT);
+        b.seat(-0.6, 1.25, 3.3, 0.6, Mat.SEAT);
+        b.box(0.3, 0.3, 3.85, 0.9, 1.35, 4.15, Mat.DASH);
+        b.steeringWheel(0.6, 1.4, 3.8, 0.2, 35);
+        b.pair(w - 0.05, 0.3, 2.45, w, 1.0, 4.55, Mat.WHITE);
+        b.pair(0.9, 0.3, 4.5, w, 1.0, 4.55, Mat.WHITE);
+        // back deck: chairs, a grill, a life ring, the outboard
+        b.box(-w + 0.05, 0.3, -4.6, w - 0.05, 0.34, -2.8, Mat.WOOD);
+        b.seat(0.8, 1.25, -3.6, 0.6, Mat.SEAT);
+        b.seat(-0.8, 1.25, -3.6, 0.6, Mat.SEAT);
+        b.cyl(0, 0.34, -4.3, 'y', 0.22, 0.22, 0.75, 8, Mat.BLACK, Mat.BLACK);
+        b.cyl(1.5, 1.6, -2.0, 'x', 0.32, 0.32, 0.07, 12, Mat.RED, Mat.WHITE);
+        b.pair(w - 0.05, 0.3, -4.65, w, 1.0, -2.8, Mat.WHITE);
+        b.box(-0.25, -0.5, -5.05, 0.25, 0.7, -4.7, Mat.BLACK);
+        b.box(-0.1, -0.7, -5.0, 0.1, -0.5, -4.8, Mat.METAL);
+        return b.build();
+    }
+
+    /** a bare chassis with a steel deck at y = 0.85 for building on (see VehicleEntity.DECK) */
+    private static Model buildFrame() {
+        Builder b = Model.builder();
+        b.pair(0.85, 0.45, -2.6, 1.05, 0.7, 2.6, Mat.PAINT);                                 // frame rails
+        for (double z = -2.3; z <= 2.31; z += 1.15) b.box(-0.85, 0.5, z - 0.08, 0.85, 0.65, z + 0.08, Mat.PAINT);
+        b.box(-1.5, 0.75, -2.5, 1.5, 0.85, 2.5, Mat.METAL, Mat.STEEL);                        // deck plate
+        b.pair(1.45, 0.7, -2.55, 1.52, 0.86, 2.55, Mat.PAINT_DARK);
+        b.box(-1.52, 0.7, 2.5, 1.52, 0.86, 2.58, Mat.PAINT_DARK);
+        b.box(-1.52, 0.7, -2.58, 1.52, 0.86, -2.5, Mat.PAINT_DARK);
+        b.seat(0, 1.3, 1.95, 0.6, Mat.SEAT);
+        b.box(-0.05, 0.85, 2.3, 0.05, 1.55, 2.4, Mat.BLACK);                                  // steering column
+        b.steeringWheel(0, 1.6, 2.3, 0.2, 40);
+        b.gauge(0.2, 1.5, 2.36, 0.1);
+        b.box(-0.6, 0.35, -2.4, 0.6, 0.75, -1.4, Mat.METAL);                                  // engine under the deck
+        b.cyl(0.4, 0.4, -2.4, 'z', 0.06, 0.06, -0.4, 8, Mat.CHROME, Mat.BLACK);
+        b.pair(1.25, 0.5, 2.58, 1.45, 0.7, 2.62, Mat.HEADLIGHT);
+        b.pair(1.25, 0.5, -2.62, 1.45, 0.7, -2.58, Mat.TAILLIGHT);
+        b.wheels(1.25, 0.42, 1.85, -1.85, 0.42, 0.34);
+        return b.build();
+    }
+
+    private static Model sailboat() {
+        Builder b = Model.builder();
+        b.hull(-0.35, 0.35, -2.6, 2.3, -0.55, -1.0, 1.0, -2.8, 2.6, 0.3, Mat.WHITE, Mat.DECK);
+        b.hull(-0.05, 0.05, 2.3, 2.9, -0.3, -0.6, 0.6, 2.6, 3.0, 0.3, Mat.WHITE, Mat.DECK);
+        b.pair(0.99, 0.05, -2.8, 1.0, 0.18, 2.6, Mat.PAINT);
+        b.box(-0.08, -1.2, -0.6, 0.08, -0.5, 0.6, Mat.PAINT);                                   // keel
+        b.box(-0.6, 0.3, -2.5, 0.6, 0.32, -0.4, Mat.WOOD);                                      // cockpit
+        b.pair(0.45, 0.3, -2.5, 0.7, 0.6, -0.4, Mat.WOOD);
+        b.box(-0.5, 0.3, -0.3, 0.5, 0.75, 1.6, Mat.WHITE);                                      // cuddy cabin
+        b.pane(0.45, -0.45, 0.45, 1.605, 0.45, -0.45, 0.7, 1.605, Mat.GLASS);
+        b.cyl(0, 0.3, 0.6, 'y', 0.07, 0.05, 6.4, 8, Mat.WHITE, Mat.WHITE);                     // mast
+        b.box(-0.04, 1.25, -2.2, 0.04, 1.33, 0.6, Mat.WOOD);                                    // boom
+        double[] m0 = v(0.012, 1.35, 0.55), m1 = v(0.012, 6.5, 0.55), m2 = v(0.012, 1.35, -2.15);
+        b.quad(m0, m1, m1, m2, Mat.CANVAS);                                                      // mainsail, both sides
+        b.quad(v(-0.012, 1.35, 0.55), v(-0.012, 1.35, -2.15), v(-0.012, 6.5, 0.55), v(-0.012, 6.5, 0.55), Mat.CANVAS);
+        double[] j0 = v(0.01, 5.8, 0.65), j1 = v(0.01, 0.45, 2.8), j2 = v(0.01, 0.45, 0.75);
+        b.quad(j0, j1, j1, j2, Mat.CANVAS);                                                      // jib
+        b.quad(v(-0.01, 5.8, 0.65), v(-0.01, 0.45, 0.75), v(-0.01, 0.45, 2.8), v(-0.01, 0.45, 2.8), Mat.CANVAS);
+        b.box(-0.03, 0.3, -2.75, 0.03, 0.9, -2.65, Mat.WOOD);                                   // tiller
+        b.box(-0.03, 0.85, -2.7, 0.03, 0.9, -1.9, Mat.WOOD);
+        b.pair(0.95, 0.3, -2.7, 1.0, 0.65, 2.5, Mat.CHROME);
+        return b.build();
+    }
+
+    private static Model armoredTruck() {
+        Builder b = Model.builder();
+        truckCab(b, 1.2, 1.3, 2.3, 0.9, 2.6, 0.9);
+        b.box(-1.2, 0.5, -3.45, 1.2, 2.95, 1.25, Mat.PAINT);                                    // armoured box
+        b.box(-1.15, 2.95, -3.35, 1.15, 3.05, 1.15, Mat.PAINT_DARK);
+        for (int sd = -1; sd <= 1; sd += 2) {
+            b.sidePane(sd * 1.205, 2.0, 2.2, -2.6, -2.0, -2.6, -2.0, Mat.GLASS);                // gun-slit windows
+            b.sidePane(sd * 1.205, 2.0, 2.2, -0.8, -0.2, -0.8, -0.2, Mat.GLASS);
+            b.box(sd > 0 ? 1.2 : -1.215, 0.9, -3.3, sd > 0 ? 1.215 : -1.2, 0.98, 1.1, Mat.BLACK);
+            for (double z = -3.2; z <= 1.0; z += 0.6) b.box(sd > 0 ? 1.2 : -1.22, 2.75, z, sd > 0 ? 1.22 : -1.2, 2.8, z + 0.05, Mat.CHROME);   // rivets
+        }
+        b.box(-1.1, 0.6, -3.5, -0.02, 2.8, -3.45, Mat.PAINT_DARK);                              // rear doors
+        b.box(0.02, 0.6, -3.5, 1.1, 2.8, -3.45, Mat.PAINT_DARK);
+        b.pair(0.1, 1.5, -3.55, 0.2, 1.9, -3.5, Mat.CHROME);
+        b.pair(0.8, 1.6, -3.53, 1.05, 1.9, -3.5, Mat.TAILLIGHT);
+        b.box(-0.5, 3.05, -0.6, 0.5, 3.25, 0.4, Mat.METAL);                                      // roof hatch
+        b.box(-1.2, 0.45, 3.15, 1.2, 0.8, 3.45, Mat.BLACK);                                      // push bar
+        b.wheels(1.05, 0.52, 2.5, -2.35, 0.52, 0.42);
+        return b.build();
+    }
+
+    private static Model policeBike() {
+        Model m = motorbike(false);
+        Builder b = Model.builder();
+        b.pair(0.18, 0.55, -0.95, 0.34, 0.9, -0.45, Mat.WHITE);                               // panniers
+        b.box(-0.2, 1.15, 0.85, 0.2, 1.5, 0.9, Mat.GLASS);                                    // windshield
+        b.group(Kind.SIREN_A, 0, 0, 0, 0, false);
+        b.box(0.08, 1.0, -1.05, 0.2, 1.12, -0.98, Mat.SIREN_RED);
+        b.box(0.14, 1.0, 0.86, 0.22, 1.08, 0.92, Mat.SIREN_RED);
+        b.group(Kind.SIREN_B, 0, 0, 0, 0, false);
+        b.box(-0.2, 1.0, -1.05, -0.08, 1.12, -0.98, Mat.SIREN_BLUE);
+        b.box(-0.22, 1.0, 0.86, -0.14, 1.08, 0.92, Mat.SIREN_BLUE);
+        b.body();
+        m.groups.addAll(b.build().groups);
+        return m;
+    }
+
+    private static Model rally() {
+        CarSpec s = new CarSpec(4.2, 0.9, 0.38, 1.0, 1.9, 0.8, 0.3, -1.3, -1.6,
+                0.36, 0.76, 1.3, -1.3, 0.7, 0.05, -0.85, 0.7);
+        Builder b = carShell(s, Mat.GLASS);
+        b.box(-0.85, 1.6, -2.15, 0.85, 1.66, -1.85, Mat.PAINT_DARK);                          // wing
+        b.pair(0.7, 1.0, -2.1, 0.76, 1.6, -1.95, Mat.PAINT_DARK);
+        b.box(-0.2, 1.9, -0.5, 0.2, 2.02, 0.1, Mat.BLACK);                                    // roof scoop
+        b.box(-0.7, 1.05, 2.1, 0.7, 1.35, 2.18, Mat.BLACK);                                   // light pod
+        for (double x = -0.55; x <= 0.56; x += 0.37) b.box(x - 0.12, 1.1, 2.18, x + 0.12, 1.3, 2.2, Mat.HEADLIGHT);
+        b.pair(0.75, 0.15, 1.0, 0.95, 0.45, 1.04, Mat.BLACK);                                 // mud flaps
+        b.pair(0.75, 0.15, -1.62, 0.95, 0.45, -1.58, Mat.BLACK);
+        b.pair(0.9, 0.5, -0.6, 0.905, 0.95, 0.3, Mat.WHITE);                                  // door number roundel
+        b.box(-0.9, 1.0, 1.4, 0.9, 1.006, 1.6, Mat.WHITE);                                    // stripe
         return b.build();
     }
 

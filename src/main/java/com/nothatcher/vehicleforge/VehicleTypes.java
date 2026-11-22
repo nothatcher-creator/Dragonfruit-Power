@@ -248,6 +248,31 @@ public final class VehicleTypes {
             .speed(0.95f, 0.028f, 3.6f).health(120f).paint(0xF57C00).camera(8f).horn(Horn.TRUCK).sound("engine_truck")
             .weapon(Weapon.TOW).len(2.85, -3.7).offroad().gears(5));
 
+    // ============================================================ wave 5
+    /** a floating home: drive it from the front porch, sneak + right-click to go inside */
+    public static final VehicleType HOUSEBOAT = add(new VehicleType("houseboat", Category.BOAT, 3.2f, 3.6f)
+            .seat(0.6, 0.85, 3.3).seat(-0.6, 0.85, 3.3).seat(0.8, 0.85, -3.6).seat(-0.8, 0.85, -3.6)
+            .speed(0.55f, 0.01f, 1.8f).health(220f).paint(0x3C7A8C).camera(14f).horn(Horn.BOAT).sound("engine_boat").step(0.6f)
+            .len(4.6, -4.6).room().endurance(40));
+    /** a bare chassis: right-click its deck with blocks to build whatever you like on it; hit a block to take it off */
+    public static final VehicleType BUILD_FRAME = add(new VehicleType("build_frame", Category.CAR, 3.0f, 1.6f)
+            .seat(0, 0.9, 1.95)
+            .speed(0.9f, 0.03f, 3.6f).health(120f).paint(0x7A7F86).camera(9f).len(2.6, -2.6).buildable().offroad().gears(4));
+    public static final VehicleType SAILBOAT = add(new VehicleType("sailboat", Category.BOAT, 2.0f, 1.2f)
+            .seat(0, 0.2, -1.7).seat(0.45, 0.2, -0.8).seat(-0.45, 0.2, -0.8)
+            .speed(0.9f, 0.012f, 2.6f).health(70f).paint(0x1F4E8C).camera(10f).horn(Horn.BOAT).sound("none").step(0.6f).len(3.0, -2.8).endurance(0));
+    public static final VehicleType ARMORED_TRUCK = add(new VehicleType("armored_truck", Category.TRUCK, 2.4f, 3.0f)
+            .seat(0.5, 1.05, 2.05).seat(-0.5, 1.05, 2.05)
+            .speed(0.85f, 0.02f, 3.0f).health(320f).paint(0x4E5A4A).camera(9f).horn(Horn.TRUCK).sound("engine_truck").len(3.4, -3.5).step(1.1f).gears(6));
+    public static final VehicleType FOOD_TRUCK = add(new VehicleType("food_truck", Category.TRUCK, 2.0f, 2.7f)
+            .seat(0.42, 0.6, 1.2).seat(-0.42, 0.6, 1.2)
+            .speed(0.8f, 0.022f, 3.4f).health(90f).paint(0xC62828).camera(7f).horn(Horn.TRUCK).sound("engine_truck").len(2.62, -2.7));
+    public static final VehicleType POLICE_MOTORCYCLE = add(new VehicleType("police_motorcycle", Category.BIKE, 0.8f, 1.2f)
+            .seat(0, 0.55, -0.3).speed(1.45f, 0.05f, 5.5f).health(40f).paint(0xF5F5F5).camera(5f).sound("engine_bike").len(1.2, -1.13).gears(6).siren());
+    public static final VehicleType RALLY_CAR = add(new VehicleType("rally_car", Category.CAR, 1.9f, 1.5f)
+            .seat(0.4, 0.3, 0.05).seat(-0.4, 0.3, 0.05).seat(0.4, 0.3, -0.85).seat(-0.4, 0.3, -0.85)
+            .speed(1.3f, 0.05f, 4.4f).health(80f).paint(0x1565C0).camera(6.5f).len(2.1, -2.1).offroad().step(1.1f).gears(6));
+
     /** adds rows of seats: pairs at x = +-x, starting at z0 going back 1.1 per row */
     private static VehicleType rows(VehicleType t, double x, double y, double z0, int count) {
         for (int i = 0; i < count; i++) {

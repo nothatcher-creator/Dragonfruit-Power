@@ -62,6 +62,17 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         float wobble = e.getWobble() - td;
         if (wobble > 0) ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(wobble) * wobble * 0.3f));
         draw(model, e, td, yaw, ms, vcp, light);
+        if (e.type.buildable) {
+            // whatever's been built on the frame rides along with it
+            var brm = net.minecraft.client.MinecraftClient.getInstance().getBlockRenderManager();
+            for (VehicleEntity.Built b : e.built()) {
+                if (b.state().getRenderType() != net.minecraft.block.BlockRenderType.MODEL) continue;
+                ms.push();
+                ms.translate(b.x() - 0.5, VehicleEntity.DECK + b.y(), b.z() - 0.5);
+                brm.renderBlockAsEntity(b.state(), ms, vcp, light, net.minecraft.client.render.OverlayTexture.DEFAULT_UV);
+                ms.pop();
+            }
+        }
         if (e.lightsOn && !model.lights.isEmpty()) beams(model, ms, vcp);
         if (model.hasPlate) plate(model, e, ms, vcp, light);
         ms.pop();

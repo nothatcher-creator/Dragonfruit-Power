@@ -31,6 +31,8 @@ public final class VehicleType {
     public Weapon weapon = Weapon.NONE;
     public Horn horn = Horn.CAR;
     public boolean siren, interiorRoom, amphibious;
+    /** the build frame: blocks can be placed on its deck and ride along */
+    public boolean buildable;
     public int defaultPaint = 0xC8202A;
     /** for trains: number of carriages a new train starts with */
     public int carriages = 0;
@@ -205,6 +207,11 @@ public final class VehicleType {
 
     VehicleType siren() {
         this.siren = true;
+        return this;
+    }
+
+    VehicleType buildable() {
+        this.buildable = true;
         return this;
     }
 
