@@ -2851,7 +2851,7 @@ public final class CityGen {
         }
         if (lz >= 28 && lz <= 29 && lx >= 1 && lx <= 5) {
             int y = BASE + (lx - 1);
-            set(x, y, z, Blocks.SMOOTH_STONE_STAIRS.getDefaultState().with(net.minecraft.block.StairsBlock.FACING, Direction.EAST));
+            set(x, y, z, Blocks.STONE_STAIRS.getDefaultState().with(net.minecraft.block.StairsBlock.FACING, Direction.EAST));
             for (int yy = BASE; yy < y; yy++) set(x, yy, z, Blocks.SMOOTH_STONE.getDefaultState());
         }
         if (lx == 47 && lz == 14) roadSign(x, z, Blocks.LIGHT_BLUE_CONCRETE.getDefaultState());
