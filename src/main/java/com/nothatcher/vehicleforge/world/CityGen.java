@@ -1790,8 +1790,8 @@ public final class CityGen {
                 if (floor == 0 && iz <= 3) return r == 1 && iz == 2 && ix % 6 == 3 ? f(CityBlocks.DESK, Direction.SOUTH) : null;   // guard post by the door
                 int mid = d / 2, cx = ix % 4;
                 if (Math.abs(iz - mid) <= 1) return null;                                                        // the corridor down the middle
-                boolean front = iz == mid - 2 || iz == mid + 2;
-                if (front) return cx == 2 && r <= 2 ? AIR : r <= 3 ? Blocks.IRON_BARS.getDefaultState() : null; // cell bars, doors open
+                boolean barsRow = iz == mid - 2 || iz == mid + 2;
+                if (barsRow) return cx == 2 && r <= 2 ? AIR : r <= 3 ? Blocks.IRON_BARS.getDefaultState() : null; // cell bars, doors open
                 if (cx == 0) return r <= 3 ? PARTITION : null;
                 if (r != 1) return null;
                 boolean north = iz < mid;
