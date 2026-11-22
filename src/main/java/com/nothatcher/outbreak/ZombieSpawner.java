@@ -120,31 +120,71 @@ public final class ZombieSpawner {
         EntityAttributeInstance speed = z.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
         boolean sprinter = r.nextInt(100) < w.getGameRules().getInt(Outbreak.SPRINTERS);
         if (speed != null) speed.setBaseValue(sprinter ? 0.30 : 0.14 + r.nextDouble() * 0.07);
-        // the job they had
-        int job = r.nextInt(100);
-        if (job < 3) {
-            wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.POLICE_VEST), 0.35f);
-            if (r.nextInt(3) == 0) {
-                z.equipStack(EquipmentSlot.MAINHAND, new ItemStack(OutbreakItems.AMMO_9MM, 4 + r.nextInt(8)));
-                z.setEquipmentDropChance(EquipmentSlot.MAINHAND, 1f);
+        // the job they had: a uniform (their skin), the gear that went with it, and what's in their pockets
+        ZombieJob job = ZombieJob.pick(w, z.getX(), z.getY(), z.getZ(), r);
+        if (z instanceof ZombieJob.Holder h) h.outbreak$setJob(job);
+        switch (job) {
+            case COP -> {
+                wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.POLICE_VEST), 0.35f);
+                if (r.nextInt(4) == 0) wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.RIOT_HELMET), 0.3f);
+                int k = r.nextInt(10);
+                if (k < 4) hold(z, new ItemStack(OutbreakItems.POLICE_BATON), 0.4f);
+                else if (k < 5) hold(z, new ItemStack(OutbreakItems.PISTOL), 0.25f);
+                else if (k < 8) hold(z, new ItemStack(OutbreakItems.AMMO_9MM, 4 + r.nextInt(8)), 1f);
             }
-            if (r.nextBoolean()) wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.RIOT_HELMET), 0.3f);
-        } else if (job < 5) {
-            wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.MILITARY_VEST), 0.3f);
-            wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.MILITARY_HELMET), 0.3f);
-            wear(z, EquipmentSlot.LEGS, new ItemStack(OutbreakItems.CARGO_PANTS), 0.2f);
-            wear(z, EquipmentSlot.FEET, new ItemStack(OutbreakItems.WORK_BOOTS), 0.2f);
-        } else if (job < 7) {
-            wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.FIREFIGHTER_HELMET), 0.25f);
-            wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.FIREFIGHTER_JACKET), 0.25f);
-            wear(z, EquipmentSlot.LEGS, new ItemStack(OutbreakItems.FIREFIGHTER_PANTS), 0.25f);
-        } else if (job < 11) {
-            wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.HARD_HAT), 0.2f);
-            wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.HI_VIS_VEST), 0.2f);
-            wear(z, EquipmentSlot.FEET, new ItemStack(OutbreakItems.WORK_BOOTS), 0.15f);
-        } else if (job < 13) {
-            wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.GAS_MASK), 0.3f);
+            case SOLDIER -> {
+                wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.MILITARY_VEST), 0.3f);
+                wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.MILITARY_HELMET), 0.3f);
+                wear(z, EquipmentSlot.LEGS, new ItemStack(OutbreakItems.CARGO_PANTS), 0.2f);
+                wear(z, EquipmentSlot.FEET, new ItemStack(OutbreakItems.WORK_BOOTS), 0.2f);
+                int k = r.nextInt(10);
+                if (k < 4) hold(z, new ItemStack(OutbreakItems.AMMO_RIFLE, 4 + r.nextInt(10)), 1f);
+                else if (k < 6) hold(z, new ItemStack(OutbreakItems.MRE), 1f);
+                else if (k < 7) hold(z, new ItemStack(OutbreakItems.ASSAULT_RIFLE), 0.15f);
+            }
+            case FIREFIGHTER -> {
+                wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.FIREFIGHTER_HELMET), 0.25f);
+                wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.FIREFIGHTER_JACKET), 0.25f);
+                wear(z, EquipmentSlot.LEGS, new ItemStack(OutbreakItems.FIREFIGHTER_PANTS), 0.25f);
+                if (r.nextInt(4) == 0) hold(z, new ItemStack(OutbreakItems.FIRE_AXE), 0.3f);
+            }
+            case BUILDER -> {
+                wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.HARD_HAT), 0.2f);
+                wear(z, EquipmentSlot.CHEST, new ItemStack(OutbreakItems.HI_VIS_VEST), 0.2f);
+                wear(z, EquipmentSlot.FEET, new ItemStack(OutbreakItems.WORK_BOOTS), 0.15f);
+                int k = r.nextInt(10);
+                if (k < 2) hold(z, new ItemStack(OutbreakItems.CLAW_HAMMER), 0.35f);
+                else if (k < 3) hold(z, new ItemStack(OutbreakItems.SLEDGEHAMMER), 0.3f);
+                else if (k < 6) hold(z, new ItemStack(OutbreakItems.NAILS, 4 + r.nextInt(12)), 1f);
+            }
+            case DOCTOR -> {
+                int k = r.nextInt(10);
+                if (k < 4) hold(z, new ItemStack(OutbreakItems.BANDAGE, 1 + r.nextInt(2)), 1f);
+                else if (k < 6) hold(z, new ItemStack(OutbreakItems.PAINKILLERS), 1f);
+                else if (k < 7) hold(z, new ItemStack(OutbreakItems.ANTIBIOTICS), 1f);
+                if (r.nextInt(5) == 0) wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.GAS_MASK), 0.3f);
+            }
+            case PILOT -> {
+                int k = r.nextInt(10);
+                if (k < 3) hold(z, new ItemStack(OutbreakItems.FLASHLIGHT), 0.5f);
+                else if (k < 5) hold(z, new ItemStack(OutbreakItems.ENERGY_DRINK), 1f);
+            }
+            case MECHANIC -> {
+                wear(z, EquipmentSlot.FEET, new ItemStack(OutbreakItems.WORK_BOOTS), 0.15f);
+                int k = r.nextInt(10);
+                if (k < 3) hold(z, new ItemStack(OutbreakItems.PIPE_WRENCH), 0.35f);
+                else if (k < 5) hold(z, new ItemStack(OutbreakItems.SCRAP_METAL, 1 + r.nextInt(3)), 1f);
+                else if (k < 6) hold(z, new ItemStack(OutbreakItems.CAR_BATTERY), 1f);
+            }
+            case PRISONER -> {
+                if (r.nextInt(5) == 0) hold(z, new ItemStack(OutbreakItems.KITCHEN_KNIFE), 0.3f);
+            }
+            default -> {
+                if (r.nextInt(40) == 0) wear(z, EquipmentSlot.HEAD, new ItemStack(OutbreakItems.GAS_MASK), 0.3f);
+            }
         }
+        boolean uniform = job == ZombieJob.PILOT || job == ZombieJob.DOCTOR || job == ZombieJob.MECHANIC || job == ZombieJob.PRISONER || job == ZombieJob.COP;
+        if (uniform) return;                                   // the skin is the outfit: no random clothes over it
         // everyday clothes for whatever's left
         if (z.getEquippedStack(EquipmentSlot.CHEST).isEmpty()) {
             int c = r.nextInt(10);
@@ -160,6 +200,11 @@ public final class ZombieSpawner {
             wear(z, EquipmentSlot.FEET, new ItemStack(r.nextBoolean() ? OutbreakItems.SNEAKERS : OutbreakItems.WORK_BOOTS), 0.05f);
         if (z.getEquippedStack(EquipmentSlot.HEAD).isEmpty() && r.nextInt(6) == 0)
             wear(z, EquipmentSlot.HEAD, new ItemStack(r.nextBoolean() ? OutbreakItems.BEANIE : OutbreakItems.BASEBALL_CAP), 0.08f);
+    }
+
+    private static void hold(ZombieEntity z, ItemStack s, float drop) {
+        z.equipStack(EquipmentSlot.MAINHAND, s);
+        z.setEquipmentDropChance(EquipmentSlot.MAINHAND, drop);
     }
 
     private static void wear(ZombieEntity z, EquipmentSlot slot, ItemStack s, float drop) {

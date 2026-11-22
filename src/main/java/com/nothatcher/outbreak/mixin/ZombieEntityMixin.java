@@ -20,7 +20,38 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ZombieEntity.class)
-public abstract class ZombieEntityMixin extends HostileEntity {
+public abstract class ZombieEntityMixin extends HostileEntity implements com.nothatcher.outbreak.ZombieJob.Holder {
+    @org.spongepowered.asm.mixin.Unique
+    private static final net.minecraft.entity.data.TrackedData<Integer> OUTBREAK_JOB =
+            net.minecraft.entity.data.DataTracker.registerData(ZombieEntity.class, net.minecraft.entity.data.TrackedDataHandlerRegistry.INTEGER);
+
+    @Inject(method = "initDataTracker", at = @At("TAIL"))
+    private void outbreak$trackJob(CallbackInfo ci) {
+        this.dataTracker.startTracking(OUTBREAK_JOB, 0);
+    }
+
+    @Override
+    public com.nothatcher.outbreak.ZombieJob outbreak$job() {
+        return com.nothatcher.outbreak.ZombieJob.byOrdinal(this.dataTracker.get(OUTBREAK_JOB));
+    }
+
+    @Override
+    public void outbreak$setJob(com.nothatcher.outbreak.ZombieJob job) {
+        this.dataTracker.set(OUTBREAK_JOB, job.ordinal());
+    }
+
+    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
+    private void outbreak$saveJob(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        nbt.putString("OutbreakJob", outbreak$job().id());
+    }
+
+    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+    private void outbreak$loadJob(net.minecraft.nbt.NbtCompound nbt, CallbackInfo ci) {
+        if (!nbt.contains("OutbreakJob")) return;
+        for (com.nothatcher.outbreak.ZombieJob j : com.nothatcher.outbreak.ZombieJob.values())
+            if (j.id().equals(nbt.getString("OutbreakJob"))) outbreak$setJob(j);
+    }
+
     protected ZombieEntityMixin(EntityType<? extends HostileEntity> type, World world) {
         super(type, world);
     }

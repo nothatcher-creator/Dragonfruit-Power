@@ -42,6 +42,7 @@ import java.util.UUID;
  */
 public class CorpseEntity extends Entity {
     private static final TrackedData<Optional<UUID>> WHO = DataTracker.registerData(CorpseEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+    private static final TrackedData<Integer> JOB = DataTracker.registerData(CorpseEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Boolean> BABY = DataTracker.registerData(CorpseEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Float> BODY_YAW = DataTracker.registerData(CorpseEntity.class, TrackedDataHandlerRegistry.FLOAT);
     /** what it was wearing and holding, for looks only (head, chest, legs, feet, main hand, off hand) */
@@ -75,6 +76,7 @@ public class CorpseEntity extends Entity {
         double r = Math.toRadians(yaw);
         c.refreshPositionAndAngles(z.getX() + Math.cos(r) * reach, z.getY(), z.getZ() + Math.sin(r) * reach, yaw, 0);
         c.dataTracker.set(WHO, Optional.of(z.getUuid()));
+        c.dataTracker.set(JOB, ZombieJob.of(z).ordinal());
         c.dataTracker.set(BABY, z.isBaby());
         c.dataTracker.set(BODY_YAW, yaw);
         for (int i = 0; i < SLOTS.length; i++) c.dataTracker.set(WORN[i], z.getEquippedStack(SLOTS[i]).copy());
@@ -99,6 +101,10 @@ public class CorpseEntity extends Entity {
 
     // ---- looks
 
+    public ZombieJob job() {
+        return ZombieJob.byOrdinal(dataTracker.get(JOB));
+    }
+
     public Optional<UUID> who() {
         return dataTracker.get(WHO);
     }
@@ -118,6 +124,7 @@ public class CorpseEntity extends Entity {
     @Override
     protected void initDataTracker() {
         dataTracker.startTracking(WHO, Optional.empty());
+        dataTracker.startTracking(JOB, 0);
         dataTracker.startTracking(BABY, false);
         dataTracker.startTracking(BODY_YAW, 0f);
         for (TrackedData<ItemStack> t : WORN) dataTracker.startTracking(t, ItemStack.EMPTY);
@@ -182,6 +189,7 @@ public class CorpseEntity extends Entity {
     protected void readCustomDataFromNbt(NbtCompound nbt) {
         rot = nbt.getInt("Rot");
         if (nbt.containsUuid("Who")) dataTracker.set(WHO, Optional.of(nbt.getUuid("Who")));
+        dataTracker.set(JOB, nbt.getInt("Job"));
         dataTracker.set(BABY, nbt.getBoolean("Baby"));
         dataTracker.set(BODY_YAW, nbt.getFloat("BodyYaw"));
         NbtList worn = nbt.getList("Worn", NbtElement.COMPOUND_TYPE);
@@ -193,6 +201,7 @@ public class CorpseEntity extends Entity {
     protected void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putInt("Rot", rot);
         who().ifPresent(u -> nbt.putUuid("Who", u));
+        nbt.putInt("Job", dataTracker.get(JOB));
         nbt.putBoolean("Baby", baby());
         nbt.putFloat("BodyYaw", bodyYaw());
         NbtList worn = new NbtList();

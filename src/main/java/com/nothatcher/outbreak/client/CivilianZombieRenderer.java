@@ -21,6 +21,15 @@ public class CivilianZombieRenderer extends ZombieEntityRenderer {
         super(ctx);
     }
 
+    private static final java.util.Map<String, Identifier> JOB_TEXTURES = new java.util.HashMap<>();
+
+    /** the uniform for a zombie's old job (two faces per job), or its civilian clothes */
+    public static Identifier skinFor(java.util.UUID id, com.nothatcher.outbreak.ZombieJob job) {
+        if (job == null || job == com.nothatcher.outbreak.ZombieJob.CIVILIAN) return skinFor(id);
+        String key = job.id() + "_" + (id.getLeastSignificantBits() & 1);
+        return JOB_TEXTURES.computeIfAbsent(key, k -> new Identifier("outbreak", "textures/entity/zombie/job_" + k + ".png"));
+    }
+
     public static Identifier skinFor(java.util.UUID id) {
         long h = id.getLeastSignificantBits() ^ id.getMostSignificantBits();
         return TEXTURES[(int) Math.floorMod(h ^ (h >>> 29), (long) SKINS)];
@@ -28,6 +37,6 @@ public class CivilianZombieRenderer extends ZombieEntityRenderer {
 
     @Override
     public Identifier getTexture(ZombieEntity zombie) {
-        return skinFor(zombie.getUuid());
+        return skinFor(zombie.getUuid(), com.nothatcher.outbreak.ZombieJob.of(zombie));
     }
 }

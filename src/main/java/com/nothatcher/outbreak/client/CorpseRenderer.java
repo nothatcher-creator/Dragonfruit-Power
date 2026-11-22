@@ -61,6 +61,6 @@ public class CorpseRenderer extends EntityRenderer<CorpseEntity> {
 
     @Override
     public Identifier getTexture(CorpseEntity c) {
-        return c.who().map(CivilianZombieRenderer::skinFor).orElse(new Identifier("textures/entity/zombie/zombie.png"));
+        return c.who().map(u -> CivilianZombieRenderer.skinFor(u, c.job())).orElse(new Identifier("textures/entity/zombie/zombie.png"));
     }
 }

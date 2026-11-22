@@ -28,6 +28,29 @@ BLOOD = np.array([104, 18, 14], float)
 BLOOD_DRY = np.array([70, 22, 18], float)
 
 
+# uniforms (front of the body is x 20..27, y 20..31; arm fronts x 44..47; leg fronts x 4..7, all y 20..31)
+GOLD, WHITE, NAVY = (200, 168, 60), (222, 222, 218), (30, 38, 70)
+JOBS = {
+    'cop': {'shirt': (36, 46, 86), 'pants': (26, 30, 46), 'shoe': (24, 24, 26), 'sleeve': 'tee', 'style': 'cap', 'cap': (28, 34, 66),
+            'marks': [(25, 22, GOLD), (25, 23, GOLD), (21, 22, (200, 200, 200)), (22, 22, (200, 200, 200))]},
+    'pilot': {'shirt': WHITE, 'pants': (34, 38, 58), 'shoe': (20, 20, 22), 'sleeve': 'long', 'style': 'cap', 'cap': NAVY,
+              'marks': [(23, 21, NAVY), (24, 21, NAVY), (23, 22, NAVY), (24, 22, NAVY), (23, 23, NAVY), (24, 24, NAVY), (23, 25, NAVY),
+                        (21, 22, GOLD), (22, 22, GOLD), (44, 20, GOLD), (45, 20, GOLD), (46, 20, GOLD), (47, 20, GOLD),
+                        (44, 29, GOLD), (45, 29, GOLD), (46, 29, GOLD), (47, 29, GOLD), (8, 1, GOLD), (11, 1, GOLD)]},
+    'doctor': {'shirt': (226, 226, 222), 'under': (78, 150, 148), 'pants': (78, 150, 148), 'shoe': (210, 210, 206), 'sleeve': 'jacket',
+               'marks': [(22, 20, (60, 60, 64)), (21, 21, (60, 60, 64)), (21, 22, (60, 60, 64)), (26, 21, (60, 60, 64)), (26, 22, (60, 60, 64)),
+                         (21, 23, (60, 60, 64)), (21, 24, (150, 150, 156)), (26, 25, (40, 80, 160))]},
+    'soldier': {'shirt': (78, 84, 54), 'pants': (78, 84, 54), 'shoe': (52, 40, 30), 'sleeve': 'long', 'style': 'buzz', 'camo': True},
+    'firefighter': {'shirt': (40, 44, 60), 'pants': (150, 128, 80), 'shoe': (24, 24, 24), 'sleeve': 'tee',
+                    'marks': [(x, 28, (220, 210, 80)) for x in range(20, 28)]},
+    'builder': {'shirt': (150, 60, 44), 'pants': (58, 74, 108), 'shoe': (100, 70, 40), 'sleeve': 'long', 'plaid': True},
+    'mechanic': {'shirt': (52, 72, 112), 'pants': (52, 72, 112), 'shoe': (30, 28, 28), 'sleeve': 'long', 'grease': True,
+                 'marks': [(21, 22, WHITE), (22, 22, WHITE), (23, 22, (200, 40, 40))]},
+    'prisoner': {'shirt': (214, 112, 38), 'pants': (214, 112, 38), 'shoe': (210, 210, 206), 'sleeve': 'tee', 'style': 'buzz',
+                 'marks': [(25, 22, WHITE), (26, 22, WHITE), (25, 23, (20, 20, 20)), (26, 23, WHITE)]},
+}
+
+
 def faces(u, v, w, h, d):
     """the six faces of a model box in the texture: name -> (x, y, width, height)"""
     return {'top': (u + d, v, w, d), 'bottom': (u + d + w, v, w, d), 'right': (u, v + d, d, h),
@@ -37,7 +60,7 @@ def faces(u, v, w, h, d):
 SHADE = {'top': 1.08, 'bottom': 0.7, 'front': 1.0, 'back': 0.88, 'right': 0.92, 'left': 0.92}
 
 
-def make(seed):
+def make(seed, job=None):
     r = random.Random(seed)
     img = np.zeros((64, 64, 4), float)
 
@@ -58,6 +81,17 @@ def make(seed):
     shorts = r.random() < 0.2
     shoe = np.array(r.choice(SHOES), float)
     plaid = r.random() < 0.18
+    spec = JOBS.get(job, {})
+    if spec:
+        shirt = np.array(spec.get('shirt', shirt), float)
+        under = np.array(spec.get('under', under), float)
+        pants = np.array(spec.get('pants', pants), float)
+        shoe = np.array(spec.get('shoe', shoe), float)
+        cap = np.array(spec.get('cap', cap), float)
+        sleeve = spec.get('sleeve', sleeve)
+        style = spec.get('style', style if style != 'cap' else 'short')
+        shorts = False
+        plaid = spec.get('plaid', False)
 
     def grime(c, x, y, amount=0.12):
         n = (r.random() - 0.5) * amount
@@ -174,6 +208,19 @@ def make(seed):
                         c = shoe * 0.7                                       # sneaker sole
                 put(fx + i, fy + j, c * SHADE[name])
 
+    # ---- uniform details: badges, ties, patches, camo
+    for (x, y, c) in spec.get('marks', []):
+        img[y, x, :3] = c
+        img[y, x, 3] = 255
+    if spec.get('camo'):
+        for (u, v, w, h) in [(16, 20, 24, 12), (40, 20, 16, 12), (0, 20, 16, 10)]:
+            for _ in range(int(w * h * 0.35)):
+                x, y = u + r.randrange(w), v + r.randrange(h)
+                img[y, x, :3] = r.choice([(54, 62, 38), (96, 88, 58), (40, 44, 30)])
+    if spec.get('grease'):
+        for _ in range(26):
+            x, y = r.choice([(16 + r.randrange(24), 20 + r.randrange(12)), (r.randrange(16), 20 + r.randrange(10))])
+            img[y, x, :3] = img[y, x, :3] * 0.35
     # ---- blood: a spray across the chest and down the front, a few spots elsewhere
     def splat(fx, fy, fw, fh, n, cx=None, cy=None):
         cx = r.randrange(fw) if cx is None else cx
@@ -211,5 +258,10 @@ if __name__ == '__main__':
         s = make(9000 + k * 31)
         s.save(os.path.join(OUT, 'civilian_%d.png' % k))
         sheet.alpha_composite(front_view(s).resize((64, 128), Image.NEAREST), (k * 72, 4))
+    for j, job in enumerate(JOBS):
+        for k in range(2):
+            s = make(7000 + j * 97 + k * 13, job)
+            s.save(os.path.join(OUT, 'job_%s_%d.png' % (job, k)))
+            sheet.alpha_composite(front_view(s).resize((64, 128), Image.NEAREST), ((j * 2 + k) % COUNT * 72, 4)) if False else None
     sheet.save('/tmp/zombie_sheet.png')
     print('wrote', COUNT, 'skins to', OUT)
