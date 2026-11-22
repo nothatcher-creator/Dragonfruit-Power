@@ -198,6 +198,25 @@ def make(name, paint, kind):
     elif kind == 'rally':
         d.rectangle([1,8,14,11], fill=p); d.polygon([(4,8),(6,5),(10,5),(12,8)], fill=p); d.polygon([(5,8),(6,6),(8,6),(8,8)], fill=GLS); d.polygon([(9,8),(9,6),(10,6),(11,8)], fill=GLS)
         d.rectangle([0,6,2,7], fill=dark(p,0.6)); d.ellipse([6,9,9,11], fill=WHT); d.rectangle([13,7,15,8], fill=YEL); wheel(d,4,12); wheel(d,11,12)
+    elif kind == 'fishing':
+        d.polygon([(0,10),(15,9),(13,13),(2,13)], fill=p); d.line([(0,10),(15,9)], fill=WHT); d.rectangle([9,5,13,9], fill=WHT); d.rectangle([10,6,12,7], fill=GLS); d.line([(11,1),(11,5)], fill=WHT)
+        d.line([(2,3),(2,9)], fill=(240,200,40,255)); d.line([(2,3),(4,3)], fill=(240,200,40,255)); d.rectangle([3,8,6,9], fill=(150,140,110,255))
+    elif kind == 'cargo':
+        d.rounded_rectangle([1,7,14,11], 2, fill=p); d.line([(4,6),(12,6)], fill=dark(p,0.7), width=1); d.polygon([(0,8),(1,3),(3,3),(3,8)], fill=p); d.point((14,8), fill=GLS); d.point((13,8), fill=GLS)
+        d.rectangle([6,5,7,6], fill=BLK); d.rectangle([10,5,11,6], fill=BLK); wheel(d,8,12,1)
+    elif kind == 'drone':
+        d.rectangle([5,8,10,10], fill=p); d.line([(2,7),(13,7)], fill=dark(p,0.7)); d.line([(0,6),(4,6)], fill=(170,170,176,255)); d.line([(11,6),(15,6)], fill=(170,170,176,255))
+        d.line([(3,8),(3,11)], fill=BLK); d.line([(12,8),(12,11)], fill=BLK); d.point((10,11), fill=GLS)
+    elif kind == 'campervan':
+        d.rectangle([1,5,13,11], fill=p); d.polygon([(13,5),(15,8),(15,11),(13,11)], fill=p); d.rectangle([1,8,15,11], fill=WHT); d.rectangle([2,3,11,4], fill=WHT)
+        d.polygon([(13,6),(14,8),(13,8)], fill=GLS); d.rectangle([3,6,6,7], fill=GLS); d.rectangle([8,6,11,7], fill=GLS); wheel(d,4,12); wheel(d,12,12)
+    elif kind == 'miltruck':
+        d.rectangle([0,4,10,10], fill=dark(p,0.85)); d.rectangle([10,6,15,10], fill=p); d.rectangle([12,7,14,8], fill=GLS); d.line([(0,4),(10,4)], fill=dark(p,0.6))
+        wheel(d,2,12); wheel(d,6,12); wheel(d,13,12)
+    elif kind == 'prisonbus':
+        d.rectangle([0,4,15,11], fill=p); d.rectangle([1,5,13,7], fill=GLS)
+        for x in range(1,14,2): d.line([(x,5),(x,7)], fill=BLK)
+        d.line([(0,9),(15,9)], fill=(30,40,80,255)); wheel(d,3,12); wheel(d,12,12)
     img.save(os.path.join(ITEM, name + '.png'))
 specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('sports_car','#E0301E','sports'),('pickup_truck','#3C6E3A','pickup'),
  ('van','#F2F2F2','van'),('semi_truck','#B0122A','semi'),('fire_truck','#C81E1E','fire'),('bicycle','#2A9DF4','bicycle'),('motorbike','#262626','motorbike'),
@@ -215,7 +234,9 @@ specs = [('classic_cruiser','#5FB8B0','classic'),('sedan','#2E4E8F','car'),('spo
  ('hovercraft','#E65100','hovercraft'),('hot_air_balloon','#D32F2F','balloon'),
  ('excavator','#F2A900','excavator'),('bulldozer','#F2A900','dozer'),('wheel_loader','#F2A900','loader'),('road_roller','#F2A900','roller'),('mobile_crane','#F2C200','crane'),('tow_truck','#F57C00','tow'),
  ('houseboat','#3C7A8C','houseboat'),('build_frame','#7A7F86','frame'),('sailboat','#1F4E8C','sailboat'),('armored_truck','#4E5A4A','armored'),
- ('food_truck','#C62828','food'),('police_motorcycle','#F5F5F5','policebike'),('rally_car','#1565C0','rally')]
+ ('food_truck','#C62828','food'),('police_motorcycle','#F5F5F5','policebike'),('rally_car','#1565C0','rally'),
+ ('fishing_boat','#B71C1C','fishing'),('cargo_plane','#6E7B6A','cargo'),('quad_drone','#2B2B2E','drone'),('camper_van','#80CBC4','campervan'),
+ ('military_truck','#5B6B3A','miltruck'),('prison_bus','#F2F2F2','prisonbus')]
 for s in specs: make(*s)
 door = Image.new('RGBA', (16,16), (120,84,48,255)); dd = ImageDraw.Draw(door)
 dd.rectangle([0,0,15,15], outline=(70,48,28,255)); dd.rectangle([3,2,12,7], fill=(150,210,240,255)); dd.rectangle([11,9,12,10], fill=(220,200,80,255)); door.save(os.path.join(BLOCK, 'rv_door.png'))

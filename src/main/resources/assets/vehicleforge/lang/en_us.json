@@ -387,5 +387,17 @@
   "item.vehicleforge.police_motorcycle": "Police Motorcycle",
   "entity.vehicleforge.police_motorcycle": "Police Motorcycle",
   "item.vehicleforge.rally_car": "Rally Car",
-  "entity.vehicleforge.rally_car": "Rally Car"
+  "entity.vehicleforge.rally_car": "Rally Car",
+  "item.vehicleforge.fishing_boat": "Fishing Boat",
+  "entity.vehicleforge.fishing_boat": "Fishing Boat",
+  "item.vehicleforge.cargo_plane": "Cargo Plane",
+  "entity.vehicleforge.cargo_plane": "Cargo Plane",
+  "item.vehicleforge.quad_drone": "Quad Drone",
+  "entity.vehicleforge.quad_drone": "Quad Drone",
+  "item.vehicleforge.camper_van": "Camper Van",
+  "entity.vehicleforge.camper_van": "Camper Van",
+  "item.vehicleforge.military_truck": "Military Truck",
+  "entity.vehicleforge.military_truck": "Military Truck",
+  "item.vehicleforge.prison_bus": "Prison Bus",
+  "entity.vehicleforge.prison_bus": "Prison Bus"
 }

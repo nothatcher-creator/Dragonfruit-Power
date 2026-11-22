@@ -98,6 +98,12 @@ public final class VehicleModels {
             case "food_truck" -> van(3);
             case "police_motorcycle" -> policeBike();
             case "rally_car" -> rally();
+            case "fishing_boat" -> fishingBoat();
+            case "cargo_plane" -> cargoPlane();
+            case "quad_drone" -> drone();
+            case "camper_van" -> van(4);
+            case "military_truck" -> militaryTruck();
+            case "prison_bus" -> prisonBus();
             default -> sedan();
         };
     }
@@ -241,7 +247,7 @@ public final class VehicleModels {
     }
 
     private static Model van(int kind) {
-        boolean ambulance = kind == 1, iceCream = kind == 2, food = kind == 3;
+        boolean ambulance = kind == 1, iceCream = kind == 2, food = kind == 3, camper = kind == 4;
         Builder b = Model.builder();
         double w = 1.0;
         b.box(-w, 0.45, -2.6, w, 2.4, 1.4, Mat.PAINT);
@@ -291,6 +297,18 @@ public final class VehicleModels {
             b.cyl(0, 3.15, -0.9, 'y', 0.34, 0.0, 0.45, 10, Mat.WHITE, null);
             b.box(-0.06, 3.55, -0.96, 0.06, 3.68, -0.84, Mat.RED);
             b.pair(w, 0.75, -2.6, w + 0.012, 0.85, 1.4, Mat.RED);
+        } else if (camper) {
+            b.box(-w + 0.05, 2.4, -2.4, w - 0.05, 2.75, 0.9, Mat.WHITE);                 // pop-top roof
+            b.pair(w - 0.06, 2.42, -2.3, w - 0.04, 2.72, 0.8, Mat.CANVAS);
+            b.pair(w, 0.45, -2.6, w + 0.01, 1.15, 1.4, Mat.WHITE);                       // two-tone
+            b.box(-0.95, 0.58, -2.5, 0.95, 0.95, -1.2, Mat.SEAT);                         // bed at the back
+            b.box(-0.95, 0.95, -2.5, 0.95, 1.05, -1.2, Mat.RUG);
+            b.box(0.55, 0.58, -0.9, 0.95, 1.3, 0.2, Mat.WOOD);                            // galley
+            b.box(0.6, 1.3, -0.8, 0.9, 1.32, -0.4, Mat.STEEL);
+            b.cyl(-0.5, 1.2, -2.85, 'x', 0.45, 0.45, 0.04, 12, Mat.BLACK, null);          // bikes on the back
+            b.cyl(0.5, 1.2, -2.85, 'x', 0.45, 0.45, 0.04, 12, Mat.BLACK, null);
+            b.box(-0.5, 1.15, -2.9, 0.5, 1.6, -2.8, Mat.RED);
+            b.box(-0.9, 2.75, -1.0, 0.9, 2.8, 0.4, Mat.SCREEN);                          // solar panel
         } else if (food) {
             b.sidePane(-w - 0.006, 1.3, 2.1, -2.2, -0.2, -2.2, -0.2, Mat.GLASS);         // serving hatch
             b.box(-w - 0.6, 2.15, -2.3, -w, 2.2, -0.1, Mat.YELLOW);                      // awning
@@ -1005,6 +1023,140 @@ public final class VehicleModels {
         b.pair(0.9, 0.5, -0.6, 0.905, 0.95, 0.3, Mat.WHITE);                                  // door number roundel
         b.box(-0.9, 1.0, 1.4, 0.9, 1.006, 1.6, Mat.WHITE);                                    // stripe
         return b.build();
+    }
+
+    // ================================================================ wave 6
+
+    private static Model fishingBoat() {
+        Builder b = Model.builder();
+        double w = 1.3;
+        b.hull(-0.5, 0.5, -3.4, 3.2, -0.65, -w, w, -3.6, 3.8, 0.4, Mat.PAINT, Mat.DECK);
+        b.hull(-0.1, 0.1, 3.2, 3.9, -0.4, -0.7, 0.7, 3.8, 4.1, 0.4, Mat.PAINT, Mat.DECK);
+        b.pair(w - 0.01, 0.2, -3.6, w + 0.005, 0.4, 3.8, Mat.WHITE);
+        b.pair(w - 0.05, 0.4, -3.6, w, 0.9, 3.8, Mat.PAINT_DARK);                          // gunwales
+        // wheelhouse forward
+        b.box(-0.95, 0.4, 0.6, 0.95, 2.3, 2.5, Mat.WHITE);
+        b.box(-1.05, 2.3, 0.5, 1.05, 2.4, 2.6, Mat.PAINT_DARK);
+        b.pane(0.85, -0.85, 1.5, 2.505, 0.85, -0.85, 2.15, 2.505, Mat.GLASS);
+        for (int sd = -1; sd <= 1; sd += 2) b.sidePane(sd * 0.955, 1.5, 2.15, 0.9, 2.2, 0.9, 2.2, Mat.GLASS);
+        b.box(-0.3, 0.4, 0.595, 0.3, 2.0, 0.6, Mat.WOOD);                                  // door aft
+        b.seat(0.4, 1.35, 1.5, 0.5, Mat.SEAT);
+        b.box(0.1, 0.4, 2.1, 0.8, 1.55, 2.4, Mat.DASH);
+        b.steeringWheel(0.4, 1.6, 2.05, 0.2, 30);
+        b.cyl(0, 2.4, 1.5, 'y', 0.05, 0.05, 1.4, 6, Mat.WHITE, Mat.WHITE);                // mast and lights
+        b.box(-0.4, 3.5, 1.45, 0.4, 3.55, 1.55, Mat.WHITE);
+        b.box(-0.06, 3.8, 1.44, 0.06, 3.9, 1.56, Mat.HEADLIGHT);
+        // working deck aft: A-frame, winch, nets, crates, a bench
+        b.pair(1.0, 0.4, -3.4, 1.12, 3.0, -3.25, Mat.YELLOW);
+        b.box(-1.12, 2.9, -3.4, 1.12, 3.05, -3.25, Mat.YELLOW);
+        b.cyl(0, 0.75, -1.0, 'x', 0.3, 0.3, 0.9, 10, Mat.METAL, Mat.BLACK);
+        b.box(-0.45, 0.4, -1.3, 0.45, 0.6, -0.7, Mat.METAL);
+        b.box(-1.1, 0.4, -3.3, -0.2, 0.75, -2.2, Mat.CANVAS);                              // net pile
+        b.box(0.3, 0.4, -2.6, 0.9, 0.85, -2.0, Mat.WOOD);
+        b.box(0.35, 0.85, -2.5, 0.85, 1.25, -2.05, Mat.WOOD);
+        b.seat(0.7, 0.6, -1.8, 0.4, Mat.SEAT);
+        b.seat(-0.7, 0.6, -1.8, 0.4, Mat.SEAT);
+        b.cyl(w + 0.02, 0.9, -0.2, 'x', 0.3, 0.3, 0.07, 12, Mat.ORANGE, Mat.WHITE);       // life ring
+        return b.build();
+    }
+
+    private static Model cargoPlane() {
+        Builder b = Model.builder();
+        double r = 1.9, cy = 2.6;
+        tube(b, 0, cy, -6.0, 13.5, r, r, 20, i -> i == 5 || i == 14 ? Mat.PAINT_DARK : Mat.PAINT, null);
+        tube(b, 0, cy, 7.5, 2.6, r, 0.3, 20, i -> i == 1 || i == 2 || i == 3 || i == 17 || i == 18 || i == 19 ? Mat.CANOPY : Mat.PAINT, Mat.METAL);
+        tube(b, 0, cy + 0.6, -6.0, -4.2, r, 0.35, 20, i -> Mat.PAINT, Mat.METAL);           // upswept tail
+        b.box(-1.6, 0.85, -6.0, 1.6, 0.95, 7.8, Mat.METAL);                                   // cargo floor with roller tracks
+        b.pair(0.5, 0.95, -6.0, 0.6, 1.0, 7.0, Mat.STEEL);
+        b.box(-1.2, 0.95, 2.0, 1.2, 2.2, 4.0, Mat.CANVAS);                                    // pallets under tarps
+        b.box(-1.2, 0.95, -1.5, 1.2, 1.9, 1.0, Mat.WOOD);
+        b.box(-1.5, 0.9, -6.3, 1.5, 1.05, -5.9, Mat.PAINT_DARK);                              // the ramp
+        b.seat(0.55, 1.85, 8.0, 0.5, Mat.SEAT);
+        b.seat(-0.55, 1.85, 8.0, 0.5, Mat.SEAT);
+        b.dashboard(1.0, -1.0, 2.6, 8.8, 0.55);
+        // high wing with four turboprops
+        plate(b, 1.0, 4.35, -0.5, 2.6, 13.5, 4.5, 0.4, 1.8, 0.2, Mat.PAINT, true);
+        for (double x : new double[]{-8.5, -4.4, 4.4, 8.5}) {
+            b.cyl(x, 4.0, -0.2, 'z', 0.5, 0.42, 3.4, 12, Mat.PAINT, Mat.BLACK);
+            b.group(Kind.PROP_Z, x, 4.0, 3.3, 0, false);
+            b.box(x - 0.12, 4.0 - 1.7, 3.28, x + 0.12, 4.0 + 1.7, 3.34, Mat.ROTOR);
+            b.box(x - 1.7, 3.88, 3.28, x + 1.7, 4.12, 3.34, Mat.ROTOR);
+            b.cyl(x, 4.0, 3.2, 'z', 0.22, 0.0, 0.4, 8, Mat.METAL, Mat.METAL);
+            b.body();
+        }
+        // T-tail
+        b.hull(-0.12, 0.12, -10.0, -6.0, 4.2, -0.08, 0.08, -10.6, -8.8, 8.6, Mat.PAINT, Mat.PAINT);
+        plate(b, 0.1, 8.5, -10.6, -9.0, 4.6, 8.6, -10.9, -10.0, 0.12, Mat.PAINT, true);
+        b.box(-0.05, 8.6, -10.5, 0.05, 8.7, -10.3, Mat.TAILLIGHT);
+        // landing gear in sponsons
+        b.pair(1.6, 0.4, -2.0, 2.2, 1.4, 1.5, Mat.PAINT_DARK);
+        b.wheel(1.9, 0.4, -1.2, 0.4, 0.3, false);
+        b.wheel(-1.9, 0.4, -1.2, 0.4, 0.3, false);
+        b.wheel(1.9, 0.4, 0.7, 0.4, 0.3, false);
+        b.wheel(-1.9, 0.4, 0.7, 0.4, 0.3, false);
+        b.box(-0.06, 0.4, 8.45, 0.06, 1.0, 8.55, Mat.METAL);
+        b.wheel(0, 0.3, 8.5, 0.3, 0.2, true);
+        return b.build();
+    }
+
+    private static Model drone() {
+        Builder b = Model.builder();
+        b.box(-0.25, 0.25, -0.3, 0.25, 0.45, 0.3, Mat.PAINT);                                 // body
+        b.box(-0.18, 0.45, -0.2, 0.18, 0.5, 0.2, Mat.SCREEN);
+        b.box(-0.08, 0.12, 0.2, 0.08, 0.25, 0.32, Mat.BLACK);                                  // camera gimbal
+        b.box(-0.04, 0.15, 0.32, 0.04, 0.22, 0.34, Mat.GLASS);
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sz = -1; sz <= 1; sz += 2) {
+                double x = sx * 0.55, z = sz * 0.55;
+                b.box(Math.min(0, x) - 0.03, 0.36, Math.min(0, z) - 0.03, Math.max(0, x) + 0.03, 0.42, Math.max(0, z) + 0.03, Mat.PAINT_DARK);
+                b.cyl(x, 0.42, z, 'y', 0.06, 0.06, 0.08, 8, Mat.METAL, Mat.METAL);
+                b.box(x - 0.02, 0.0, z - 0.02, x + 0.02, 0.36, z + 0.02, Mat.BLACK);           // landing legs
+                b.group(Kind.ROTOR_Y, x, 0.5, z, 0, false);
+                b.box(x - 0.32, 0.5, z - 0.03, x + 0.32, 0.52, z + 0.03, Mat.ROTOR);
+                b.box(x - 0.03, 0.5, z - 0.32, x + 0.03, 0.52, z + 0.32, Mat.ROTOR);
+                b.body();
+            }
+        }
+        b.pair(0.1, 0.3, 0.3, 0.16, 0.36, 0.31, Mat.HEADLIGHT);
+        b.pair(0.1, 0.3, -0.31, 0.16, 0.36, -0.3, Mat.TAILLIGHT);
+        return b.build();
+    }
+
+    private static Model militaryTruck() {
+        Builder b = Model.builder();
+        truckCab(b, 1.2, 1.4, 2.4, 1.0, 2.7, 1.0);
+        b.box(-1.25, 0.9, -3.7, 1.25, 1.05, 1.35, Mat.PAINT_DARK);                             // bed
+        b.pair(1.15, 1.05, -3.7, 1.25, 1.5, 1.35, Mat.PAINT);
+        b.box(-1.25, 1.05, -3.75, 1.25, 1.5, -3.65, Mat.PAINT);
+        // canvas tilt over hoops
+        b.pair(1.2, 1.5, -3.7, 1.25, 2.85, 1.3, Mat.CANVAS);
+        b.hull(-1.25, 1.25, -3.7, 1.3, 2.85, -0.9, 0.9, -3.7, 1.3, 3.25, Mat.CANVAS, Mat.CANVAS);
+        b.seat(0.8, 1.45, 0.6, 0.45, Mat.WOOD);
+        b.seat(-0.8, 1.45, 0.6, 0.45, Mat.WOOD);
+        b.seat(0.8, 1.45, -0.5, 0.45, Mat.WOOD);
+        b.seat(-0.8, 1.45, -0.5, 0.45, Mat.WOOD);
+        b.seat(0.8, 1.45, -1.6, 0.45, Mat.WOOD);
+        b.seat(-0.8, 1.45, -1.6, 0.45, Mat.WOOD);
+        b.cyl(0, 1.6, 3.5, 'z', 0.45, 0.45, 0.25, 12, Mat.TIRE, Mat.RUBBER);                  // spare on the bumper
+        b.pair(1.0, 2.0, 2.3, 1.15, 2.6, 2.35, Mat.BLACK);                                     // jerry cans
+        b.pair(0.8, 1.1, -3.85, 1.15, 1.35, -3.75, Mat.TAILLIGHT);
+        b.wheels(1.05, 0.52, 2.6, -1.6, 0.52, 0.42);
+        b.wheel(1.05, 0.52, -2.75, 0.52, 0.42, false);
+        b.wheel(-1.05, 0.52, -2.75, 0.52, 0.42, false);
+        return b.build();
+    }
+
+    private static Model prisonBus() {
+        Model m = bus(false);
+        Builder b = Model.builder();
+        for (int sd = -1; sd <= 1; sd += 2) {
+            double x = sd * 1.262;
+            for (double z = -5.2; z <= 5.2; z += 0.35) b.box(Math.min(x, x + sd * 0.02), 1.25, z, Math.max(x, x + sd * 0.02), 2.6, z + 0.05, Mat.BLACK);   // bars
+            b.box(Math.min(x, x + sd * 0.02), 0.85, -5.5, Math.max(x, x + sd * 0.02), 1.0, 5.5, Mat.NAVY);                                                // stripe
+        }
+        b.box(-1.0, 0.55, 2.8, 1.0, 3.1, 2.9, Mat.METAL);                                         // cage behind the driver
+        m.groups.addAll(b.build().groups);
+        return m;
     }
 
     // ================================================================ wave 2

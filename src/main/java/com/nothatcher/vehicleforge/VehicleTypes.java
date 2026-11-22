@@ -273,6 +273,26 @@ public final class VehicleTypes {
             .seat(0.4, 0.3, 0.05).seat(-0.4, 0.3, 0.05).seat(0.4, 0.3, -0.85).seat(-0.4, 0.3, -0.85)
             .speed(1.3f, 0.05f, 4.4f).health(80f).paint(0x1565C0).camera(6.5f).len(2.1, -2.1).offroad().step(1.1f).gears(6));
 
+    // ============================================================ wave 6
+    public static final VehicleType FISHING_BOAT = add(new VehicleType("fishing_boat", Category.BOAT, 2.6f, 2.4f)
+            .seat(0.4, 0.95, 1.5).seat(0.7, 0.2, -1.8).seat(-0.7, 0.2, -1.8)
+            .speed(0.75f, 0.012f, 2.2f).health(150f).paint(0xB71C1C).camera(12f).horn(Horn.BOAT).sound("engine_boat").step(0.6f).len(4.0, -3.6).endurance(35));
+    public static final VehicleType CARGO_PLANE = add(rows(new VehicleType("cargo_plane", Category.PLANE, 4.4f, 4.2f)
+            .seat(0.55, 1.45, 8.0).seat(-0.55, 1.45, 8.0), 1.2, 1.05, 4.5, 4)
+            .speed(1.9f, 0.012f, 1.5f).health(320f).paint(0x6E7B6A).camera(30f).sound("engine_prop").len(10.6, -10.5).endurance(40));
+    public static final VehicleType QUAD_DRONE = add(new VehicleType("quad_drone", Category.HELICOPTER, 1.4f, 0.9f)
+            .seat(0, 0.45, 0)
+            .speed(1.2f, 0.05f, 6f).health(15f).paint(0x2B2B2E).camera(4f).sound("engine_electric").len(0.75, -0.75).endurance(8));
+    public static final VehicleType CAMPER_VAN = add(new VehicleType("camper_van", Category.RV, 2.0f, 2.7f)
+            .seat(0.42, 0.6, 1.2).seat(-0.42, 0.6, 1.2)
+            .speed(0.95f, 0.025f, 3.4f).health(100f).paint(0x80CBC4).camera(7f).sound("engine_car").len(2.62, -2.7).room());
+    public static final VehicleType MILITARY_TRUCK = add(rows(new VehicleType("military_truck", Category.MILITARY, 2.5f, 3.2f)
+            .seat(0.5, 1.15, 2.15).seat(-0.5, 1.15, 2.15), 0.8, 1.05, 0.6, 3)
+            .speed(0.75f, 0.02f, 3.0f).health(220f).paint(0x5B6B3A).camera(10f).horn(Horn.TRUCK).sound("engine_truck").len(3.9, -3.7).step(1.2f).gears(6));
+    public static final VehicleType PRISON_BUS = add(rows(new VehicleType("prison_bus", Category.TRUCK, 2.6f, 3.2f)
+            .seat(0.75, 0.75, 4.4), 0.75, 0.75, 3.0, 7)
+            .speed(0.75f, 0.015f, 2.4f).health(220f).paint(0xF2F2F2).camera(13f).horn(Horn.TRUCK).sound("engine_truck").len(5.55, -5.55).step(1.1f));
+
     /** adds rows of seats: pairs at x = +-x, starting at z0 going back 1.1 per row */
     private static VehicleType rows(VehicleType t, double x, double y, double z0, int count) {
         for (int i = 0; i < count; i++) {

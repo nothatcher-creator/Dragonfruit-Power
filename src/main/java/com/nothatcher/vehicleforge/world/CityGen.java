@@ -39,7 +39,8 @@ public final class CityGen {
         LANDMARK, PLAZA, HOSPITAL, FIRE, POLICE, SCHOOL, STADIUM, ROWHOUSES,
         WAREHOUSE, FACTORY, CONTAINERS, CONSTRUCTION, RIVER, CHURCH,
         AIRPORT, STATION, FARM, FOREST, MEADOW, ORCHARD,
-        DINER, MOTEL, DEALERSHIP, MECHANIC, BANK
+        DINER, MOTEL, DEALERSHIP, MECHANIC, BANK,
+        PHARMACY, GUN_STORE, HARDWARE, PRISON, TRAILER_PARK
     }
 
     // ------------------------------------------------- zones: airport, countryside, railway
@@ -178,6 +179,8 @@ public final class CityGen {
             new Style(Blocks.WHITE_CONCRETE.getDefaultState(), CLEAR, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState(), 7, true, false),
             new Style(Blocks.SMOOTH_STONE.getDefaultState(), CLEAR, Blocks.QUARTZ_PILLAR.getDefaultState(), 3, false, false),
             new Style(Blocks.GRAY_CONCRETE.getDefaultState(), CLEAR, Blocks.YELLOW_CONCRETE.getDefaultState(), 4, false, false),
+            // 24 trailer home
+            new Style(Blocks.WHITE_TERRACOTTA.getDefaultState(), CLEAR, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState(), 3, false, false),
     };
     private static final int[] TOWER_STYLES = {0, 1, 2, 3, 8, 9, 10, 11};
     private static final int[] APT_STYLES = {4, 5, 6, 7, 12, 13, 14};
@@ -258,10 +261,15 @@ public final class CityGen {
     private String propLoot(Block b) {
         if (b == CityBlocks.FRIDGE) return "fridge";
         if (b == CityBlocks.KITCHEN_COUNTER) return "kitchen";
-        if (b == CityBlocks.STORE_SHELF || b == CityBlocks.CHECKOUT_COUNTER) return "shop";
+        if (b == CityBlocks.STORE_SHELF || b == CityBlocks.CHECKOUT_COUNTER) return shopLoot();
         if (b == CityBlocks.MAILBOX || b == CityBlocks.NEWSPAPER_BOX) return "mail";
         if (b == CityBlocks.SUITCASE) return "luggage";
         return loot;
+    }
+
+    /** specialty shops stock their own shelves */
+    private String shopLoot() {
+        return loot.equals("pharmacy") || loot.equals("hardware") || loot.equals("gun_store") ? loot : "shop";
     }
 
     private boolean isAir(int x, int y, int z) {
@@ -310,10 +318,18 @@ public final class CityGen {
             if (r < 0.57f) return Kind.BANK;
             if (r < 0.60f) return Kind.MOTEL;
             if (r < 0.74f) return Kind.ROWHOUSES;
+            if (r >= 0.92f) {
+                float q = rnd(bx, bz, 3);
+                if (q < 0.27f) return Kind.PHARMACY;
+                if (q < 0.54f) return Kind.HARDWARE;
+                if (q < 0.8f) return Kind.GUN_STORE;
+                if (d >= 6) return Kind.PRISON;
+            }
             return Kind.APARTMENTS;
         }
         return r < 0.12f ? Kind.PARK : r < 0.17f ? Kind.GAS : r < 0.22f ? Kind.SCHOOL : r < 0.25f ? Kind.FIRE : r < 0.30f ? Kind.CHURCH
-                : r < 0.34f ? Kind.DINER : r < 0.38f ? Kind.MOTEL : r < 0.41f ? Kind.MECHANIC : Kind.HOUSES;
+                : r < 0.34f ? Kind.DINER : r < 0.38f ? Kind.MOTEL : r < 0.41f ? Kind.MECHANIC
+                : r < 0.93f ? Kind.HOUSES : r < 0.965f ? Kind.TRAILER_PARK : r < 0.985f ? Kind.PHARMACY : Kind.HARDWARE;
     }
 
     // ------------------------------------------------------------- column
@@ -372,6 +388,11 @@ public final class CityGen {
                 case DEALERSHIP -> dealership(x, z, bx, bz, lx, lz);
                 case MECHANIC -> mechanic(x, z, bx, bz, lx, lz);
                 case BANK -> bank(x, z, bx, bz, lx, lz);
+                case PHARMACY -> store(x, z, bx, bz, lx, lz, "pharmacy", STYLES[6], Blocks.LIME_CONCRETE.getDefaultState(), false);
+                case HARDWARE -> store(x, z, bx, bz, lx, lz, "hardware", STYLES[7], Blocks.ORANGE_CONCRETE.getDefaultState(), false);
+                case GUN_STORE -> store(x, z, bx, bz, lx, lz, "gun_store", STYLES[14], Blocks.BLACK_CONCRETE.getDefaultState(), true);
+                case PRISON -> prison(x, z, bx, bz, lx, lz);
+                case TRAILER_PARK -> trailerPark(x, z, bx, bz, lx, lz);
                 default -> { }
             }
             if (railCell(bx, bz) && !stationCell(bx, bz) && Math.abs(lz - RAIL_LZ) <= 6) railLine(x, z, lz);
@@ -644,7 +665,7 @@ public final class CityGen {
                 // cupboards and chests against the walls on every floor
                 boolean nearWall = x == bx0 + 1 || x == bx1 - 1 || z == bz0 + 1 || z == bz1 - 1;
                 if (rel % 4 == 1 && nearWall && rnd(x * 7 + rel, z, 90) < 0.045f) {
-                    container(x, y, z, rel < 4 && st.shopFront ? "shop" : loot, rnd(x, z * 3 + rel, 91) < 0.4f);
+                    container(x, y, z, rel < 4 && st.shopFront ? shopLoot() : loot, rnd(x, z * 3 + rel, 91) < 0.4f);
                 }
                 continue;
             }
@@ -1764,6 +1785,32 @@ public final class CityGen {
             }
             case "apartment", "house" -> {
                 return home(ix, iz, w, d, r, floor, x, z, bx0, bz0, inward, nearWall);
+            }
+            case "prison" -> {
+                if (floor == 0 && iz <= 3) return r == 1 && iz == 2 && ix % 6 == 3 ? f(CityBlocks.DESK, Direction.SOUTH) : null;   // guard post by the door
+                int mid = d / 2, cx = ix % 4;
+                if (Math.abs(iz - mid) <= 1) return null;                                                        // the corridor down the middle
+                boolean front = iz == mid - 2 || iz == mid + 2;
+                if (front) return cx == 2 && r <= 2 ? AIR : r <= 3 ? Blocks.IRON_BARS.getDefaultState() : null; // cell bars, doors open
+                if (cx == 0) return r <= 3 ? PARTITION : null;
+                if (r != 1) return null;
+                boolean north = iz < mid;
+                int back = north ? 4 : d - 1, next = north ? 5 : d - 2;
+                if (cx == 1 && iz == back) return Blocks.WHITE_BED.getDefaultState().with(BedBlock.FACING, north ? Direction.NORTH : Direction.SOUTH).with(BedBlock.PART, BedPart.HEAD);
+                if (cx == 1 && iz == next) return Blocks.WHITE_BED.getDefaultState().with(BedBlock.FACING, north ? Direction.NORTH : Direction.SOUTH).with(BedBlock.PART, BedPart.FOOT);
+                if (cx == 3 && iz == back) return Blocks.CAULDRON.getDefaultState();
+                return null;
+            }
+            case "trailer" -> {
+                if (r != 1) return null;
+                if (ix == w - 1 && iz == 1) return Blocks.RED_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.HEAD);
+                if (ix == w - 1 && iz == 2) return Blocks.RED_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.FOOT);
+                if (ix == 1 && iz == 1) return f(CityBlocks.STOVE, Direction.EAST);
+                if (ix == 1 && iz == 2) return f(CityBlocks.KITCHEN_COUNTER, Direction.EAST);
+                if (ix == 1 && iz == d - 1) return f(CityBlocks.FRIDGE, Direction.EAST);
+                if (ix == 3 && iz == d - 1) return f(CityBlocks.SOFA, Direction.NORTH);
+                if (ix == 3 && iz == 1) return f(CityBlocks.TV, Direction.SOUTH);
+                return null;
             }
             case "diner" -> {
                 if (r != 1) return null;
@@ -2923,6 +2970,99 @@ public final class CityGen {
         if (lz >= 3 && lz <= 6 && lx % 4 == 0 && lx > 2 && lx < 50) set(x, GROUND, z, CityBlocks.axis(CityBlocks.LINE_WHITE, Direction.Axis.Z));
     }
 
+    /** a small store with its own stock, a car park and a tall sign; the gun store has bars on the windows */
+    private void store(int x, int z, int bx, int bz, int lx, int lz, String kind, Style style, BlockState signColour, boolean bars) {
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        if (lx >= 14 && lx <= 37 && lz >= 16 && lz <= 33) {
+            loot = kind;
+            building(x, z, ox + 14, oz + 16, ox + 37, oz + 33, 1, style, Direction.NORTH, false);
+            if (lz == 16 && lx > 14 && lx < 37) set(x, BASE + 4, z, signColour);                           // fascia
+            return;
+        }
+        carLot(x, z, lx, lz, 3, 11);
+        if (bars && lz == 15 && lx > 14 && lx < 37 && (lx < 25 || lx > 26))
+            for (int y = BASE + 1; y <= BASE + 3; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+        if (lx == 6 && lz == 14) roadSign(x, z, signColour);
+        if (kind.equals("hardware") && lz >= 36 && lz <= 46 && lx >= 14 && lx <= 37) {                     // lumber yard out back
+            set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+            if (lz % 4 == 0 && lx % 6 < 4) {
+                set(x, BASE, z, Blocks.STRIPPED_OAK_LOG.getDefaultState().with(net.minecraft.state.property.Properties.AXIS, Direction.Axis.X));
+                if (lx % 6 < 2) set(x, BASE + 1, z, Blocks.OAK_PLANKS.getDefaultState());
+            }
+        }
+    }
+
+    private void prison(int x, int z, int bx, int bz, int lx, int lz) {
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+        boolean corner = (lx <= 3 || lx >= 48) && (lz <= 3 || lz >= 48);
+        if (corner) {                                                                                      // guard towers
+            boolean core = (lx == 2 || lx == 49) && (lz == 2 || lz == 49);
+            for (int y = BASE; y < BASE + 9; y++) set(x, y, z, core ? Blocks.STONE_BRICKS.getDefaultState() : y == BASE + 8 ? Blocks.STONE_BRICK_SLAB.getDefaultState() : AIR);
+            if (!core) set(x, BASE + 7, z, Blocks.STONE_BRICKS.getDefaultState());
+            if (core) {
+                set(x, BASE + 9, z, Blocks.SEA_LANTERN.getDefaultState());
+                set(x, BASE + 10, z, Blocks.STONE_BRICK_SLAB.getDefaultState());
+            }
+            return;
+        }
+        if (lx == 1 || lx == 50 || lz == 1 || lz == 50) {                                               // the wall, with a gate
+            boolean gate = lz == 1 && lx >= 22 && lx <= 29;
+            if (!gate) {
+                for (int y = BASE; y < BASE + 6; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+                set(x, BASE + 6, z, Blocks.IRON_BARS.getDefaultState());
+            } else set(x, GROUND, z, ASPHALT);
+            return;
+        }
+        if (lx >= 8 && lx <= 43 && lz >= 14 && lz <= 37) {
+            loot = "prison";
+            building(x, z, ox + 8, oz + 14, ox + 43, oz + 37, 2, STYLES[3], Direction.NORTH, false);
+            return;
+        }
+        if (lz >= 2 && lz <= 12 && lx >= 20 && lx <= 31) set(x, GROUND, z, ASPHALT);                    // drive from the gate
+        if (lz >= 2 && lz <= 11 && lx >= 4 && lx <= 47 && (lx < 20 || lx > 31)) set(x, GROUND, z, ASPHALT);
+        if (lz >= 40 && lz <= 48 && lx >= 6 && lx <= 45) {                                              // the yard: a court and benches
+            boolean line = lz == 40 || lz == 48 || lx == 6 || lx == 45 || lx == 25;
+            set(x, GROUND, z, line ? Blocks.WHITE_CONCRETE.getDefaultState() : Blocks.SMOOTH_STONE.getDefaultState());
+            if ((lx == 8 || lx == 43) && lz == 44) {
+                for (int y = BASE; y < BASE + 3; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+                set(x, BASE + 3, z, Blocks.WHITE_CONCRETE.getDefaultState());
+            }
+        }
+        if (lz == 39 && lx % 7 == 3 && lx > 6 && lx < 45) set(x, BASE, z, f(CityBlocks.BENCH, Direction.SOUTH));
+        if ((lx == 5 || lx == 46) && lz % 10 == 5) lamp(x, z, lx == 5 ? Direction.EAST : Direction.WEST);
+    }
+
+    private static final int[] TRAILER_X = {4, 20, 36}, TRAILER_Z = {8, 23, 38};
+
+    private void trailerPark(int x, int z, int bx, int bz, int lx, int lz) {
+        int ox = bx * CELL + C, oz = bz * CELL + C;
+        for (int tx : TRAILER_X) {
+            for (int tz : TRAILER_Z) {
+                if (lx >= tx && lx <= tx + 10 && lz >= tz && lz <= tz + 5) {
+                    if (rnd(bx * 5 + tx, bz * 5 + tz, 88) < 0.15f) {                                     // an empty pad
+                        set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+                        return;
+                    }
+                    loot = "trailer";
+                    set(x, GROUND, z, Blocks.GRAVEL.getDefaultState());
+                    building(x, z, ox + tx, oz + tz, ox + tx + 10, oz + tz + 5, 1, STYLES[24], Direction.NORTH, false);
+                    return;
+                }
+                if (lx == tx + 12 && lz == tz + 2) set(x, BASE, z, Blocks.CAMPFIRE.getDefaultState().with(net.minecraft.block.CampfireBlock.LIT, false));
+                if (lx == tx + 12 && lz == tz + 4) set(x, BASE, z, f(CityBlocks.PICNIC_TABLE, Direction.NORTH));
+                if (lx == tx + 13 && lz == tz) set(x, BASE, z, f(CityBlocks.MAILBOX, Direction.NORTH));
+            }
+        }
+        int m = Math.floorMod(lz, 15);
+        set(x, GROUND, z, m >= 2 && m <= 5 ? Blocks.GRAVEL.getDefaultState() : Blocks.GRASS_BLOCK.getDefaultState());
+        if (m < 2 || m > 5) {
+            float f = rnd(x, z, 89);
+            if (f < 0.1f) set(x, BASE, z, Blocks.GRASS.getDefaultState());
+        }
+        if ((lx == 0 || lx == 51) && lz % 3 != 0) set(x, BASE, z, Blocks.OAK_FENCE.getDefaultState());
+    }
+
     private void police(int x, int z, int bx, int bz, int lx, int lz) {
         int ox = bx * CELL + C, oz = bz * CELL + C;
         if (lx >= 6 && lx <= 45 && lz >= 16 && lz <= 41) {
@@ -3410,6 +3550,20 @@ public final class CityGen {
                 parkAt(PARKED[hash(bx, bz, 85) % PARKED.length], 13, 24, BASE + 1, 0f, 0.8, bx, bz, 2, x0, z0);   // on the lifts
                 parkAt(PARKED[hash(bx, bz, 86) % PARKED.length], 22, 25, BASE + 1, 0f, 0.6, bx, bz, 3, x0, z0);
                 for (int k = 0; k < 4; k++) parkAt(PARKED[hash(bx, bz * 3 + k, 87) % PARKED.length], 8 + 9 * k, 44, BASE, 90f, 0.5, bx, bz, 10 + k, x0, z0);
+            }
+            case PHARMACY, HARDWARE, GUN_STORE -> {
+                for (int k = 0; k < 10; k++) parkAt(PARKED[hash(bx, bz * 7 + k, 90) % PARKED.length], 5.5 + 4 * k, 7.5, BASE, 180f, 0.4, bx, bz, 10 + k, x0, z0);
+            }
+            case PRISON -> {
+                parkAt("prison_bus", 33, 7, BASE, 90f, 0.9, bx, bz, 1, x0, z0);
+                for (int k = 0; k < 4; k++) parkAt("police_car", 6 + 4 * k, 6.5, BASE, 0f, 0.6, bx, bz, 2 + k, x0, z0);
+                parkAt("military_truck", 40, 7, BASE, -90f, 0.25, bx, bz, 7, x0, z0);
+            }
+            case TRAILER_PARK -> {
+                String[] rides = {"camper_van", "rv", "pickup_truck", "sedan", "classic_cruiser", "atv"};
+                int k = 0;
+                for (int tx : TRAILER_X) for (int tz : TRAILER_Z)
+                    parkAt(rides[hash(bx * 5 + tx, bz * 5 + tz, 91) % rides.length], tx + 5, tz - 2.5, BASE, 90f, 0.6, bx, bz, 30 + k++, x0, z0);
             }
             case BANK -> {
                 parkAt("armored_truck", 8, 3.5, BASE, 90f, 0.8, bx, bz, 1, x0, z0);
