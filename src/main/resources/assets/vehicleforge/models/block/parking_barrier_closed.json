@@ -1,0 +1,74 @@
+{
+ "parent": "block/block",
+ "textures": {
+  "m": "vehicleforge:block/road_metal",
+  "a": "vehicleforge:block/barrier_arm",
+  "particle": "vehicleforge:block/road_metal"
+ },
+ "elements": [
+  {
+   "from": [
+    4,
+    0,
+    4
+   ],
+   "to": [
+    12,
+    12,
+    12
+   ],
+   "faces": {
+    "north": {
+     "texture": "#m"
+    },
+    "south": {
+     "texture": "#m"
+    },
+    "east": {
+     "texture": "#m"
+    },
+    "west": {
+     "texture": "#m"
+    },
+    "up": {
+     "texture": "#m"
+    },
+    "down": {
+     "texture": "#m"
+    }
+   }
+  },
+  {
+   "from": [
+    10,
+    9,
+    7
+   ],
+   "to": [
+    32,
+    11,
+    9
+   ],
+   "faces": {
+    "north": {
+     "texture": "#a"
+    },
+    "south": {
+     "texture": "#a"
+    },
+    "east": {
+     "texture": "#a"
+    },
+    "west": {
+     "texture": "#a"
+    },
+    "up": {
+     "texture": "#a"
+    },
+    "down": {
+     "texture": "#a"
+    }
+   }
+  }
+ ]
+}

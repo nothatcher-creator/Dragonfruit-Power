@@ -1,0 +1,26 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "IGI",
+  "RBR",
+  "III"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "G": {
+   "item": "minecraft:glass_pane"
+  },
+  "R": {
+   "item": "minecraft:red_concrete"
+  },
+  "B": {
+   "item": "minecraft:bucket"
+  }
+ },
+ "result": {
+  "item": "vehicleforge:fuel_pump",
+  "count": 1
+ }
+}

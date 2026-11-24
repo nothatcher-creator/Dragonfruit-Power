@@ -62,6 +62,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         float wobble = e.getWobble() - td;
         if (wobble > 0) ms.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.sin(wobble) * wobble * 0.3f));
         draw(model, e, td, yaw, ms, vcp, light);
+        if (e.upgrades() != 0) draw(VehicleModels.upgrades(e.type, e.upgrades()), e, td, yaw, ms, vcp, light);
         if (e.type.buildable) {
             // whatever's been built on the frame rides along with it
             var brm = net.minecraft.client.MinecraftClient.getInstance().getBlockRenderManager();
@@ -77,6 +78,16 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
         if (model.hasPlate) plate(model, e, ms, vcp, light);
         ms.pop();
 
+        if (e.trailer() > 0) {
+            Model tm = VehicleModels.get(com.nothatcher.vehicleforge.Upgrades.TRAILER_IDS[e.trailer() - 1]);
+            VehicleEntity.CarriagePose pose = e.trailerPose();
+            Vec3d off = pose.pos().subtract(e.getLerpedPos(td));
+            ms.push();
+            ms.translate(off.x, off.y, off.z);
+            ms.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-pose.yaw()));
+            draw(tm, e, td, pose.yaw(), ms, vcp, light);
+            ms.pop();
+        }
         if (e.type.category == Category.TRAIN) {
             Model car = VehicleModels.get(e.type.carriageModel);
             Vec3d base = e.getLerpedPos(td);

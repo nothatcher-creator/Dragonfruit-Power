@@ -1,0 +1,23 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "WRW",
+  " I ",
+  " I "
+ ],
+ "key": {
+  "W": {
+   "item": "minecraft:white_concrete"
+  },
+  "R": {
+   "item": "minecraft:red_concrete"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  }
+ },
+ "result": {
+  "item": "vehicleforge:parking_barrier",
+  "count": 1
+ }
+}

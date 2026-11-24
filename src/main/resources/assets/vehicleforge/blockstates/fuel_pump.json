@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "vehicleforge:block/fuel_pump"
+  },
+  "facing=east": {
+   "model": "vehicleforge:block/fuel_pump",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "vehicleforge:block/fuel_pump",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "vehicleforge:block/fuel_pump",
+   "y": 270
+  }
+ }
+}

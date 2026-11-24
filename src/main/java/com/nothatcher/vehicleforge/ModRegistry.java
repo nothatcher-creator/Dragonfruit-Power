@@ -70,6 +70,8 @@ public final class ModRegistry {
 
         CARRIAGE_ITEM = Registry.register(Registries.ITEM, VehicleForge.id("train_carriage"), new Item(new Item.Settings().maxCount(16)));
         FUEL_CAN = Registry.register(Registries.ITEM, VehicleForge.id("fuel_can"), new FuelCanItem(new Item.Settings().maxCount(16)));
+        Upgrades.register();
+        com.nothatcher.vehicleforge.block.RoadBlocks.register();
         Registry.register(Registries.BLOCK, VehicleForge.id("rv_door"), RV_DOOR);
         Registry.register(Registries.ITEM, VehicleForge.id("rv_door"), new BlockItem(RV_DOOR, new Item.Settings()));
 
@@ -80,6 +82,8 @@ public final class ModRegistry {
                     for (VehicleItem item : ITEMS.values()) entries.add(item);
                     entries.add(CARRIAGE_ITEM);
                     entries.add(FUEL_CAN);
+                    for (Item i : Upgrades.ITEMS) entries.add(i);
+                    for (Item i : com.nothatcher.vehicleforge.block.RoadBlocks.ITEMS) entries.add(i);
                 })
                 .build();
         Registry.register(Registries.ITEM_GROUP, VehicleForge.id("vehicles"), group);

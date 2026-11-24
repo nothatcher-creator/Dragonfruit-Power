@@ -1,0 +1,22 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "BBB",
+  "IXI"
+ ],
+ "key": {
+  "B": {
+   "tag": "minecraft:boats"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "X": {
+   "item": "minecraft:iron_block"
+  }
+ },
+ "result": {
+  "item": "vehicleforge:boat_trailer",
+  "count": 1
+ }
+}

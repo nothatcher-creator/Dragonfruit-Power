@@ -22,8 +22,90 @@ public final class VehicleModels {
         return MODELS.computeIfAbsent(id, VehicleModels::create);
     }
 
+    /** the add-ons fitted to a vehicle, sized from its type (see Upgrades) */
+    public static Model upgrades(com.nothatcher.vehicleforge.VehicleType t, int mask) {
+        return MODELS.computeIfAbsent("upgrades/" + t.id + "/" + mask, k -> upgradeModel(t, mask));
+    }
+
+    private static Model upgradeModel(com.nothatcher.vehicleforge.VehicleType t, int mask) {
+        Builder b = Model.builder();
+        double w = t.width / 2, f = t.frontZ, r = t.rearZ, h = t.height;
+        if ((mask & com.nothatcher.vehicleforge.Upgrades.ARMOR) != 0) {
+            b.pair(w, 0.42, r + 0.3, w + 0.06, h * 0.55, f - 0.3, Mat.METAL);
+            for (double z = r + 0.5; z < f - 0.4; z += 0.6) b.pair(w + 0.06, h * 0.5, z, w + 0.08, h * 0.5 + 0.05, z + 0.05, Mat.CHROME);
+            b.box(-w + 0.1, 0.42, r - 0.06, w - 0.1, h * 0.5, r, Mat.METAL);
+        }
+        if ((mask & com.nothatcher.vehicleforge.Upgrades.SPIKES) != 0) {
+            b.box(-w + 0.05, 0.32, f, w - 0.05, 0.7, f + 0.12, Mat.METAL);
+            for (double x = -w + 0.2; x <= w - 0.2; x += 0.28) b.box(x - 0.04, 0.47, f + 0.12, x + 0.04, 0.55, f + 0.42, Mat.CHROME);
+        }
+        if ((mask & com.nothatcher.vehicleforge.Upgrades.BARS) != 0) {
+            for (double z = r + 0.4; z < f - 0.5; z += 0.22) b.pair(w + 0.01, h * 0.58, z, w + 0.03, h * 0.9, z + 0.04, Mat.BLACK);
+            for (double x = -w + 0.25; x <= w - 0.25; x += 0.22) b.box(x, h * 0.6, f - 0.95, x + 0.04, h * 0.88, f - 0.91, Mat.BLACK);
+        }
+        if ((mask & com.nothatcher.vehicleforge.Upgrades.RACK) != 0) {
+            b.pair(w * 0.7, h, r * 0.55, w * 0.76, h + 0.1, f * 0.35, Mat.BLACK);
+            for (double z = r * 0.55; z <= f * 0.35; z += 0.5) b.box(-w * 0.76, h + 0.08, z, w * 0.76, h + 0.12, z + 0.05, Mat.BLACK);
+            b.box(-w * 0.55, h + 0.12, r * 0.4, w * 0.25, h + 0.5, 0, Mat.WOOD);
+            b.box(w * 0.3, h + 0.12, r * 0.3, w * 0.6, h + 0.55, r * 0.1, Mat.RED);
+        }
+        if ((mask & com.nothatcher.vehicleforge.Upgrades.PLOW) != 0) {
+            b.box(-w - 0.25, 0.1, f + 0.35, w + 0.25, 0.9, f + 0.5, Mat.YELLOW);
+            b.box(-w - 0.25, 0.1, f + 0.5, w + 0.25, 0.2, f + 0.62, Mat.METAL);
+            b.pair(0.35, 0.3, f - 0.1, 0.45, 0.42, f + 0.4, Mat.BLACK);
+        }
+        return b.build();
+    }
+
+    private static Model trailer(int kind) {
+        Builder b = Model.builder();
+        double len = com.nothatcher.vehicleforge.Upgrades.trailerLength(kind), half = len / 2;
+        b.box(-0.06, 0.42, half - 0.2, 0.06, 0.52, half + 0.6, Mat.BLACK);                          // drawbar and hitch
+        b.cyl(0, 0.52, half + 0.6, 'y', 0.08, 0.08, 0.06, 8, Mat.CHROME, Mat.CHROME);
+        switch (kind) {
+            case 1 -> {                                                                              // cargo
+                b.box(-0.85, 0.45, -half, 0.85, 0.55, half, Mat.METAL);
+                b.pair(0.8, 0.55, -half, 0.85, 1.35, half, Mat.PAINT);
+                b.box(-0.85, 0.55, half - 0.05, 0.85, 1.35, half, Mat.PAINT);
+                b.box(-0.85, 0.55, -half, 0.85, 1.2, -half + 0.05, Mat.PAINT);
+                b.box(-0.8, 0.55, -1.2, 0.8, 1.15, 0.6, Mat.CANVAS);
+                b.pair(0.55, 0.5, -half - 0.02, 0.8, 0.65, -half, Mat.TAILLIGHT);
+                b.wheel(0.98, 0.35, -0.2, 0.35, 0.2, false);
+                b.wheel(-0.98, 0.35, -0.2, 0.35, 0.2, false);
+            }
+            case 2 -> {                                                                              // camper caravan
+                b.box(-1.05, 0.45, -half, 1.05, 2.3, half - 0.4, Mat.WHITE);
+                b.box(-1.0, 2.3, -half + 0.1, 1.0, 2.4, half - 0.5, Mat.WHITE);
+                b.pair(1.05, 0.9, -half, 1.06, 1.05, half - 0.4, Mat.PAINT);
+                b.box(-0.9, 0.45, half - 0.4, 0.9, 1.6, half - 0.1, Mat.PAINT);                     // front locker, sloped
+                for (int sd = -1; sd <= 1; sd += 2) {
+                    b.sidePane(sd * 1.055, 1.3, 1.9, -1.8, -0.6, -1.8, -0.6, Mat.GLASS);
+                    b.sidePane(sd * 1.055, 1.3, 1.9, 0.6, 1.5, 0.6, 1.5, Mat.GLASS);
+                }
+                b.box(1.05, 0.5, -0.4, 1.07, 2.0, 0.3, Mat.PAINT);                                  // door
+                b.pair(0.55, 0.55, -half - 0.02, 0.9, 0.7, -half, Mat.TAILLIGHT);
+                b.wheel(1.12, 0.35, -0.3, 0.35, 0.2, false);
+                b.wheel(-1.12, 0.35, -0.3, 0.35, 0.2, false);
+            }
+            default -> {                                                                             // boat trailer, with a boat
+                b.pair(0.5, 0.35, -half, 0.6, 0.48, half - 0.2, Mat.METAL);
+                for (double z = -half + 0.4; z < half - 0.3; z += 1.0) b.box(-0.6, 0.38, z, 0.6, 0.45, z + 0.08, Mat.METAL);
+                b.hull(-0.25, 0.25, -half + 0.3, half - 0.6, 0.55, -0.85, 0.85, -half + 0.1, half - 0.2, 1.25, Mat.WHITE, Mat.DECK);
+                b.pair(0.84, 1.05, -half + 0.1, 0.86, 1.25, half - 0.2, Mat.PAINT);
+                b.box(-0.6, 1.25, -0.2, 0.6, 1.6, 0.6, Mat.GLASS);
+                b.box(-0.15, 0.7, -half - 0.1, 0.15, 1.6, -half + 0.15, Mat.BLACK);                   // outboard
+                b.wheel(0.75, 0.3, -0.3, 0.3, 0.18, false);
+                b.wheel(-0.75, 0.3, -0.3, 0.3, 0.18, false);
+            }
+        }
+        return b.build();
+    }
+
     private static Model create(String id) {
         return switch (id) {
+            case "cargo_trailer" -> trailer(1);
+            case "camper_trailer" -> trailer(2);
+            case "boat_trailer" -> trailer(3);
             case "classic_cruiser" -> classic();
             case "sedan" -> sedan();
             case "sports_car" -> sports();

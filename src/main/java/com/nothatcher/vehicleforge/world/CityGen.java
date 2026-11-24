@@ -2454,9 +2454,8 @@ public final class CityGen {
             }
             if ((lz == 14 || lz == 15) && lx >= 13 && lx <= 26) {            // pump islands
                 if ((lx == 15 || lx == 20 || lx == 25) && lz == 14) {
-                    set(x, BASE, z, Blocks.IRON_BLOCK.getDefaultState());
-                    set(x, BASE + 1, z, Blocks.RED_CONCRETE.getDefaultState());
-                    set(x, BASE + 2, z, Blocks.WHITE_CONCRETE.getDefaultState());
+                    set(x, BASE, z, com.nothatcher.vehicleforge.block.RoadBlocks.FUEL_PUMP.getDefaultState()
+                            .with(net.minecraft.block.HorizontalFacingBlock.FACING, Direction.SOUTH));   // pumps with a limited supply
                 } else {
                     set(x, BASE, z, CURB);
                 }
@@ -2934,7 +2933,8 @@ public final class CityGen {
             if (lz == 16) {
                 int b = lx - 10;
                 boolean bay = b >= 0 && b < 28 && b % 9 < 6;                                         // three open service bays
-                if (bay) for (int y = BASE + 1; y <= BASE + 3; y++) set(x, y, z, AIR);
+                if (bay) for (int y = BASE + 1; y <= BASE + 3; y++) set(x, y, z, com.nothatcher.vehicleforge.block.RoadBlocks.GARAGE_DOOR.getDefaultState()
+                        .with(net.minecraft.block.HorizontalFacingBlock.FACING, Direction.NORTH).with(com.nothatcher.vehicleforge.block.RoadBlocks.GarageDoor.OPEN, true));
                 if (bay) set(x, BASE + 4, z, Blocks.YELLOW_CONCRETE.getDefaultState());
             }
             if (lz == 24 && (lx == 12 || lx == 16 || lx == 21 || lx == 25)) set(x, BASE + 1, z, Blocks.IRON_BLOCK.getDefaultState());  // lift posts

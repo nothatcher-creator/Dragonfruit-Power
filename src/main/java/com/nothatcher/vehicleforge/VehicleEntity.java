@@ -75,6 +75,9 @@ public class VehicleEntity extends Entity {
     private static final TrackedData<Boolean> WRECK = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     /** build frame: the blocks on its deck */
     private static final TrackedData<NbtCompound> BUILT = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
+    /** fitted upgrades (Upgrades.ARMOR etc, a bit mask) and the hitched trailer (0 none, 1 cargo, 2 camper, 3 boat) */
+    private static final TrackedData<Integer> UPGRADES = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> TRAILER = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     /** Client hook (engine sounds etc.), set by the client mod. */
     public static Consumer<VehicleEntity> clientTickHook = e -> { };
@@ -151,6 +154,8 @@ public class VehicleEntity extends Entity {
         dataTracker.startTracking(SCALE, 1f);
         dataTracker.startTracking(WRECK, false);
         dataTracker.startTracking(BUILT, new NbtCompound());
+        dataTracker.startTracking(UPGRADES, 0);
+        dataTracker.startTracking(TRAILER, 0);
     }
 
     @Override
@@ -273,6 +278,8 @@ public class VehicleEntity extends Entity {
         interiorId = nbt.contains("Interior") ? nbt.getInt("Interior") : -1;
         dataTracker.set(WRECK, nbt.getBoolean("Wreck"));
         if (nbt.contains("Built")) dataTracker.set(BUILT, nbt.getCompound("Built"));
+        dataTracker.set(UPGRADES, nbt.getInt("Upgrades"));
+        dataTracker.set(TRAILER, nbt.getInt("Trailer"));
         readCargo(nbt);
     }
 
@@ -286,6 +293,8 @@ public class VehicleEntity extends Entity {
         nbt.putFloat("Scale", dataTracker.get(SCALE));
         nbt.putInt("Interior", interiorId);
         if (type.buildable) nbt.put("Built", dataTracker.get(BUILT));
+        nbt.putInt("Upgrades", dataTracker.get(UPGRADES));
+        nbt.putInt("Trailer", dataTracker.get(TRAILER));
         writeCargo(nbt);
     }
 
@@ -626,7 +635,29 @@ public class VehicleEntity extends Entity {
     }
 
     /** rows of nine: saddlebags on bikes and animals, a trunk on cars, a whole bed or hold on trucks and big craft */
+    public int upgrades() {
+        return dataTracker.get(UPGRADES);
+    }
+
+    public boolean has(int upgrade) {
+        return (upgrades() & upgrade) != 0;
+    }
+
+    public int trailer() {
+        return dataTracker.get(TRAILER);
+    }
+
+    /** where the trailer sits: following the path the vehicle drove */
+    public CarriagePose trailerPose() {
+        return poseAt(-type.rearZ + 0.5 + Upgrades.trailerLength(trailer()) / 2);
+    }
+
     public int cargoRows() {
+        int extra = (has(Upgrades.RACK) ? 2 : 0) + (trailer() == 1 ? 3 : 0);
+        return Math.min(6, baseCargoRows() + extra);
+    }
+
+    private int baseCargoRows() {
         switch (type.category) {
             case BIKE, ANIMAL, BALL, BALLOON -> { return 1; }
             case TRUCK, RV, TRAIN -> { return 6; }
@@ -753,8 +784,29 @@ public class VehicleEntity extends Entity {
     @Override
     public ActionResult interact(PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
+        if (stack.getItem() instanceof Upgrades.Part part && Upgrades.fits(type)) {
+            if (!getWorld().isClient) {
+                if (part.trailer > 0) {
+                    int had = trailer();
+                    if (had == part.trailer) {
+                        dataTracker.set(TRAILER, 0);
+                        player.getInventory().offerOrDrop(new ItemStack(stack.getItem()));
+                    } else {
+                        if (had > 0) player.getInventory().offerOrDrop(new ItemStack(Upgrades.ITEMS.get(Upgrades.UPGRADE_IDS.length + had - 1)));
+                        dataTracker.set(TRAILER, part.trailer);
+                        path.clear();
+                        if (!player.getAbilities().creativeMode) stack.decrement(1);
+                    }
+                } else if (!has(part.upgrade)) {
+                    dataTracker.set(UPGRADES, upgrades() | part.upgrade);
+                    if (!player.getAbilities().creativeMode) stack.decrement(1);
+                }
+                getWorld().playSound(null, getX(), getY(), getZ(), net.minecraft.sound.SoundEvents.BLOCK_ANVIL_USE, SoundCategory.NEUTRAL, 0.6f, 1.2f);
+            }
+            return ActionResult.success(getWorld().isClient);
+        }
         if (player.shouldCancelInteraction()) {
-            if (type.interiorRoom) {
+            if (type.interiorRoom || trailer() == 2) {
                 if (!getWorld().isClient && player instanceof ServerPlayerEntity sp) InteriorManager.enter(sp, this);
                 return ActionResult.success(getWorld().isClient);
             }
@@ -826,6 +878,8 @@ public class VehicleEntity extends Entity {
         if (type.buildable && source.getAttacker() instanceof PlayerEntity bp && source.getSource() == bp && buildBreak(bp)) return true;
         boolean creative = source.getAttacker() instanceof PlayerEntity p && p.getAbilities().creativeMode;
         dataTracker.set(WOBBLE, 10);
+        if (has(Upgrades.ARMOR)) amount *= 0.6f;
+        if (has(Upgrades.BARS) && source.getAttacker() instanceof net.minecraft.entity.mob.HostileEntity) amount *= 0.5f;
         float h = getHealth() - (creative ? type.health : amount * (source.getAttacker() instanceof PlayerEntity ? 4f : 1f));
         setHealth(h);
         if (h <= 0) destroy(!creative && source.getAttacker() instanceof PlayerEntity, creative);
@@ -913,7 +967,7 @@ public class VehicleEntity extends Entity {
             else setVelocity(Vec3d.ZERO);
         }
 
-        if (type.category == Category.TRAIN) recordPath();
+        if (type.category == Category.TRAIN || trailer() > 0) recordPath();
 
         // motion since the end of last tick: works for the driver, other clients and the server alike
         Vec3d now = getPos();
@@ -1069,7 +1123,7 @@ public class VehicleEntity extends Entity {
 
     private void serverTick() {
         headlights();
-        if (type.interiorRoom && age % 20 == 0) InteriorManager.track(this);
+        if ((type.interiorRoom || trailer() == 2) && age % 20 == 0) InteriorManager.track(this);
         if (sprayOn()) Weapons.sprayTick(this);
         if (sirenOn() && age % 34 == 0) {
             getWorld().playSound(null, getX(), getY(), getZ(), ModRegistry.sound("siren"), SoundCategory.NEUTRAL, 3f, 1f);
@@ -1166,8 +1220,10 @@ public class VehicleEntity extends Entity {
         float mass = MathHelper.clamp(type.health / 60f, 0.6f, 2.5f);
         for (LivingEntity e : getWorld().getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e.getRootVehicle() != this)) {
             if (e.timeUntilRegen > 10) continue;
-            if (e.damage(src, measuredSpeed * 16f * mass)) {
-                e.addVelocity(dir.x * measuredSpeed * 1.4, 0.3 + measuredSpeed * 0.25, dir.z * measuredSpeed * 1.4);
+            float ram = measuredSpeed * 16f * mass * (has(Upgrades.SPIKES) ? 2f : 1f);
+            double shove = has(Upgrades.PLOW) ? 2.4 : 1.4;
+            if (e.damage(src, ram)) {
+                e.addVelocity(dir.x * measuredSpeed * shove, 0.3 + measuredSpeed * 0.25, dir.z * measuredSpeed * shove);
                 e.velocityModified = true;
                 serverWorldSound("crash", 0.6f, 1.4f);
             }
@@ -1711,7 +1767,11 @@ public class VehicleEntity extends Entity {
 
     /** Where carriage k (1 = first behind the locomotive) sits, following the exact track the train drove. */
     public CarriagePose carriagePose(int k) {
-        double want = type.carriageStart + (k - 1) * 6.3;
+        return poseAt(type.carriageStart + (k - 1) * 6.3);
+    }
+
+    /** the point a given distance back along the path driven, and which way the path ran there */
+    public CarriagePose poseAt(double want) {
         double walked = 0;
         Vec3d prev = getPos();
         Iterator<Vec3d> it = path.iterator();
