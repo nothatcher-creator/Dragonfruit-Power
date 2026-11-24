@@ -710,6 +710,7 @@ public final class CityGen {
         int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2 + 2;                       // ladder shaft
         boolean ladderCol = x == mx && z == mz, shaftCol = x == mx - 1 && z == mz;
         boolean elevCol = floors >= 5 && x == mx + 1 && z == mz;              // an elevator pad on every floor beside the ladder
+        Facade fa = facade(x0, z0, floors, st);
         boolean wasEdge = false;
         int k = 0;
         for (int y = BASE; y < top; y++) {
@@ -737,11 +738,23 @@ public final class CityGen {
             boolean floorRow = rel % 4 == 0;
             BlockState s;
             if (edge) {
-                if (corner || floorRow) s = st.frame;
+                int lo = ex ? bz0 : bx0, hi = ex ? bz1 : bx1;
+                Direction out = x == bx0 ? Direction.WEST : x == bx1 ? Direction.EAST : z == bz0 ? Direction.NORTH : Direction.SOUTH;
+                if (corner) s = fa.quoins && (rel / 2) % 2 == 0 ? fa.trim : rel < 4 && fa.plinth != null ? fa.plinth : st.frame;
+                else if (floorRow) s = band(fa, st, rel, floors, along);
                 else if (doorCol && rel < 3) s = AIR;
                 else if (rel < 4 && frontFace && st.shopFront) s = st.window;
-                else if (rel % 4 == 3 && !st.tallWindows) s = st.wall;
-                else s = Math.floorMod(along, st.bay) == 0 ? st.wall : st.window;
+                else if (fa.mech && (rel / 4) % 12 == 11) s = Math.floorMod(along, 2) == 0 ? st.frame : Blocks.IRON_BARS.getDefaultState();
+                else if (rel % 4 == 3 && !st.tallWindows) s = wallTex(fa, st, x, y, z, rel);
+                else if (Math.floorMod(along, st.bay) == 0) s = wallTex(fa, st, x, y, z, rel);
+                else if (fa.recess && winCell(st, along, lo, hi, frontFace, mid, rel)
+                        && innerFree(x - out.getOffsetX(), y, z - out.getOffsetZ(), rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid)) {
+                    s = rel % 4 == 1 ? sill(fa, x, y, z, out) : AIR;              // a deep window reveal with a sill
+                } else s = st.window;
+            } else if (fa.recess && !elevCol && !ladderCol && !shaftCol && (rel % 4 == 1 || rel % 4 == 2)
+                    && recessedBehind(x, z, rel, bx0, bx1, bz0, bz1, st, front, k, mid)
+                    && innerFree(x, y, z, rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid)) {
+                s = st.window;                                                // the glass, set back one block from the facade
             } else if (elevCol) {
                 s = floorRow ? ELEVATOR : AIR;
             } else if (ladderCol) {
@@ -795,7 +808,19 @@ public final class CityGen {
         if (roofType == Roof.GARDEN && !edge) roof = Blocks.GRASS_BLOCK.getDefaultState();
         set(x, top, z, roof);
         if (edge) {
-            set(x, top + 1, z, st.frame);
+            boolean ex = x == bx0 || x == bx1, corner = ex && (z == bz0 || z == bz1);
+            int along = ex ? z : x;
+            switch (fa.parapet) {
+                case 1 -> {                                                   // cornice with capped piers
+                    set(x, top + 1, z, fa.trim);
+                    if (corner || Math.floorMod(along, st.bay) == 0) set(x, top + 2, z, fa.sillSlab);
+                }
+                case 2 -> {                                                   // cornice with a balustrade
+                    set(x, top + 1, z, fa.trim);
+                    set(x, top + 2, z, corner ? fa.trim : fa.rail);
+                }
+                default -> set(x, top + 1, z, st.frame);
+            }
             return;
         }
         if (OVERRUN && roofType != Roof.SPIRE && rnd(x0, z0, 172) < 0.14f) {        // a fire still smouldering on the roof
@@ -851,6 +876,111 @@ public final class CityGen {
             }
             default -> { }
         }
+    }
+
+    // ------------------------------------------------------------ facade detailing
+    // Ideas from builders' guides: break up flat walls with depth (windows set back behind the piers, sills under
+    // them), give a building a base / middle / top (a darker plinth, belt courses, a cornice or balustrade on the
+    // roofline), frame corners with quoins, and texture big walls with a few related blocks, weathered towards the
+    // ground. Each building rolls its own combination so neighbours built in the same style still look different.
+
+    private record Facade(boolean recess, int sillType, BlockState sillSlab, BlockState plinth, BlockState trim, boolean quoins,
+                          int beltEvery, boolean crown, boolean mech, int parapet, BlockState rail) {}
+
+    private static final BlockState[] PLINTHS = {Blocks.POLISHED_ANDESITE.getDefaultState(), Blocks.STONE_BRICKS.getDefaultState(),
+            Blocks.POLISHED_DEEPSLATE.getDefaultState(), Blocks.POLISHED_BLACKSTONE_BRICKS.getDefaultState(), Blocks.SMOOTH_STONE.getDefaultState(),
+            Blocks.POLISHED_GRANITE.getDefaultState()};
+    private static final BlockState[] TRIMS = {Blocks.SMOOTH_STONE.getDefaultState(), Blocks.POLISHED_ANDESITE.getDefaultState(),
+            Blocks.POLISHED_DIORITE.getDefaultState(), Blocks.SMOOTH_QUARTZ.getDefaultState(), Blocks.CUT_SANDSTONE.getDefaultState(),
+            Blocks.POLISHED_DEEPSLATE.getDefaultState()};
+    private static final BlockState[] SILL_SLABS = {Blocks.SMOOTH_STONE_SLAB.getDefaultState(), Blocks.POLISHED_ANDESITE_SLAB.getDefaultState(),
+            Blocks.STONE_BRICK_SLAB.getDefaultState(), Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState(), Blocks.POLISHED_DEEPSLATE_SLAB.getDefaultState(),
+            Blocks.CUT_SANDSTONE_SLAB.getDefaultState()};
+    private static final BlockState[] RAILS = {Blocks.ANDESITE_WALL.getDefaultState(), Blocks.STONE_BRICK_WALL.getDefaultState(),
+            Blocks.POLISHED_DEEPSLATE_WALL.getDefaultState(), Blocks.DIORITE_WALL.getDefaultState()};
+    private static final BlockState[] POTTED = {Blocks.POTTED_POPPY.getDefaultState(), Blocks.POTTED_DANDELION.getDefaultState(),
+            Blocks.POTTED_RED_TULIP.getDefaultState(), Blocks.POTTED_AZURE_BLUET.getDefaultState(), Blocks.POTTED_FERN.getDefaultState(),
+            Blocks.POTTED_OXEYE_DAISY.getDefaultState(), Blocks.POTTED_AZALEA_BUSH.getDefaultState()};
+
+    private Facade facade(int x0, int z0, int floors, Style st) {
+        int v = hash(x0, z0, 300), t = hash(x0, z0, 301);
+        boolean punched = !st.tallWindows;
+        boolean recess = punched && floors >= 2 && (v & 3) != 0;
+        BlockState plinth = (v >> 6) % 5 == 0 ? null : PLINTHS[(t >> 3) % PLINTHS.length];
+        BlockState trim = TRIMS[(t >> 7) % TRIMS.length];
+        int sill = (v >> 2) % 4;
+        BlockState slab = SILL_SLABS[(t >> 11) % SILL_SLABS.length];
+        boolean quoins = punched && (v >> 4) % 3 == 0;
+        int belt = punched ? 2 + (v >> 9) % 3 : 3 + (v >> 9) % 4;
+        boolean crown = floors >= 12 && (v >> 12) % 3 == 0;
+        boolean mech = floors >= 20 && (v >> 14) % 2 == 0;
+        int parapet = (v >> 16) % 3;
+        return new Facade(recess, sill, slab, plinth, trim, quoins, belt, crown, mech, parapet, RAILS[(t >> 15) % RAILS.length]);
+    }
+
+    /** the floor band across a facade: plinth at the bottom, a lit crown under the roof of some towers, belt courses between */
+    private BlockState band(Facade fa, Style st, int rel, int floors, int along) {
+        if (rel == 0) return fa.plinth != null ? fa.plinth : st.frame;
+        if (fa.crown && rel == (floors - 1) * 4) return Math.floorMod(along, 2) == 0 ? Blocks.SEA_LANTERN.getDefaultState() : fa.trim;
+        if ((rel / 4) % fa.beltEvery == 0) return fa.trim;
+        return st.frame;
+    }
+
+    /** a wall block, textured with related blocks and weathered more towards the street */
+    private BlockState wallTex(Facade fa, Style st, int x, int y, int z, int rel) {
+        if (rel < 4 && fa.plinth != null) return fa.plinth;
+        Block b = st.wall.getBlock();
+        float r = rnd(x, y * 31 + z, 302), wear = (rel < 12 ? 0.16f : 0.07f) * (OVERRUN ? 2f : 1f);
+        if (r >= wear) return st.wall;
+        boolean alt = r < wear / 2;
+        if (b == Blocks.STONE_BRICKS) return (alt ? Blocks.MOSSY_STONE_BRICKS : Blocks.CRACKED_STONE_BRICKS).getDefaultState();
+        if (b == Blocks.DEEPSLATE_TILES) return Blocks.CRACKED_DEEPSLATE_TILES.getDefaultState();
+        if (b == Blocks.DEEPSLATE_BRICKS) return Blocks.CRACKED_DEEPSLATE_BRICKS.getDefaultState();
+        if (b == Blocks.POLISHED_BLACKSTONE_BRICKS) return Blocks.CRACKED_POLISHED_BLACKSTONE_BRICKS.getDefaultState();
+        if (b == Blocks.MUD_BRICKS) return Blocks.PACKED_MUD.getDefaultState();
+        if (b == Blocks.SMOOTH_SANDSTONE) return (alt ? Blocks.SANDSTONE : Blocks.CUT_SANDSTONE).getDefaultState();
+        if (b == Blocks.QUARTZ_BLOCK) return Blocks.SMOOTH_QUARTZ.getDefaultState();
+        if (b == Blocks.BRICKS && alt) return Blocks.GRANITE.getDefaultState();
+        if (b == Blocks.RED_NETHER_BRICKS) return Blocks.NETHER_BRICKS.getDefaultState();
+        if (b == Blocks.POLISHED_GRANITE) return Blocks.GRANITE.getDefaultState();
+        return st.wall;
+    }
+
+    /** is this facade cell a window (not a pier, band, corner, door or shop front)? */
+    private static boolean winCell(Style st, int along, int lo, int hi, boolean frontFace, int mid, int rel) {
+        if (along <= lo || along >= hi) return false;
+        int r = rel % 4;
+        if (r == 0 || (r == 3 && !st.tallWindows)) return false;
+        if (frontFace && ((rel < 4 && st.shopFront) || (rel < 3 && (along == mid || along == mid + 1)))) return false;
+        return Math.floorMod(along, st.bay) != 0;
+    }
+
+    /** the room just inside a window has nothing in the way of a set-back pane */
+    private boolean innerFree(int ix, int y, int iz, int rel, int bx0, int bx1, int bz0, int bz1, int mx, int mz, Style st, Direction front, int mid) {
+        if (ix <= bx0 || ix >= bx1 || iz <= bz0 || iz >= bz1) return false;
+        if (iz == mz && ix >= mx - 1 && ix <= mx + 1) return false;
+        BlockState f = furnish(ix, y, iz, rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid);
+        return f == null || f == AIR;
+    }
+
+    /** is the facade cell just outside this one a recessed window? */
+    private boolean recessedBehind(int x, int z, int rel, int bx0, int bx1, int bz0, int bz1, Style st, Direction front, int k, int mid) {
+        if (x == bx0 + 1 && z > bz0 && z < bz1 && winCell(st, z, bz0, bz1, k == 0 && front == Direction.WEST, mid, rel)) return true;
+        if (x == bx1 - 1 && z > bz0 && z < bz1 && winCell(st, z, bz0, bz1, k == 0 && front == Direction.EAST, mid, rel)) return true;
+        if (z == bz0 + 1 && x > bx0 && x < bx1 && winCell(st, x, bx0, bx1, k == 0 && front == Direction.NORTH, mid, rel)) return true;
+        return z == bz1 - 1 && x > bx0 && x < bx1 && winCell(st, x, bx0, bx1, k == 0 && front == Direction.SOUTH, mid, rel);
+    }
+
+    /** what sits on the sill of a recessed window: a stone sill, a Juliet balcony rail, a flower pot, or a window AC unit */
+    private BlockState sill(Facade fa, int x, int y, int z, Direction out) {
+        float r = rnd(x, y * 17 + z, 303);
+        if (r < 0.03f) return CityBlocks.facing(CityBlocks.AC_UNIT, out);
+        return switch (fa.sillType) {
+            case 1 -> Blocks.IRON_BARS.getDefaultState();
+            case 2 -> r < 0.45f ? POTTED[hash(x, y * 7 + z, 304) % POTTED.length] : fa.sillSlab;
+            case 3 -> AIR;
+            default -> fa.sillSlab;
+        };
     }
 
     /** shop awnings over the ground-floor windows and fire escapes up the back of apartment blocks */
@@ -2741,10 +2871,13 @@ public final class CityGen {
         int back = frontLow ? c1 - 1 : c0 + 1;
         boolean bay = garage && a >= g0 && a <= g1;
         if (bay && c == (frontLow ? c0 - 1 : c1 + 1)) set(x, GROUND, z, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
-        if (!(inA && inC)) return;
+        if (!(inA && inC)) {
+            houseOutside(x, z, l, hs, a, a0, a1, c, c0, c1, garage, g0, g1, frontLow);
+            return;
+        }
         boolean edgeA = a == a0 || a == a1, edgeC = c == c0 || c == c1;
         set(x, GROUND, z, bay ? Blocks.SMOOTH_STONE.getDefaultState() : hs.floor);
-        set(x, BASE, z, bay && !edgeC ? AIR : hs.floor);
+        set(x, BASE, z, bay && !edgeC ? AIR : (edgeA || edgeC) ? houseFoundation(l) : hs.floor);   // a stone foundation course
         if (edgeA || edgeC) {
             boolean frontWall = switch (l.face) {
                 case NORTH, WEST -> c == c0;
@@ -2772,7 +2905,7 @@ public final class CityGen {
                 } else if (!corner && y <= BASE + 2 && Math.floorMod(wallAlong, 3) == 1) {
                     set(x, y, z, Blocks.GLASS.getDefaultState());
                 } else {
-                    set(x, y, z, hs.wall);
+                    set(x, y, z, corner ? housePost(l, hs) : hs.wall);                 // corner posts frame the walls
                 }
             }
             if (edgeA) for (int y = BASE + 4; y < roofY; y++) set(x, y, z, hs.wall);   // gable ends
@@ -2814,6 +2947,60 @@ public final class CityGen {
                 if (a == a1 - 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.BOOKSHELF.getDefaultState());
             }
         }
+        // a brick chimney through the roof at the back of half the houses
+        if (a == a0 + 1 && c == (frontLow ? c1 - 1 : c0 + 1) && hash(l.ox, l.oz, 311) % 2 == 0) {
+            for (int y = BASE + 5; y <= roofY + 2; y++) set(x, y, z, Blocks.BRICKS.getDefaultState());
+            set(x, roofY + 3, z, Blocks.BRICK_WALL.getDefaultState());
+        }
+    }
+
+    private BlockState houseFoundation(Lot l) {
+        BlockState[] f = {Blocks.STONE_BRICKS.getDefaultState(), Blocks.COBBLESTONE.getDefaultState(), Blocks.POLISHED_ANDESITE.getDefaultState(),
+                Blocks.MUD_BRICKS.getDefaultState(), Blocks.DEEPSLATE_BRICKS.getDefaultState()};
+        return f[hash(l.ox, l.oz, 312) % f.length];
+    }
+
+    private BlockState housePost(Lot l, HouseStyle hs) {
+        Block w = hs.wall.getBlock();
+        if (w == Blocks.BRICKS || w == Blocks.CALCITE) return (hash(l.ox, l.oz, 313) % 2 == 0 ? Blocks.STONE_BRICKS : Blocks.SMOOTH_STONE).getDefaultState();
+        BlockState[] p = {Blocks.STRIPPED_SPRUCE_LOG.getDefaultState(), Blocks.DARK_OAK_LOG.getDefaultState(), Blocks.STRIPPED_OAK_LOG.getDefaultState(),
+                Blocks.SPRUCE_LOG.getDefaultState(), hs.wall};
+        return p[hash(l.ox, l.oz, 313) % p.length];
+    }
+
+    /**
+     * Just outside a house wall (under the eaves): shutters either side of each window, shrubs below them, and a
+     * step with a porch light at the front door.
+     */
+    private void houseOutside(int x, int z, Lot l, HouseStyle hs, int a, int a0, int a1, int c, int c0, int c1, boolean garage, int g0, int g1, boolean frontLow) {
+        boolean sideC = (c == c0 - 1 || c == c1 + 1) && a > a0 && a < a1;      // along the long walls
+        boolean sideA = (a == a0 - 1 || a == a1 + 1) && c > c0 && c < c1;      // along the gable ends
+        if (!sideC && !sideA) return;
+        Direction out;
+        if (sideC) out = c == c0 - 1 ? (l.alongX ? Direction.NORTH : Direction.WEST) : (l.alongX ? Direction.SOUTH : Direction.EAST);
+        else out = a == a0 - 1 ? (l.alongX ? Direction.WEST : Direction.NORTH) : (l.alongX ? Direction.EAST : Direction.SOUTH);
+        boolean front = sideC && c == (frontLow ? c0 - 1 : c1 + 1);
+        int along = sideC ? a : c, lo = sideC ? a0 : c0, hi = sideC ? a1 : c1;
+        int amid = (a0 + a1) / 2;
+        if (front && garage && a >= g0 - 1 && a <= g1 + 1) return;           // the driveway
+        if (front && a == amid) {
+            set(x, BASE, z, hs.stairs.getDefaultState().with(StairsBlock.FACING, out.getOpposite()));
+            set(x, BASE + 3, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+            return;
+        }
+        boolean win = Math.floorMod(along, 3) == 1;
+        if (win) {
+            if (rnd(x, z, 314) < 0.7f) set(x, BASE, z, (hash(l.ox, l.oz, 315) % 2 == 0 ? Blocks.AZALEA_LEAVES : Blocks.FLOWERING_AZALEA_LEAVES)
+                    .getDefaultState().with(LeavesBlock.PERSISTENT, true));
+            return;
+        }
+        int sh = hash(l.ox, l.oz, 316) % 6;
+        if (sh == 5) return;                                                 // some houses have no shutters
+        boolean byWindow = (Math.floorMod(along - 1, 3) == 1 && along - 1 > lo) || (Math.floorMod(along + 1, 3) == 1 && along + 1 < hi);
+        if (!byWindow || (front && Math.abs(a - amid) <= 1)) return;
+        Block td = new Block[]{Blocks.SPRUCE_TRAPDOOR, Blocks.DARK_OAK_TRAPDOOR, Blocks.OAK_TRAPDOOR, Blocks.BIRCH_TRAPDOOR, Blocks.JUNGLE_TRAPDOOR}[sh];
+        for (int y = BASE + 1; y <= BASE + 2; y++)
+            set(x, y, z, td.getDefaultState().with(net.minecraft.block.TrapdoorBlock.FACING, out).with(net.minecraft.block.TrapdoorBlock.OPEN, true));
     }
 
     /** three houses in four have an attached garage */
