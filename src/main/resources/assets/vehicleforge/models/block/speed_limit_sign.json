@@ -1,0 +1,146 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "s": "vehicleforge:block/speed_limit_sign",
+    "m": "vehicleforge:block/lamp_metal",
+    "particle": "vehicleforge:block/speed_limit_sign"
+  },
+  "elements": [
+    {
+      "from": [
+        7.25,
+        0,
+        7.25
+      ],
+      "to": [
+        8.75,
+        24,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        10,
+        6.5
+      ],
+      "to": [
+        13,
+        24,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#s",
+          "uv": [
+            2,
+            0,
+            14,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            3,
+            0,
+            13,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#m",
+          "uv": [
+            9,
+            0,
+            9.5,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#m",
+          "uv": [
+            6.5,
+            0,
+            7,
+            14
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            3,
+            6.5,
+            13,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            3,
+            9,
+            13,
+            9.5
+          ]
+        }
+      }
+    }
+  ]
+}

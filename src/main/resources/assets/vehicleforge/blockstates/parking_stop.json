@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/parking_stop"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/parking_stop",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/parking_stop",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/parking_stop",
+      "y": 270
+    }
+  }
+}

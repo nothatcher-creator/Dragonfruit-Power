@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "RW",
+    "I "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:white_dye"
+    },
+    "R": {
+      "item": "minecraft:red_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:yield_sign",
+    "count": 1
+  }
+}

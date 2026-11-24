@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/bike_rack"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/bike_rack",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/bike_rack",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/bike_rack",
+      "y": 270
+    }
+  }
+}

@@ -134,6 +134,7 @@ public final class CityGen {
     private static final BlockState CEILING_LIGHT = CityBlocks.ELECTRIC_LIGHT.getDefaultState()
             .with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN);
     private static final BlockState LADDER = Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST);
+    private static final BlockState ELEVATOR = CityBlocks.ELEVATOR.getDefaultState();
     private static final BlockState PATH = Blocks.DIRT_PATH.getDefaultState();
     private static final BlockState WATER = Blocks.WATER.getDefaultState();
     private static final BlockState[] FLOWERS = {
@@ -187,14 +188,25 @@ public final class CityGen {
     private static final int[] ROW_STYLES = {4, 12, 17, 18, 5};
     private static final BlockState INNER_FLOOR = Blocks.POLISHED_ANDESITE.getDefaultState();
 
-    private record HouseStyle(BlockState wall, BlockState floor, Block stairs, Block door) {}
+    private record HouseStyle(BlockState wall, BlockState floor, Block stairs, Block door, Block slope, BlockState ridge) {}
 
     private static final HouseStyle[] HOUSES = {
-            new HouseStyle(Blocks.OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.DARK_OAK_STAIRS, Blocks.OAK_DOOR),
-            new HouseStyle(Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_DOOR),
-            new HouseStyle(Blocks.BRICKS.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.DEEPSLATE_TILE_STAIRS, Blocks.DARK_OAK_DOOR),
-            new HouseStyle(Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.BRICK_STAIRS, Blocks.BIRCH_DOOR),
-            new HouseStyle(Blocks.LIGHT_BLUE_TERRACOTTA.getDefaultState(), Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.STONE_BRICK_STAIRS, Blocks.OAK_DOOR),
+            new HouseStyle(Blocks.OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.DARK_OAK_STAIRS, Blocks.OAK_DOOR,
+                    CityBlocks.SLOPE_SHINGLE, Blocks.DEEPSLATE_TILE_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.SPRUCE_STAIRS, Blocks.SPRUCE_DOOR,
+                    CityBlocks.SLOPE_SPRUCE, Blocks.SPRUCE_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.BRICKS.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.DEEPSLATE_TILE_STAIRS, Blocks.DARK_OAK_DOOR,
+                    CityBlocks.SLOPE_SHINGLE, Blocks.DEEPSLATE_TILE_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.BRICK_STAIRS, Blocks.BIRCH_DOOR,
+                    CityBlocks.SLOPE_RED_TILE, Blocks.BRICK_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.LIGHT_BLUE_TERRACOTTA.getDefaultState(), Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.STONE_BRICK_STAIRS, Blocks.OAK_DOOR,
+                    CityBlocks.SLOPE_STONE, Blocks.SMOOTH_STONE_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.CALCITE.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.MUD_BRICK_STAIRS, Blocks.ACACIA_DOOR,
+                    CityBlocks.SLOPE_RED_TILE, Blocks.BRICK_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.OAK_PLANKS.getDefaultState(), Blocks.COBBLESTONE_STAIRS, Blocks.SPRUCE_DOOR,
+                    CityBlocks.SLOPE_METAL, Blocks.SMOOTH_STONE_SLAB.getDefaultState()),
+            new HouseStyle(Blocks.YELLOW_TERRACOTTA.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState(), Blocks.DARK_OAK_STAIRS, Blocks.DARK_OAK_DOOR,
+                    CityBlocks.SLOPE_WOOD, Blocks.OAK_SLAB.getDefaultState()),
     };
 
     private static final String[] PARKED = {
@@ -442,11 +454,61 @@ public final class CityGen {
                 if (uz == 18 && ux >= 45 && ux <= 60 && ux % 3 == 0) set(x, BASE, z, CityBlocks.facing(CityBlocks.TRAFFIC_CONE, Direction.WEST));
                 if ((ux == 44 || ux == 61) && uz >= 15 && uz < 19) set(x, BASE, z, CityBlocks.facing(CityBlocks.ROADBLOCK, ux == 44 ? Direction.WEST : Direction.EAST));
             }
-        } else if (ux == 14 && uz == 14 && rnd(bx, bz, 62) < 0.5f) {
+        } else if (ux == 13 && uz == 14 && rnd(bx, bz, 62) < 0.5f) {
             s = CityBlocks.MANHOLE.getDefaultState();
         }
         set(x, GROUND, z, s);
+        sewer(x, z, ux, uz, rx, rz, s.getBlock() == CityBlocks.MANHOLE);
         if (s.getBlock() == CityBlocks.MANHOLE && rnd(x, z, 171) < 0.2f) set(x, BASE, z, CityBlocks.STEAM_VENT.getDefaultState());
+    }
+
+    /**
+     * Storm sewers under every city street: a brick tunnel with a water channel down the middle and a walkway either
+     * side, opening into a pillared chamber under each intersection. Every manhole cover has a ladder down.
+     */
+    private void sewer(int x, int z, int ux, int uz, boolean rx, boolean rz, boolean manhole) {
+        int bz = Math.floorDiv(z, CELL);
+        if (riverRow(bz)) return;
+        boolean zIn = rx && ux >= 11 && ux <= 17, xIn = rz && uz >= 11 && uz <= 17;
+        boolean in = zIn || xIn;
+        boolean wall = !in && ((rx && (ux == 10 || ux == 18)) || (rz && (uz == 10 || uz == 18)));
+        if (!in && !wall) return;
+        int floor = GROUND - 8;
+        BlockState brick = sewerBrick(x, z);
+        boolean pillar = rx && rz && ux == 14 && uz == 14;
+        if (wall || pillar || (uz == 0 && riverRow(bz - 1))) {                  // walls, the chamber pillar, a cap before the river
+            for (int y = floor; y < GROUND; y++) set(x, y, z, y == floor || y == GROUND - 1 ? brick : sewerBrick(x, z + y * 7));
+            return;
+        }
+        boolean channel = (zIn && ux >= 13 && ux <= 15) || (xIn && uz >= 13 && uz <= 15);
+        set(x, floor, z, brick);
+        set(x, floor + 1, z, channel ? WATER : Blocks.POLISHED_ANDESITE.getDefaultState());
+        for (int y = floor + 2; y < GROUND - 1; y++) set(x, y, z, AIR);
+        set(x, GROUND - 1, z, brick);
+        if (manhole) {
+            Direction f = rx && rz ? Direction.WEST : rx ? (ux <= 14 ? Direction.EAST : Direction.WEST) : (uz <= 14 ? Direction.SOUTH : Direction.NORTH);
+            for (int y = floor + 2; y < GROUND; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, f));
+            return;
+        }
+        if (channel) return;
+        int along = rx && !rz ? z : x, cross = rx && !rz ? ux : uz;
+        if (!(rx && rz) && (cross == 12 || cross == 16) && Math.floorMod(along, 16) == 8 && !(OVERRUN && rnd(x, z, 181) < 0.5f))
+            set(x, GROUND - 2, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+        else if (rx && rz && (ux == 12 || ux == 16) && (uz == 12 || uz == 16))
+            set(x, GROUND - 2, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
+        else if ((cross == 11 || cross == 17) && Math.floorMod(along, 16) == 2)          // pipes coming out of the wall
+            set(x, GROUND - 3, z, Blocks.IRON_BARS.getDefaultState());
+        float r = rnd(x, z, 182);
+        if (r < 0.02f) set(x, GROUND - 2, z, Blocks.COBWEB.getDefaultState());
+        else if (r < 0.06f) set(x, floor + 2, z, Blocks.MOSS_CARPET.getDefaultState());
+        else if (r < (OVERRUN ? 0.085f : 0.068f))
+            set(x, floor + 2, z, CityBlocks.facing(CityBlocks.TRASH_BAGS, Direction.fromHorizontal(hash(x, z, 183) & 3)));
+        else if (r < 0.072f && !(rx && rz)) container(x, floor + 2, z, "house", false);
+    }
+
+    private BlockState sewerBrick(int x, int z) {
+        float r = rnd(x, z, 180);
+        return r < 0.2f ? Blocks.MOSSY_STONE_BRICKS.getDefaultState() : r < 0.32f ? Blocks.CRACKED_STONE_BRICKS.getDefaultState() : Blocks.STONE_BRICKS.getDefaultState();
     }
 
     private void sidewalk(int x, int z, int ux, int uz) {
@@ -500,6 +562,7 @@ public final class CityGen {
     private void streetFurniture(int x, int z, int ux, int uz, boolean alongX, boolean alongZ) {
         int bx = Math.floorDiv(x, CELL), bz = Math.floorDiv(z, CELL);
         int d = metroD(bx, bz);
+        if (signs(x, z, ux, uz, alongX, alongZ, bx, bz, d)) return;
         if (d <= 10) {
             if (alongZ && (ux == R0 - 1 || ux == R1) && Math.floorMod(z, 6) == 3)
                 set(x, BASE, z, CityBlocks.facing(CityBlocks.PARKING_METER, ux == R0 - 1 ? Direction.EAST : Direction.WEST));
@@ -521,6 +584,39 @@ public final class CityGen {
         if (alongX && uz == C - 2 && ux == C + 10) { set(x, BASE, z, CityBlocks.facing(CityBlocks.NEWSPAPER_BOX, Direction.NORTH)); lootAt(x, BASE, z, "mail"); }
         if (alongX && uz == 1 && ux == CELL - 11) { set(x, BASE, z, CityBlocks.facing(CityBlocks.MAILBOX, Direction.SOUTH)); lootAt(x, BASE, z, "mail"); }
         if (d <= 4 && alongX && uz == C - 2 && Math.floorMod(x, 14) == 7) set(x, BASE, z, CityBlocks.facing(CityBlocks.PLANTER, Direction.NORTH));
+    }
+
+    /** speed limits facing the oncoming lane, no-parking by the bus stops, street names on the corners, and decor */
+    private boolean signs(int x, int z, int ux, int uz, boolean alongX, boolean alongZ, int bx, int bz, int d) {
+        Block sign = null;
+        Direction f = Direction.NORTH;
+        if (alongZ && ux == R0 - 1 && uz == 60) { sign = CityBlocks.SPEED_LIMIT_SIGN; f = Direction.NORTH; }
+        else if (alongZ && ux == R1 && uz == 35) { sign = CityBlocks.SPEED_LIMIT_SIGN; f = Direction.SOUTH; }
+        else if (alongX && uz == R0 - 1 && ux == 60) { sign = CityBlocks.SPEED_LIMIT_SIGN; f = Direction.EAST; }
+        else if (alongX && uz == R1 && ux == 35) { sign = CityBlocks.SPEED_LIMIT_SIGN; f = Direction.WEST; }
+        else if (alongZ && ux == R0 - 1 && uz == 47) { sign = CityBlocks.NO_PARKING_SIGN; f = Direction.NORTH; }
+        else if (alongX && uz == R0 - 1 && ux == 47) { sign = CityBlocks.NO_PARKING_SIGN; f = Direction.EAST; }
+        else if (ux == 1 && uz == 1 && d <= 12) { sign = CityBlocks.STREET_NAME_SIGN; }
+        else if (ux == C - 2 && uz == C - 2 && d <= 6 && rnd(bx, bz, 190) < 0.5f) { sign = CityBlocks.ONE_WAY_SIGN; f = Direction.EAST; }
+        else if (d <= 8 && (((ux == R0 - 1 || ux == R1) && (uz == 0 || uz == C - 1)) || ((uz == R0 - 1 || uz == R1) && (ux == 0 || ux == C - 1)))) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.BOLLARD, Direction.NORTH));
+            return true;
+        }
+        if (sign != null) {
+            set(x, BASE, z, CityBlocks.facing(sign, f));
+            return true;
+        }
+        if (alongZ && ux == C - 2 && uz == 40 && rnd(bx, bz, 191) < 0.35f) { set(x, BASE, z, CityBlocks.facing(CityBlocks.PHONE_BOOTH, Direction.WEST)); return true; }
+        if (alongZ && ux == 0 && Math.floorMod(z, 30) == 16 && rnd(x, z, 192) < (OVERRUN ? 0.7f : 0.3f)) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BAGS, Direction.EAST));
+            return true;
+        }
+        if (d <= 6 && alongX && uz == C - 2 && Math.floorMod(x, 40) == 22) { set(x, BASE, z, CityBlocks.facing(CityBlocks.BIKE_RACK, Direction.NORTH)); return true; }
+        if (d > 10 && alongZ && ux == C - 2 && Math.floorMod(z, 20) == 4 && rnd(x, z, 193) < 0.35f) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.ELECTRICAL_BOX, Direction.WEST));
+            return true;
+        }
+        return false;
     }
 
     private void lamp(int x, int z, Direction arm) {
@@ -613,6 +709,7 @@ public final class CityGen {
         int maxK = Math.max(0, (Math.min(x1 - x0, z1 - z0) - 10) / 2);
         int mx = (x0 + x1) / 2, mz = (z0 + z1) / 2 + 2;                       // ladder shaft
         boolean ladderCol = x == mx && z == mz, shaftCol = x == mx - 1 && z == mz;
+        boolean elevCol = floors >= 5 && x == mx + 1 && z == mz;              // an elevator pad on every floor beside the ladder
         boolean wasEdge = false;
         int k = 0;
         for (int y = BASE; y < top; y++) {
@@ -645,6 +742,8 @@ public final class CityGen {
                 else if (rel < 4 && frontFace && st.shopFront) s = st.window;
                 else if (rel % 4 == 3 && !st.tallWindows) s = st.wall;
                 else s = Math.floorMod(along, st.bay) == 0 ? st.wall : st.window;
+            } else if (elevCol) {
+                s = floorRow ? ELEVATOR : AIR;
             } else if (ladderCol) {
                 s = LADDER;
             } else if (shaftCol) {
@@ -670,12 +769,19 @@ public final class CityGen {
                 continue;
             }
             set(x, y, z, s);
+            if (edge && !corner) facadeDetail(x, y, z, rel, floors, st, front, frontFace, along, mid, bx0, bx1, bz0, bz1);
         }
         // ---- roof
         int bx0 = x0 + k, bx1 = x1 - k, bz0 = z0 + k, bz1 = z1 - k;
         boolean edge = x == bx0 || x == bx1 || z == bz0 || z == bz1;
         if (ladderCol) {
             set(x, top, z, LADDER);
+            return;
+        }
+        if (elevCol) {
+            set(x, top, z, ELEVATOR);
+            set(x, top + 1, z, AIR);
+            set(x, top + 2, z, AIR);
             return;
         }
         BlockState roof = st.frame;
@@ -737,9 +843,44 @@ public final class CityGen {
                 if (x == bx1 - 3 && z == bz0 + 3) {
                     for (int i = 1; i <= 3; i++) set(x, top + i, z, Blocks.IRON_BARS.getDefaultState());   // vent stack
                 }
+                if ((x == bx1 - 2 && z == bz1 - 2) || (x == (bx0 + bx1) / 2 && z == bz1 - 4) || (x == bx0 + 2 && z == (bz0 + bz1) / 2))
+                    set(x, top + 1, z, CityBlocks.facing(CityBlocks.ROOF_VENT, Direction.NORTH));
+                if (x == bx0 + 2 && z == bz0 + 2 && rnd(x0, z0, 176) < 0.6f)
+                    set(x, top + 1, z, CityBlocks.facing(CityBlocks.SATELLITE_DISH, Direction.SOUTH));
+                rooftopBillboard(x, z, top, floors, front, bx0, bx1, bz0, bz1, x0, z0);
             }
             default -> { }
         }
+    }
+
+    /** shop awnings over the ground-floor windows and fire escapes up the back of apartment blocks */
+    private void facadeDetail(int x, int y, int z, int rel, int floors, Style st, Direction front, boolean frontFace, int along, int mid,
+                              int bx0, int bx1, int bz0, int bz1) {
+        Direction out;
+        boolean back;
+        if (x == bx0) out = Direction.WEST; else if (x == bx1) out = Direction.EAST; else if (z == bz0) out = Direction.NORTH; else out = Direction.SOUTH;
+        back = out == front.getOpposite();
+        int ox = x + out.getOffsetX(), oz = z + out.getOffsetZ();
+        if ((ox >> 4) != (x >> 4) || (oz >> 4) != (z >> 4)) return;           // stay inside this chunk
+        if (frontFace && st.shopFront && rel == 3 && along >= mid - 2 && along <= mid + 3) {
+            set(ox, y, oz, CityBlocks.facing(CityBlocks.AWNING, out));
+            return;
+        }
+        if (back && !st.shopFront && floors >= 3 && floors <= 14 && rel >= 4 && rel % 4 == 0 && rel < floors * 4) {
+            int base = (out.getAxis() == Direction.Axis.Z ? (bx0 + bx1) / 2 : (bz0 + bz1) / 2) - 5;
+            if (along >= base && along <= base + 2) set(ox, y, oz, CityBlocks.facing(CityBlocks.FIRE_ESCAPE, out));
+        }
+    }
+
+    /** a billboard on stilts on the roof of some low buildings, facing the street */
+    private void rooftopBillboard(int x, int z, int top, int floors, Direction front, int bx0, int bx1, int bz0, int bz1, int x0, int z0) {
+        if (floors > 5 || rnd(x0, z0, 177) >= 0.3f) return;
+        int mxc = (bx0 + bx1) / 2, mzc = (bz0 + bz1) / 2;
+        int px = switch (front) { case WEST -> bx0 + 2; case EAST -> bx1 - 2; default -> mxc; };
+        int pz = switch (front) { case NORTH -> bz0 + 2; case SOUTH -> bz1 - 2; default -> mzc; };
+        if (x != px || z != pz) return;
+        for (int i = 1; i <= 2; i++) set(x, top + i, z, Blocks.IRON_BARS.getDefaultState());
+        set(x, top + 3, z, CityBlocks.facing(CityBlocks.BILLBOARDS[hash(x0, z0, 178) % CityBlocks.BILLBOARDS.length], front));
     }
 
     // ============================================================ countryside
@@ -1115,7 +1256,7 @@ public final class CityGen {
 
     /** a seed for tree() that picks the species and varies the trunk height */
     private static int treeSeed(int species, int h) {
-        return ((species + 5 * Math.floorMod(h, 40)) << 8) | (h & 0xff);
+        return ((species + 7 * Math.floorMod(h, 40)) << 8) | (h & 0xff);
     }
 
     /** woodland: dense mixed trees, undergrowth, a winding trail and sometimes a hunter's cabin */
@@ -2359,7 +2500,7 @@ public final class CityGen {
      * linden (tall rounded green), pine (cone), blossom (cherry) and willow (drooping green with hanging vines).
      */
     private void tree(int x, int z, int tx, int tz, int h) {
-        int species = (h >>> 8) % 5;
+        int species = (h >>> 8) % 7;
         int dx = x - tx, dz = z - tz;
         double d = Math.sqrt(dx * dx + dz * dz);
         BlockState log, leaves;
@@ -2368,12 +2509,26 @@ public final class CityGen {
             case 1 -> { log = Blocks.OAK_LOG.getDefaultState(); leaves = CityBlocks.LINDEN_LEAVES.getDefaultState(); }
             case 2 -> { log = Blocks.SPRUCE_LOG.getDefaultState(); leaves = Blocks.SPRUCE_LEAVES.getDefaultState(); }
             case 3 -> { log = Blocks.CHERRY_LOG.getDefaultState(); leaves = Blocks.CHERRY_LEAVES.getDefaultState(); }
+            case 5 -> { log = Blocks.OAK_LOG.getDefaultState(); leaves = Blocks.OAK_LEAVES.getDefaultState(); }
+            case 6 -> { log = Blocks.BIRCH_LOG.getDefaultState(); leaves = Blocks.BIRCH_LEAVES.getDefaultState(); }
             default -> { log = Blocks.OAK_LOG.getDefaultState(); leaves = CityBlocks.LINDEN_LEAVES.getDefaultState(); }
         }
         leaves = leaves.with(LeavesBlock.PERSISTENT, true);
-        int trunk = species == 2 ? 2 : 4 + (h >>> 12) % 3;
+        int trunk = species == 2 ? 2 : species == 6 ? 5 + (h >>> 12) % 3 : 4 + (h >>> 12) % 3;
+        if (species == 5) {
+            bigOak(x, z, tx, tz, h, log, leaves);
+            return;
+        }
         if (dx == 0 && dz == 0) for (int y = BASE; y < BASE + trunk + (species == 2 ? 7 : 1); y++) set(x, y, z, log);
         switch (species) {
+            case 6 -> {                                                      // birch: slim, tall, narrow crown
+                double cy = BASE + trunk;
+                for (int y = BASE + trunk - 3; y <= BASE + trunk + 3; y++) {
+                    double ry = (y - cy) / 1.9;
+                    double e = Math.sqrt(d * d + ry * ry);
+                    if (e <= 2.1 + (rnd(x, y * 31 + z, 145) - 0.5) * 0.5 && isAir(x, y, z)) set(x, y, z, leaves);
+                }
+            }
             case 2 -> {                                                      // pine: stacked cone
                 for (int i = 0; i < 9; i++) {
                     int y = BASE + trunk + i;
@@ -2407,11 +2562,50 @@ public final class CityGen {
         }
     }
 
+    /**
+     * A big spreading oak: a thick trunk that forks into four rising limbs, each carrying its own cluster of leaves
+     * around a high central crown.
+     */
+    private void bigOak(int x, int z, int tx, int tz, int h, BlockState log, BlockState leaves) {
+        int trunk = 4 + (h >>> 12) % 3;
+        int dx = x - tx, dz = z - tz;
+        if (dx == 0 && dz == 0) for (int y = BASE; y <= BASE + trunk + 2; y++) set(x, y, z, log);
+        if ((Math.abs(dx) + Math.abs(dz) == 1) && rnd(x, z, 146) < 0.7f) set(x, BASE, z, log);   // root flare
+        double[][] blobs = new double[5][];
+        blobs[0] = new double[]{0, BASE + trunk + 3, 0, 2.8};
+        for (int i = 0; i < 4; i++) {
+            double a = Math.PI / 4 + i * Math.PI / 2 + ((hash(tx, tz, 147 + i) & 15) - 7) * 0.06;
+            double ex = Math.cos(a) * 2.6, ez = Math.sin(a) * 2.6;
+            for (int t = 1; t <= 3; t++) {                                     // the limb
+                int lx = (int) Math.round(Math.cos(a) * t * 0.9), lz = (int) Math.round(Math.sin(a) * t * 0.9);
+                if (dx == lx && dz == lz && (lx != 0 || lz != 0)) set(x, BASE + trunk - 1 + t, z, log.with(net.minecraft.block.PillarBlock.AXIS,
+                        Math.abs(lx) >= Math.abs(lz) ? Direction.Axis.X : Direction.Axis.Z));
+            }
+            blobs[i + 1] = new double[]{ex, BASE + trunk + 2 + (i % 2), ez, 1.9 + (hash(tx, tz, 151 + i) % 3) * 0.2};
+        }
+        for (double[] b : blobs) {
+            for (int y = (int) (b[1] - b[3]); y <= (int) (b[1] + b[3]); y++) {
+                double ex = dx - b[0], ey = (y - b[1]) * 1.25, ez = dz - b[2];
+                if (Math.sqrt(ex * ex + ey * ey + ez * ez) <= b[3] + (rnd(x, y * 37 + z, 148) - 0.5) * 0.7 && isAir(x, y, z)) set(x, y, z, leaves);
+            }
+        }
+    }
+
     private static final int[] ROWS = {6, 18, 30, 42};
 
     private void parking(int x, int z, int lx, int lz) {
         set(x, GROUND, z, ASPHALT);
         boolean margin = lx < 1 || lx > 50 || lz < 1 || lz > 50;
+        if (lz == 0 && (lx == 12 || lx == 40)) {                              // billboards along the street side
+            set(x, GROUND, z, Blocks.GRASS_BLOCK.getDefaultState());
+            for (int y = BASE; y < BASE + 6; y++) set(x, y, z, Blocks.IRON_BARS.getDefaultState());
+            set(x, BASE + 6, z, CityBlocks.facing(CityBlocks.BILLBOARDS[hash(x, z, 179) % CityBlocks.BILLBOARDS.length], Direction.NORTH));
+            return;
+        }
+        if (lz == 0 && lx == 21) {
+            set(x, BASE, z, CityBlocks.facing(CityBlocks.YIELD_SIGN, Direction.SOUTH));
+            return;
+        }
         if (margin) {
             boolean entrance = (lx >= 22 && lx < 30) || (lz >= 22 && lz < 30);
             if (!entrance) {
@@ -2427,6 +2621,10 @@ public final class CityGen {
             }
         }
         if ((lz == 12 || lz == 36) && lx % 12 == 6) lamp(x, z, Direction.SOUTH);
+        for (int ri = 0; ri < ROWS.length; ri++) {                          // concrete parking stops at the head of each stall
+            int stopZ = ri == 0 ? ROWS[ri] + 3 : ROWS[ri] - 3;
+            if (lz == stopZ && lx % 3 != 0 && lx > 1 && lx < 50) set(x, BASE, z, CityBlocks.facing(CityBlocks.PARKING_STOP, Direction.NORTH));
+        }
     }
 
     private void gas(int x, int z, int bx, int bz, int lx, int lz) {
@@ -2533,7 +2731,8 @@ public final class CityGen {
         int k = Math.min(fromLow, fromHigh);
         int roofY = BASE + 4 + k;
         Direction up = fromLow <= fromHigh ? (l.alongX ? Direction.SOUTH : Direction.EAST) : (l.alongX ? Direction.NORTH : Direction.WEST);
-        set(x, roofY, z, hs.stairs.getDefaultState().with(StairsBlock.FACING, up));
+        // a smooth pitched roof; an odd-width house gets a flat ridge cap along the top
+        set(x, roofY, z, fromLow == fromHigh ? hs.ridge : CityBlocks.facing(hs.slope, up));
         boolean inA = a >= a0 && a <= a1, inC = c >= c0 && c <= c1;
         // attached garage: a 3-wide bay at the high-a end with a roll-up door facing the street
         boolean garage = hasGarage(l);

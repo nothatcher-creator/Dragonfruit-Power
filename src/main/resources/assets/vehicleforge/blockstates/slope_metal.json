@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/slope_metal"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/slope_metal",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/slope_metal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/slope_metal",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/street_name_sign"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/street_name_sign",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/street_name_sign",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/street_name_sign",
+      "y": 270
+    }
+  }
+}

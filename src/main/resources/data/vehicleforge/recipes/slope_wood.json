@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  M",
+    " MM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:oak_planks"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:slope_wood",
+    "count": 8
+  }
+}

@@ -54,7 +54,7 @@ public final class CityBlocks {
     public static final Block LINE_YELLOW = reg("asphalt_yellow_line", new PaintedRoadBlock(road()));
     public static final Block LINE_DOUBLE_YELLOW = reg("asphalt_double_yellow_line", new PaintedRoadBlock(road()));
     public static final Block CROSSWALK = reg("asphalt_crosswalk", new PaintedRoadBlock(road()));
-    public static final Block MANHOLE = reg("manhole_cover", new Block(road().sounds(BlockSoundGroup.METAL)));
+    public static final Block MANHOLE = reg("manhole_cover", new ManholeBlock(road().sounds(BlockSoundGroup.METAL).nonOpaque()));
     public static final Block STORM_DRAIN = reg("storm_drain", new Block(road().sounds(BlockSoundGroup.METAL)));
     public static final Block SIDEWALK = reg("sidewalk", new Block(walk()));
     public static final Block SIDEWALK_SLAB = reg("sidewalk_slab", new SlabBlock(walk()));
@@ -157,12 +157,42 @@ public final class CityBlocks {
     /** buried under every airport column so Outbreak knows where the airport is; just dirt to look at */
     public static final Block AIRPORT_MARKER = reg("airport_marker", new Block(AbstractBlock.Settings.copy(Blocks.DIRT)));
 
+    // ---- wave 8: more street furniture, signs, billboards, slopes, the elevator
+    public static final Block PARKING_STOP = reg("parking_stop", new FacingShapeBlock(walk().nonOpaque(), box(0, 0, 5, 16, 3, 11), false));
+    public static final Block SPEED_LIMIT_SIGN = reg("speed_limit_sign", new FacingShapeBlock(metal().mapColor(MapColor.WHITE), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(4, 6, 6.5, 12, 16, 7.5)), false));
+    public static final Block ONE_WAY_SIGN = reg("one_way_sign", new FacingShapeBlock(metal().mapColor(MapColor.BLACK), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(2, 10, 6.5, 14, 14, 7.5)), false));
+    public static final Block NO_PARKING_SIGN = reg("no_parking_sign", new FacingShapeBlock(metal().mapColor(MapColor.WHITE), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(4, 7, 6.5, 12, 16, 7.5)), false));
+    public static final Block YIELD_SIGN = reg("yield_sign", new FacingShapeBlock(metal().mapColor(MapColor.RED), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(3, 8, 6.5, 13, 16, 7.5)), false));
+    public static final Block STREET_NAME_SIGN = reg("street_name_sign", new FacingShapeBlock(metal().mapColor(MapColor.GREEN), VoxelShapes.union(box(7, 0, 7, 9, 16, 9), box(0, 12, 7, 16, 15, 9)), false));
+    public static final Block BILLBOARD_SODA = reg("billboard_soda", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 6, 16, 16, 10), false));
+    public static final Block BILLBOARD_BURGER = reg("billboard_burger", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 6, 16, 16, 10), false));
+    public static final Block BILLBOARD_INSURANCE = reg("billboard_insurance", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 6, 16, 16, 10), false));
+    public static final Block BILLBOARD_RADIO = reg("billboard_radio", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 6, 16, 16, 10), false));
+    public static final Block[] BILLBOARDS = {BILLBOARD_SODA, BILLBOARD_BURGER, BILLBOARD_INSURANCE, BILLBOARD_RADIO};
+    public static final Block BOLLARD = reg("bollard", new FacingShapeBlock(metal().mapColor(MapColor.YELLOW), box(5, 0, 5, 11, 14, 11), false));
+    public static final Block PHONE_BOOTH = reg("phone_booth", new FacingShapeBlock(metal().mapColor(MapColor.RED).nonOpaque(), box(1, 0, 1, 15, 16, 15), false));
+    public static final Block TRASH_BAGS = reg("trash_bags", new FacingShapeBlock(furniture(MapColor.BLACK, BlockSoundGroup.WOOL), box(1, 0, 1, 15, 9, 15), false));
+    public static final Block BIKE_RACK = reg("bike_rack", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 6, 16, 10, 10), false));
+    public static final Block ELECTRICAL_BOX = reg("electrical_box", new FacingShapeBlock(metal().mapColor(MapColor.GREEN), box(2, 0, 4, 14, 15, 12), false));
+    public static final Block SATELLITE_DISH = reg("satellite_dish", new FacingShapeBlock(metal().nonOpaque(), box(2, 0, 2, 14, 14, 14), false));
+    public static final Block AWNING = reg("awning", new FacingShapeBlock(furniture(MapColor.RED, BlockSoundGroup.WOOL).noCollision(), box(0, 12, 0, 16, 16, 16), false));
+    public static final Block FIRE_ESCAPE = reg("fire_escape", new FacingShapeBlock(metal().nonOpaque(), box(0, 0, 0, 16, 2, 16), false));
+    public static final Block ROOF_VENT = reg("roof_vent", new FacingShapeBlock(metal(), box(4, 0, 4, 12, 10, 12), false));
+    public static final Block ELEVATOR = reg("elevator", new ElevatorBlock(metal().mapColor(MapColor.IRON_GRAY).strength(4f)));
+    public static final Block SLOPE_SHINGLE = reg("slope_shingle", new SlopeBlock(walk().nonOpaque().sounds(BlockSoundGroup.DEEPSLATE_TILES)));
+    public static final Block SLOPE_RED_TILE = reg("slope_red_tile", new SlopeBlock(walk().nonOpaque().mapColor(MapColor.RED)));
+    public static final Block SLOPE_WOOD = reg("slope_wood", new SlopeBlock(prop().nonOpaque().mapColor(MapColor.BROWN)));
+    public static final Block SLOPE_SPRUCE = reg("slope_spruce", new SlopeBlock(prop().nonOpaque().mapColor(MapColor.SPRUCE_BROWN)));
+    public static final Block SLOPE_STONE = reg("slope_stone", new SlopeBlock(walk().nonOpaque()));
+    public static final Block SLOPE_METAL = reg("slope_metal", new SlopeBlock(metal().nonOpaque()));
+
     public static final Block[] STORAGE = {SUITCASE, DESK, FILING_CABINET, KITCHEN_COUNTER, FRIDGE, STORE_SHELF, CHECKOUT_COUNTER, MAILBOX, NEWSPAPER_BOX};
     public static final Block[] POWER = {GENERATOR, SOLAR_PANEL, WIND_TURBINE, BATTERY, POWER_POLE};
 
     /** blocks that need the cutout or translucent render layer */
-    public static final Block[] CUTOUT = {POTTED_PLANT, PLANTER, MAPLE_LEAVES, LINDEN_LEAVES, STOP_SIGN, SMOKE_SOURCE, STEAM_VENT, POWER_POLE};
-    public static final Block[] TRANSLUCENT = {CLEAR_GLASS, REFLECTIVE_GLASS};
+    public static final Block[] CUTOUT = {POTTED_PLANT, PLANTER, MAPLE_LEAVES, LINDEN_LEAVES, STOP_SIGN, SMOKE_SOURCE, STEAM_VENT, POWER_POLE,
+            BIKE_RACK, YIELD_SIGN, FIRE_ESCAPE, SATELLITE_DISH, BILLBOARD_SODA, BILLBOARD_BURGER, BILLBOARD_INSURANCE, BILLBOARD_RADIO};
+    public static final Block[] TRANSLUCENT = {CLEAR_GLASS, REFLECTIVE_GLASS, PHONE_BOOTH};
 
     private CityBlocks() {}
 

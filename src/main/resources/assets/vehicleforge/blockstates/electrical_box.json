@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/electrical_box"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/electrical_box",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/electrical_box",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/electrical_box",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/roof_vent"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/roof_vent",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/roof_vent",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/roof_vent",
+      "y": 270
+    }
+  }
+}

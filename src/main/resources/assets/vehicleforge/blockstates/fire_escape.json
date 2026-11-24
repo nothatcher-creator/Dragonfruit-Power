@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/fire_escape"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/fire_escape",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/fire_escape",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/fire_escape",
+      "y": 270
+    }
+  }
+}

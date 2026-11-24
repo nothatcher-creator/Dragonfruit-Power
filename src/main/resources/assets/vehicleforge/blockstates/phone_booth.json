@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/phone_booth"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/phone_booth",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/phone_booth",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/phone_booth",
+      "y": 270
+    }
+  }
+}

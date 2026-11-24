@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  M",
+    " MM",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:deepslate_tiles"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:slope_shingle",
+    "count": 8
+  }
+}

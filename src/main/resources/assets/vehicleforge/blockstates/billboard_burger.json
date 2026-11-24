@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/billboard_burger"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/billboard_burger",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/billboard_burger",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/billboard_burger",
+      "y": 270
+    }
+  }
+}

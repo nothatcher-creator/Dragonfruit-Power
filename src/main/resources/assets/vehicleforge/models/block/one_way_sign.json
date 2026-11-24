@@ -1,0 +1,128 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "s": "vehicleforge:block/one_way_sign",
+    "m": "vehicleforge:block/lamp_metal",
+    "particle": "vehicleforge:block/one_way_sign"
+  },
+  "elements": [
+    {
+      "from": [
+        7.25,
+        0,
+        7.25
+      ],
+      "to": [
+        8.75,
+        20,
+        8.75
+      ],
+      "faces": {
+        "north": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            0,
+            8.75,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            7.25,
+            7.25,
+            8.75,
+            8.75
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        16,
+        6.5
+      ],
+      "to": [
+        16,
+        21,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#s",
+          "uv": [
+            0,
+            5,
+            16,
+            10.5
+          ]
+        },
+        "south": {
+          "texture": "#s",
+          "uv": [
+            16,
+            5,
+            0,
+            10.5
+          ]
+        },
+        "up": {
+          "texture": "#m",
+          "uv": [
+            0,
+            6.5,
+            16,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#m",
+          "uv": [
+            0,
+            9,
+            16,
+            9.5
+          ]
+        }
+      }
+    }
+  ]
+}

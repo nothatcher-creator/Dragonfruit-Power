@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/billboard_insurance"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/billboard_insurance",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/billboard_insurance",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/billboard_insurance",
+      "y": 270
+    }
+  }
+}

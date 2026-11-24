@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GW",
+    "I "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:white_dye"
+    },
+    "G": {
+      "item": "minecraft:green_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:street_name_sign",
+    "count": 1
+  }
+}

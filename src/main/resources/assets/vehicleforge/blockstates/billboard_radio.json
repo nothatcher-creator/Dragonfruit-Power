@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/billboard_radio"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/billboard_radio",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/billboard_radio",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/billboard_radio",
+      "y": 270
+    }
+  }
+}

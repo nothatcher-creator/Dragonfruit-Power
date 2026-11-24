@@ -10,6 +10,7 @@ public final class Net {
     public static final Identifier CRASH = VehicleForge.id("crash");
     /** C2S: block hit + hand. Isometric view: place the held block exactly where the cursor points, at any distance */
     public static final Identifier ISO_PLACE = VehicleForge.id("iso_place");
+    public static final Identifier ELEVATOR = VehicleForge.id("elevator");
     /** how far away the isometric view may place blocks */
     private static final double ISO_PLACE_RANGE = 64;
 
@@ -23,6 +24,10 @@ public final class Net {
                     Weapons.action(v, player, action);
                 }
             });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(ELEVATOR, (server, player, handler, buf, responseSender) -> {
+            boolean up = buf.readBoolean();
+            server.execute(() -> com.nothatcher.vehicleforge.block.ElevatorBlock.ride(player, up));
         });
         ServerPlayNetworking.registerGlobalReceiver(ISO_PLACE, (server, player, handler, buf, responseSender) -> {
             net.minecraft.util.hit.BlockHitResult hit = buf.readBlockHitResult();

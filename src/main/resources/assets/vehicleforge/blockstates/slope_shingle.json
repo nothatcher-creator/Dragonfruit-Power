@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/slope_shingle"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/slope_shingle",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/slope_shingle",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/slope_shingle",
+      "y": 270
+    }
+  }
+}

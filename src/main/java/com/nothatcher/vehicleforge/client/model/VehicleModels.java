@@ -251,8 +251,46 @@ public final class VehicleModels {
         if (!Double.isNaN(s.rearSeatZ)) b.seat(0, s.cushion, s.rearSeatZ, w * 2 - 0.3, Mat.SEAT);
         b.dashboard(w - 0.1, -w + 0.1, s.belt + 0.05, s.dashZ, 0.4);
         b.steeringWheel(0.4, s.belt + 0.08, s.dashZ - 0.2, 0.17, 20);
+        carInterior(b, s);
         b.wheels(s.wheelX, s.wheelR, s.wheelF, s.wheelB, s.wheelR, 0.28);
         return b;
+    }
+
+    /** the cabin detail you see through the glass: headrests, console and shifter, door cards, mirror, visors and handles */
+    private static void carInterior(Builder b, CarSpec s) {
+        double w = s.halfW, hl = s.len / 2;
+        boolean rear = !Double.isNaN(s.rearSeatZ);
+        for (int side = -1; side <= 1; side += 2) {
+            double sx = side * 0.4;
+            b.box(sx - 0.15, s.cushion + 0.74, s.frontSeatZ - 0.37, sx + 0.15, s.cushion + 0.94, s.frontSeatZ - 0.25, Mat.SEAT);   // headrest
+            b.box(sx - 0.07, s.cushion + 0.7, s.frontSeatZ - 0.33, sx - 0.05, s.cushion + 0.74, s.frontSeatZ - 0.29, Mat.CHROME);
+            b.box(sx + 0.05, s.cushion + 0.7, s.frontSeatZ - 0.33, sx + 0.07, s.cushion + 0.74, s.frontSeatZ - 0.29, Mat.CHROME);
+            if (rear) b.box(side * (w - 0.5) - 0.14, s.cushion + 0.72, s.rearSeatZ - 0.37, side * (w - 0.5) + 0.14, s.cushion + 0.9, s.rearSeatZ - 0.26, Mat.SEAT);
+            // door cards with an armrest and a pull handle
+            double xi = side * (w - 0.09), xo = side * (w - 0.14);
+            double z0 = rear ? s.rearSeatZ - 0.35 : s.frontSeatZ - 0.4, z1 = s.windBase - 0.15;
+            b.box(Math.min(xi, xo), s.bottom + 0.2, z0, Math.max(xi, xo), s.belt - 0.02, z1, Mat.DASH);
+            double ax0 = side * (w - 0.14), ax1 = side * (w - 0.24);
+            b.box(Math.min(ax0, ax1), s.cushion + 0.1, s.frontSeatZ - 0.25, Math.max(ax0, ax1), s.cushion + 0.16, s.frontSeatZ + 0.45, Mat.SEAT);
+            b.box(Math.min(ax0, ax1), s.belt - 0.14, s.frontSeatZ + 0.5, Math.max(ax0, ax1) - side * 0.02, s.belt - 0.08, s.frontSeatZ + 0.6, Mat.CHROME);
+            // outside door handles
+            double hx0 = side * w, hx1 = side * (w + 0.025);
+            b.box(Math.min(hx0, hx1), s.belt - 0.14, s.frontSeatZ + 0.25, Math.max(hx0, hx1), s.belt - 0.09, s.frontSeatZ + 0.42, Mat.CHROME);
+            if (rear) b.box(Math.min(hx0, hx1), s.belt - 0.14, s.rearSeatZ + 0.3, Math.max(hx0, hx1), s.belt - 0.09, s.rearSeatZ + 0.47, Mat.CHROME);
+            // sun visor
+            b.box(side > 0 ? 0.12 : -0.62, s.roof - 0.13, s.roofFront - 0.32, side > 0 ? 0.62 : -0.12, s.roof - 0.1, s.roofFront - 0.08, Mat.SEAT);
+        }
+        // centre console, gear lever and handbrake
+        b.box(-0.13, s.bottom + 0.1, s.frontSeatZ - 0.3, 0.13, s.cushion - 0.02, s.dashZ - 0.05, Mat.DASH);
+        b.box(-0.02, s.cushion - 0.02, s.frontSeatZ + 0.35, 0.02, s.cushion + 0.16, s.frontSeatZ + 0.39, Mat.BLACK);
+        b.box(-0.04, s.cushion + 0.16, s.frontSeatZ + 0.33, 0.04, s.cushion + 0.22, s.frontSeatZ + 0.41, Mat.CHROME);
+        b.box(0.04, s.cushion - 0.02, s.frontSeatZ - 0.1, 0.07, s.cushion + 0.06, s.frontSeatZ + 0.15, Mat.BLACK);
+        // rear-view mirror and glovebox line
+        b.box(-0.01, s.roof - 0.2, s.roofFront - 0.12, 0.01, s.roof - 0.08, s.roofFront - 0.1, Mat.BLACK);
+        b.box(-0.14, s.roof - 0.27, s.roofFront - 0.16, 0.14, s.roof - 0.19, s.roofFront - 0.12, Mat.BLACK);
+        b.box(-0.7, s.belt - 0.2, s.dashZ - 0.105, -0.25, s.belt - 0.19, s.dashZ - 0.1, Mat.BLACK);
+        // exhaust tip
+        b.cyl(-(w - 0.3), s.bottom + 0.08, -hl, 'z', 0.045, 0.045, -0.12, 8, Mat.CHROME, Mat.BLACK);
     }
 
     private static final CarSpec SEDAN = new CarSpec(4.6, 0.95, 0.3, 1.0, 1.95, 0.95, 0.4, -1.3, -1.5,

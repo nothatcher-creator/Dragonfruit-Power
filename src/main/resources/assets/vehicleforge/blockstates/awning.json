@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/awning"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/awning",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/awning",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/awning",
+      "y": 270
+    }
+  }
+}

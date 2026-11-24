@@ -63,9 +63,31 @@ public class VehicleClient implements ClientModInitializer {
         HudRenderCallback.EVENT.register(VehicleClient::hud);
     }
 
+    private static boolean elevJump, elevSneak;
+    private static int elevCooldown;
+
+    /** Jump on an elevator pad to go up a floor, sneak to go down. Works with the touch jump/sneak buttons too. */
+    private static void elevator(MinecraftClient mc, ClientPlayerEntity p) {
+        if (elevCooldown > 0) elevCooldown--;
+        if (p == null || mc.world == null || p.hasVehicle()) { elevJump = elevSneak = false; return; }
+        boolean jump = p.input.jumping, sneak = p.input.sneaking;
+        net.minecraft.util.math.BlockPos at = p.getBlockPos();
+        boolean onPad = mc.world.getBlockState(at.down()).getBlock() instanceof com.nothatcher.vehicleforge.block.ElevatorBlock
+                || mc.world.getBlockState(at).getBlock() instanceof com.nothatcher.vehicleforge.block.ElevatorBlock;
+        if (onPad && elevCooldown == 0 && ((jump && !elevJump) || (sneak && !elevSneak))) {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeBoolean(jump && !elevJump);
+            ClientPlayNetworking.send(Net.ELEVATOR, buf);
+            elevCooldown = 8;
+        }
+        elevJump = jump;
+        elevSneak = sneak;
+    }
+
     private static void tick(MinecraftClient mc) {
         IsoCam.tick(mc);
         ClientPlayerEntity p = mc.player;
+        elevator(mc, p);
         boolean driving = p != null && p.getVehicle() instanceof VehicleEntity v && v.getControllingPassenger() == p;
         if (driving) {
             InputState.forward = p.input.pressingForward;

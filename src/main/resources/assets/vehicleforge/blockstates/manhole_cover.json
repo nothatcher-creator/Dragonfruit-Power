@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "open=false": {
       "model": "vehicleforge:block/manhole_cover"
+    },
+    "open=true": {
+      "model": "vehicleforge:block/manhole_open"
     }
   }
 }

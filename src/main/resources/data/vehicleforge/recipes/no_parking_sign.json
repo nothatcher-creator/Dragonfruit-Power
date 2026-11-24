@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WR",
+    "I "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:white_dye"
+    },
+    "R": {
+      "item": "minecraft:red_dye"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:no_parking_sign",
+    "count": 1
+  }
+}
