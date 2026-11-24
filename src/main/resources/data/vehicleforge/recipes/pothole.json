@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AG"
+  ],
+  "key": {
+    "A": {
+      "item": "vehicleforge:asphalt"
+    },
+    "G": {
+      "item": "minecraft:gravel"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:pothole",
+    "count": 2
+  }
+}

@@ -186,6 +186,15 @@ public final class CityBlocks {
     public static final Block SLOPE_STONE = reg("slope_stone", new SlopeBlock(walk().nonOpaque()));
     public static final Block SLOPE_METAL = reg("slope_metal", new SlopeBlock(metal().nonOpaque()));
 
+    // ---- wave 9: potholes at any depth, flies, neon lettering
+    public static final Block POTHOLE = reg("pothole", new PotholeBlock(road()));
+    public static final Block DIRT_POTHOLE = reg("dirt_pothole", new PotholeBlock(AbstractBlock.Settings.create().mapColor(MapColor.DIRT_BROWN)
+            .strength(0.6f).sounds(BlockSoundGroup.GRAVEL)));
+    public static final Block FLIES = reg("flies", new FliesBlock(AbstractBlock.Settings.create().replaceable().noCollision().nonOpaque()
+            .strength(0.1f).sounds(BlockSoundGroup.WOOL).noBlockBreakParticles()));
+    public static final Block NEON_SIGN = reg("neon_sign", new NeonSignBlock(AbstractBlock.Settings.create().mapColor(MapColor.PINK).noCollision()
+            .nonOpaque().strength(0.5f).sounds(BlockSoundGroup.GLASS).luminance(s -> 12)));
+
     public static final Block[] STORAGE = {SUITCASE, DESK, FILING_CABINET, KITCHEN_COUNTER, FRIDGE, STORE_SHELF, CHECKOUT_COUNTER, MAILBOX, NEWSPAPER_BOX};
     public static final Block[] POWER = {GENERATOR, SOLAR_PANEL, WIND_TURBINE, BATTERY, POWER_POLE};
 

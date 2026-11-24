@@ -73,6 +73,7 @@
     "vehicleforge:slope_red_tile",
     "vehicleforge:slope_stone",
     "vehicleforge:slope_metal",
-    "vehicleforge:roller_door"
+    "vehicleforge:roller_door",
+    "vehicleforge:pothole"
   ]
 }

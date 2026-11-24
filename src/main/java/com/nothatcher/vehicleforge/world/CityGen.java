@@ -457,6 +457,11 @@ public final class CityGen {
         } else if (ux == 13 && uz == 14 && rnd(bx, bz, 62) < 0.5f) {
             s = CityBlocks.MANHOLE.getDefaultState();
         }
+        if (s == ASPHALT) {                                                  // potholes worn into the asphalt, worse after the outbreak
+            int hole = pothole(x, z, OVERRUN ? 0.09f : 0.025f);
+            if (hole == 1 || hole == 2) s = CityBlocks.POTHOLE.getDefaultState().with(com.nothatcher.vehicleforge.block.PotholeBlock.LAYERS, 2 + hash(x, z, 334) % 4);
+            else if (hole == 3 && rnd(x, z, 335) < 0.4f) s = CityBlocks.POTHOLE.getDefaultState().with(com.nothatcher.vehicleforge.block.PotholeBlock.LAYERS, 6 + hash(x, z, 336) % 2);
+        }
         set(x, GROUND, z, s);
         sewer(x, z, ux, uz, rx, rz, s.getBlock() == CityBlocks.MANHOLE);
         if (s.getBlock() == CityBlocks.MANHOLE && rnd(x, z, 171) < 0.2f) set(x, BASE, z, CityBlocks.STEAM_VENT.getDefaultState());
@@ -490,8 +495,19 @@ public final class CityGen {
             for (int y = floor + 2; y < GROUND; y++) set(x, y, z, Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, f));
             return;
         }
-        if (channel) return;
         int along = rx && !rz ? z : x, cross = rx && !rz ? ux : uz;
+        if (!(rx && rz) && Math.floorMod(along, 8) == 6) {                   // support ribs: piers up the walls and an arch across
+            if (cross == 11 || cross == 17) {
+                for (int y = floor + 2; y < GROUND - 1; y++) set(x, y, z, Blocks.STONE_BRICKS.getDefaultState());
+                return;
+            }
+            Direction wallward = rx ? (cross < 14 ? Direction.WEST : Direction.EAST) : (cross < 14 ? Direction.NORTH : Direction.SOUTH);
+            if (cross == 12 || cross == 16) set(x, GROUND - 2, z, Blocks.STONE_BRICK_STAIRS.getDefaultState().with(StairsBlock.FACING, wallward)
+                    .with(StairsBlock.HALF, net.minecraft.block.enums.BlockHalf.TOP));
+            else set(x, GROUND - 2, z, Blocks.STONE_BRICK_SLAB.getDefaultState().with(net.minecraft.block.SlabBlock.TYPE, net.minecraft.block.enums.SlabType.TOP));
+            if (channel) return;
+        }
+        if (channel) return;
         if (!(rx && rz) && (cross == 12 || cross == 16) && Math.floorMod(along, 16) == 8 && !(OVERRUN && rnd(x, z, 181) < 0.5f))
             set(x, GROUND - 2, z, Blocks.LANTERN.getDefaultState().with(net.minecraft.block.LanternBlock.HANGING, true));
         else if (rx && rz && (ux == 12 || ux == 16) && (uz == 12 || uz == 16))
@@ -501,9 +517,48 @@ public final class CityGen {
         float r = rnd(x, z, 182);
         if (r < 0.02f) set(x, GROUND - 2, z, Blocks.COBWEB.getDefaultState());
         else if (r < 0.06f) set(x, floor + 2, z, Blocks.MOSS_CARPET.getDefaultState());
-        else if (r < (OVERRUN ? 0.085f : 0.068f))
+        else if (r < (OVERRUN ? 0.085f : 0.068f)) {
             set(x, floor + 2, z, CityBlocks.facing(CityBlocks.TRASH_BAGS, Direction.fromHorizontal(hash(x, z, 183) & 3)));
+            flies(x, floor + 3, z, 0.6f);
+        }
         else if (r < 0.072f && !(rx && rz)) container(x, floor + 2, z, "house", false);
+    }
+
+    /** a swarm of flies over something rotten (more of them once the outbreak has hit) */
+    private void flies(int x, int y, int z, float chance) {
+        if (rnd(x, y * 13 + z, 330) < chance * (OVERRUN ? 1.8f : 1f) && isAir(x, y, z)) set(x, y, z, CityBlocks.FLIES.getDefaultState());
+    }
+
+    /** a neon sign saying text in colour rgb; with Outbreak most of them flicker on a failing supply */
+    private void neon(int x, int y, int z, Direction facing, String text, int rgb, int size) {
+        set(x, y, z, CityBlocks.NEON_SIGN.getDefaultState().with(com.nothatcher.vehicleforge.block.NeonSignBlock.FACING, facing));
+        pos.set(x, y, z);
+        if (w.getBlockEntity(pos) instanceof com.nothatcher.vehicleforge.block.NeonSignBlockEntity be) {
+            be.text = text;
+            be.color = rgb;
+            be.size = size;
+            be.flicker = OVERRUN ? rnd(x, y * 7 + z, 331) < 0.6f : rnd(x, y * 7 + z, 331) < 0.08f;
+            be.markDirty();
+        }
+    }
+
+    private static final String[] WINDOW_NEON = {"OPEN", "OPEN", "BAR", "PIZZA", "LIQUOR", "24 HR", "CAFE", "TATTOO", "PAWN", "NAILS", "ATM", "BEER",
+            "KARAOKE", "NOODLES", "VIDEO", "COLD BEER", "OPEN 24|HOURS"};
+    private static final int[] NEON_RGB = {0xFF3FA6, 0xFF2A2A, 0xFF8A1E, 0xFFE83A, 0x4BFF5A, 0x3AF2FF, 0x3A7BFF, 0xB04BFF, 0xFFFFFF};
+
+    /** the big neon name on the roof of a roadside business */
+    private String[] roofNeon(String kind) {
+        return switch (kind) {
+            case "diner" -> new String[]{"DINER", "FF3FA6"};
+            case "motel" -> new String[]{"MOTEL", "3AF2FF"};
+            case "pharmacy" -> new String[]{"PHARMACY", "4BFF5A"};
+            case "hardware" -> new String[]{"HARDWARE", "FF8A1E"};
+            case "gun_store" -> new String[]{"GUNS & AMMO", "FF2A2A"};
+            case "dealership" -> new String[]{"USED CARS", "FFE83A"};
+            case "mechanic" -> new String[]{"AUTO REPAIR", "3A7BFF"};
+            case "hospital" -> new String[]{"EMERGENCY", "FF2A2A"};
+            default -> null;
+        };
     }
 
     private BlockState sewerBrick(int x, int z) {
@@ -551,8 +606,8 @@ public final class CityGen {
         }
         if (alongZ && ux == 1 && Math.floorMod(z, 45) == 40) { set(x, BASE, z, CityBlocks.facing(CityBlocks.FIRE_HYDRANT, Direction.EAST)); return; }
         if (alongZ && ux == C - 2 && Math.floorMod(z, 45) == 18) { set(x, BASE, z, CityBlocks.facing(CityBlocks.FIRE_HYDRANT, Direction.WEST)); return; }
-        if (alongZ && ux == 0 && Math.floorMod(z, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.EAST)); return; }
-        if (alongX && uz == C - 1 && Math.floorMod(x, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.NORTH)); return; }
+        if (alongZ && ux == 0 && Math.floorMod(z, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.EAST)); flies(x, BASE + 1, z, 0.35f); return; }
+        if (alongX && uz == C - 1 && Math.floorMod(x, 30) == 15) { set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BIN, Direction.NORTH)); flies(x, BASE + 1, z, 0.35f); return; }
         boolean kerb = ux == R0 - 1 || ux == R1 || uz == R0 - 1 || uz == R1;
         if (kerb) set(x, GROUND, z, CURB_BLOCK);                             // flush kerbstones, no step up
         streetFurniture(x, z, ux, uz, alongX, alongZ);
@@ -609,6 +664,7 @@ public final class CityGen {
         if (alongZ && ux == C - 2 && uz == 40 && rnd(bx, bz, 191) < 0.35f) { set(x, BASE, z, CityBlocks.facing(CityBlocks.PHONE_BOOTH, Direction.WEST)); return true; }
         if (alongZ && ux == 0 && Math.floorMod(z, 30) == 16 && rnd(x, z, 192) < (OVERRUN ? 0.7f : 0.3f)) {
             set(x, BASE, z, CityBlocks.facing(CityBlocks.TRASH_BAGS, Direction.EAST));
+            flies(x, BASE + 1, z, 0.5f);
             return true;
         }
         if (d <= 6 && alongX && uz == C - 2 && Math.floorMod(x, 40) == 22) { set(x, BASE, z, CityBlocks.facing(CityBlocks.BIKE_RACK, Direction.NORTH)); return true; }
@@ -755,6 +811,10 @@ public final class CityGen {
                     && recessedBehind(x, z, rel, bx0, bx1, bz0, bz1, st, front, k, mid)
                     && innerFree(x, y, z, rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid)) {
                 s = st.window;                                                // the glass, set back one block from the facade
+            } else if (st.shopFront && k == 0 && rel == 2 && shopWindowNeon(x, z, bx0, bx1, bz0, bz1, front, mid)) {
+                int ni = hash(x0, z0, 337);
+                neon(x, y, z, front, WINDOW_NEON[ni % WINDOW_NEON.length], NEON_RGB[(ni >> 5) % NEON_RGB.length], 1);
+                continue;
             } else if (elevCol) {
                 s = floorRow ? ELEVATOR : AIR;
             } else if (ladderCol) {
@@ -821,6 +881,11 @@ public final class CityGen {
                 }
                 default -> set(x, top + 1, z, st.frame);
             }
+            String[] sign = roofNeon(loot);
+            int fmid = front.getAxis() == Direction.Axis.Z ? (bx0 + bx1) / 2 : (bz0 + bz1) / 2;
+            boolean onFront = switch (front) { case NORTH -> z == bz0; case SOUTH -> z == bz1; case WEST -> x == bx0; default -> x == bx1; };
+            if (sign != null && k == 0 && onFront && along == fmid && !corner)
+                neon(x, top + (fa.parapet == 0 ? 2 : 3), z, front, sign[0], Integer.parseInt(sign[1], 16), floors <= 2 ? 6 : 8);
             return;
         }
         if (OVERRUN && roofType != Roof.SPIRE && rnd(x0, z0, 172) < 0.14f) {        // a fire still smouldering on the roof
@@ -946,6 +1011,16 @@ public final class CityGen {
         return st.wall;
     }
 
+    /** the room column just behind a shop's front window, a couple of panes to the side of the door */
+    private static boolean shopWindowNeon(int x, int z, int bx0, int bx1, int bz0, int bz1, Direction front, int mid) {
+        return switch (front) {
+            case NORTH -> z == bz0 + 1 && x == mid - 3 && x > bx0 + 1;
+            case SOUTH -> z == bz1 - 1 && x == mid - 3 && x > bx0 + 1;
+            case WEST -> x == bx0 + 1 && z == mid - 3 && z > bz0 + 1;
+            default -> x == bx1 - 1 && z == mid - 3 && z > bz0 + 1;
+        };
+    }
+
     /** is this facade cell a window (not a pier, band, corner, door or shop front)? */
     private static boolean winCell(Style st, int along, int lo, int hi, boolean frontFace, int mid, int rel) {
         if (along <= lo || along >= hi) return false;
@@ -1065,9 +1140,8 @@ public final class CityGen {
      */
     private void dirtRoad(int x, int z, int u) {
         int hole = pothole(x, z);
-        if (hole == 1) {
-            set(x, GROUND, z, AIR);
-            set(x, GROUND - 1, z, Blocks.COARSE_DIRT.getDefaultState());
+        if (hole == 1) {                                                     // a dry hole, deeper in the middle
+            set(x, GROUND, z, CityBlocks.DIRT_POTHOLE.getDefaultState().with(com.nothatcher.vehicleforge.block.PotholeBlock.LAYERS, 1 + hash(x, z, 332) % 4));
             return;
         }
         if (hole == 2) {
@@ -1078,6 +1152,10 @@ public final class CityGen {
         float f = rnd(x, z, 310);
         boolean rut = u == 11 || u == 12 || u == 16 || u == 17;
         boolean crown = u == 14;
+        if (hole == 3 && f < 0.5f) {                                       // the broken rim slumps a little
+            set(x, GROUND, z, CityBlocks.DIRT_POTHOLE.getDefaultState().with(com.nothatcher.vehicleforge.block.PotholeBlock.LAYERS, 6 + hash(x, z, 333) % 2));
+            return;
+        }
         boolean worn = hole == 3 || f < (rut ? 0.35f : crown ? 0.5f : 0.08f);
         set(x, GROUND, z, worn ? Blocks.COARSE_DIRT.getDefaultState() : Blocks.DIRT_PATH.getDefaultState());
     }
@@ -1094,8 +1172,12 @@ public final class CityGen {
      * blocks across. 0 = none, 1 = a dry hole, 2 = a hole full of water, 3 = the broken rim around a hole.
      */
     private int pothole(int x, int z) {
+        return pothole(x, z, 0.17f);
+    }
+
+    private int pothole(int x, int z, float rate) {
         int gx = Math.floorDiv(x, 5), gz = Math.floorDiv(z, 5);
-        if (rnd(gx, gz, 300) >= 0.17f) return 0;
+        if (rnd(gx, gz, 300) >= rate) return 0;
         float cx = gx * 5 + 1.5f + rnd(gx, gz, 301) * 2f, cz = gz * 5 + 1.5f + rnd(gx, gz, 302) * 2f;
         float r = 0.6f + rnd(gx, gz, 303) * 1.0f;
         float dx = x + 0.5f - cx, dz = z + 0.5f - cz;
@@ -3088,11 +3170,16 @@ public final class CityGen {
         set(x, BED, z, rnd(x, z, 19) < 0.2f ? Blocks.CLAY.getDefaultState() : Blocks.GRAVEL.getDefaultState());
         for (int y = BED + 1; y <= GROUND; y++) set(x, y, z, y <= WATER_TOP ? WATER : AIR);
         // support pillars buttressing the quay walls
-        int pil = Math.floorMod(x, 12);
-        if ((lz == 6 || lz == 45) && (pil == 5 || pil == 6) && !dockX) {
+        int pil = Math.floorMod(x, 8);
+        if ((lz == 6 || lz == 45) && (pil == 3 || pil == 4) && !dockX) {
             for (int y = BED + 1; y <= GROUND; y++) set(x, y, z, y == WATER_TOP + 1 ? Blocks.CHISELED_STONE_BRICKS.getDefaultState()
                     : y == GROUND ? Blocks.POLISHED_ANDESITE.getDefaultState() : churchStone(x, y, z));
-            if (pil == 5) set(x, BASE, z, Blocks.LANTERN.getDefaultState());
+            if (pil == 3 && Math.floorMod(x, 16) == 3) set(x, BASE, z, Blocks.LANTERN.getDefaultState());
+            return;
+        }
+        if ((lz == 7 || lz == 44) && (pil == 3 || pil == 4) && !dockX) {    // the buttress steps out at the waterline
+            for (int y = BED + 1; y <= WATER_TOP; y++) set(x, y, z, churchStone(x, y, z));
+            set(x, WATER_TOP + 1, z, Blocks.STONE_BRICK_STAIRS.getDefaultState().with(StairsBlock.FACING, lz == 7 ? Direction.NORTH : Direction.SOUTH));
             return;
         }
         // docks: a 3-wide plank walk on posts, 9 blocks out from each quay
@@ -3260,7 +3347,7 @@ public final class CityGen {
         if (lz >= 36 && lz <= 46 && lx >= 12 && lx <= 39) {                                         // back patio
             set(x, GROUND, z, Blocks.SMOOTH_STONE.getDefaultState());
             if (lz == 41 && lx % 6 == 2) set(x, BASE, z, f(CityBlocks.PICNIC_TABLE, Direction.NORTH));
-            if (lz == 46 && lx % 5 == 0) set(x, BASE, z, f(CityBlocks.TRASH_BIN, Direction.NORTH));
+            if (lz == 46 && lx % 5 == 0) { set(x, BASE, z, f(CityBlocks.TRASH_BIN, Direction.NORTH)); flies(x, BASE + 1, z, 0.6f); }
         }
     }
 

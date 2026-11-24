@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "layers=1": {
+      "model": "vehicleforge:block/pothole_height2"
+    },
+    "layers=2": {
+      "model": "vehicleforge:block/pothole_height4"
+    },
+    "layers=3": {
+      "model": "vehicleforge:block/pothole_height6"
+    },
+    "layers=4": {
+      "model": "vehicleforge:block/pothole_height8"
+    },
+    "layers=5": {
+      "model": "vehicleforge:block/pothole_height10"
+    },
+    "layers=6": {
+      "model": "vehicleforge:block/pothole_height12"
+    },
+    "layers=7": {
+      "model": "vehicleforge:block/pothole_height14"
+    },
+    "layers=8": {
+      "model": "vehicleforge:block/pothole_height16"
+    }
+  }
+}

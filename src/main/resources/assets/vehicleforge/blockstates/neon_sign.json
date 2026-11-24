@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "vehicleforge:block/neon_sign"
+    },
+    "facing=south": {
+      "model": "vehicleforge:block/neon_sign"
+    },
+    "facing=east": {
+      "model": "vehicleforge:block/neon_sign"
+    },
+    "facing=west": {
+      "model": "vehicleforge:block/neon_sign"
+    }
+  }
+}

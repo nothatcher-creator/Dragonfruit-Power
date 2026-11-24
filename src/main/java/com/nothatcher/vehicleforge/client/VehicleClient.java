@@ -40,6 +40,14 @@ public class VehicleClient implements ClientModInitializer {
         net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.getInstance().register(com.nothatcher.vehicleforge.block.CityExtras.STEAM,
                 sprites -> new SmokeParticle.Factory(sprites, false));
         net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(com.nothatcher.vehicleforge.block.CityExtras.POWER_BE, ctx -> new TurbineRenderer());
+        net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(com.nothatcher.vehicleforge.block.CityExtras.NEON_BE, ctx -> new NeonSignRenderer());
+        net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry.getInstance().register(com.nothatcher.vehicleforge.block.CityExtras.FLY,
+                FlyParticle.Factory::new);
+        com.nothatcher.vehicleforge.block.NeonSignBlock.openEditor = pos -> {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc.world != null && mc.world.getBlockEntity(pos) instanceof com.nothatcher.vehicleforge.block.NeonSignBlockEntity be)
+                mc.execute(() -> mc.setScreen(new NeonSignScreen(pos, be)));
+        };
         EntityRendererRegistry.register(com.nothatcher.vehicleforge.block.CityExtras.SEAT, net.minecraft.client.render.entity.EmptyEntityRenderer::new);
         for (net.minecraft.block.Block b : com.nothatcher.vehicleforge.block.CityBlocks.CUTOUT)
             net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlock(b, net.minecraft.client.render.RenderLayer.getCutoutMipped());

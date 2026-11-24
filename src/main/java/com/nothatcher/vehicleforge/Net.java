@@ -11,6 +11,7 @@ public final class Net {
     /** C2S: block hit + hand. Isometric view: place the held block exactly where the cursor points, at any distance */
     public static final Identifier ISO_PLACE = VehicleForge.id("iso_place");
     public static final Identifier ELEVATOR = VehicleForge.id("elevator");
+    public static final Identifier NEON_EDIT = VehicleForge.id("neon_edit");
     /** how far away the isometric view may place blocks */
     private static final double ISO_PLACE_RANGE = 64;
 
@@ -23,6 +24,17 @@ public final class Net {
                 if (player.getVehicle() instanceof VehicleEntity v && v.getControllingPassenger() == player) {
                     Weapons.action(v, player, action);
                 }
+            });
+        });
+        ServerPlayNetworking.registerGlobalReceiver(NEON_EDIT, (server, player, handler, buf, responseSender) -> {
+            net.minecraft.util.math.BlockPos at = buf.readBlockPos();
+            String text = buf.readString(com.nothatcher.vehicleforge.block.NeonSignBlockEntity.MAX_LEN * 4);
+            int color = buf.readInt(), size = buf.readVarInt();
+            boolean flicker = buf.readBoolean();
+            server.execute(() -> {
+                if (player.squaredDistanceTo(at.toCenterPos()) > 100 || !player.canModifyBlocks()) return;
+                if (player.getWorld().getBlockEntity(at) instanceof com.nothatcher.vehicleforge.block.NeonSignBlockEntity be)
+                    be.set(text.replaceAll("[\\u0000-\\u001f\\u00a7]", ""), color, size, flicker);
             });
         });
         ServerPlayNetworking.registerGlobalReceiver(ELEVATOR, (server, player, handler, buf, responseSender) -> {

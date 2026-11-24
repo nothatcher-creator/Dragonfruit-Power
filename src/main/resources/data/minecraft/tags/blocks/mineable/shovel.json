@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "vehicleforge:airport_marker"
+    "vehicleforge:airport_marker",
+    "vehicleforge:dirt_pothole"
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DG"
+  ],
+  "key": {
+    "D": {
+      "item": "minecraft:coarse_dirt"
+    },
+    "G": {
+      "item": "minecraft:gravel"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:dirt_pothole",
+    "count": 2
+  }
+}

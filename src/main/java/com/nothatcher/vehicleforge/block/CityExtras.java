@@ -21,6 +21,8 @@ public final class CityExtras {
     public static BlockEntityType<PowerBlockEntity> POWER_BE;
     public static BlockEntityType<SmokeBlockEntity> SMOKE_BE;
     public static EntityType<SeatEntity> SEAT;
+    public static BlockEntityType<NeonSignBlockEntity> NEON_BE;
+    public static final DefaultParticleType FLY = FabricParticleTypes.simple(false);
     public static final DefaultParticleType DARK_SMOKE = FabricParticleTypes.simple(true);
     public static final DefaultParticleType STEAM = FabricParticleTypes.simple(true);
 
@@ -43,6 +45,9 @@ public final class CityExtras {
                         .trackRangeBlocks(48).trackedUpdateRate(20).build());
         Registry.register(Registries.PARTICLE_TYPE, VehicleForge.id("dark_smoke"), DARK_SMOKE);
         Registry.register(Registries.PARTICLE_TYPE, VehicleForge.id("steam"), STEAM);
+        Registry.register(Registries.PARTICLE_TYPE, VehicleForge.id("fly"), FLY);
+        NEON_BE = Registry.register(Registries.BLOCK_ENTITY_TYPE, VehicleForge.id("neon_sign"),
+                FabricBlockEntityTypeBuilder.create(NeonSignBlockEntity::new, CityBlocks.NEON_SIGN).build());
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> com.nothatcher.vehicleforge.power.PowerGrid.clear());
     }
 }

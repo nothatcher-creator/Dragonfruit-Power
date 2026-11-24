@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    "SRS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "R": {
+      "item": "minecraft:rotten_flesh"
+    }
+  },
+  "result": {
+    "item": "vehicleforge:flies",
+    "count": 2
+  }
+}

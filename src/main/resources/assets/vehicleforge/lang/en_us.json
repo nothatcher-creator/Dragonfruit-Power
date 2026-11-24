@@ -448,5 +448,14 @@
   "block.vehicleforge.slope_stone": "Stone Slope",
   "block.vehicleforge.slope_metal": "Metal Roof Slope",
   "tooltip.vehicleforge.elevator": "Stand on it: jump to go up a floor, sneak to go down",
-  "block.vehicleforge.roller_door": "Roller Door"
+  "block.vehicleforge.roller_door": "Roller Door",
+  "block.vehicleforge.pothole": "Pothole",
+  "block.vehicleforge.dirt_pothole": "Dirt Pothole",
+  "block.vehicleforge.flies": "Flies",
+  "block.vehicleforge.neon_sign": "Neon Sign",
+  "screen.vehicleforge.neon_sign": "Neon Sign",
+  "screen.vehicleforge.neon_hint": "Type the text ( | starts a new line ), then tap a colour",
+  "screen.vehicleforge.neon_size": "Size: %s",
+  "screen.vehicleforge.neon_flicker_on": "Flicker: On",
+  "screen.vehicleforge.neon_flicker_off": "Flicker: Off"
 }
