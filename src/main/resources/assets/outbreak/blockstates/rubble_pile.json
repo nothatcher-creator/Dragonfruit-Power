@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "outbreak:block/rubble_pile"
+  },
+  "facing=east": {
+   "model": "outbreak:block/rubble_pile",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "outbreak:block/rubble_pile",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "outbreak:block/rubble_pile",
+   "y": 270
+  }
+ }
+}

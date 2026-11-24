@@ -1,0 +1,19 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "outbreak:block/caution_tape"
+  },
+  "facing=east": {
+   "model": "outbreak:block/caution_tape",
+   "y": 90
+  },
+  "facing=south": {
+   "model": "outbreak:block/caution_tape",
+   "y": 180
+  },
+  "facing=west": {
+   "model": "outbreak:block/caution_tape",
+   "y": 270
+  }
+ }
+}

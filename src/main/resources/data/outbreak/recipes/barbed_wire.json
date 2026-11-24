@@ -1,0 +1,20 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "N N",
+  " S ",
+  "N N"
+ ],
+ "key": {
+  "N": {
+   "item": "minecraft:iron_nugget"
+  },
+  "S": {
+   "item": "outbreak:scrap_metal"
+  }
+ },
+ "result": {
+  "item": "outbreak:barbed_wire",
+  "count": 4
+ }
+}

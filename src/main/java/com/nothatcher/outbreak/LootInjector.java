@@ -106,7 +106,29 @@ public final class LootInjector {
         });
     }
 
+    /** books, the newer weapons and traps */
+    private static void extras(String kind, LootTable.Builder t) {
+        switch (kind) {
+            case "house", "apartment", "motel", "trailer", "school", "office", "library", "shop" -> {
+                P books = new P(0, 1, kind.equals("school") || kind.equals("library") ? 2 : 8);
+                for (Item b : BOOKS) books.add(b, ((SkillBookItem) b).volume == 1 ? 4 : ((SkillBookItem) b).volume == 2 ? 2 : 1, 1, 1);
+                books.into(t);
+            }
+            default -> { }
+        }
+        switch (kind) {
+            case "kitchen", "diner" -> new P(0, 1, 6).add(MEAT_CLEAVER, 3, 1, 1).add(ROLLING_PIN, 3, 1, 1).into(t);
+            case "garage", "mechanic" -> new P(0, 1, 5).add(TIRE_IRON, 4, 1, 1).add(HATCHET, 2, 1, 1).add(SHOVEL, 2, 1, 1).add(PICKAXE_HANDLE, 2, 1, 1).into(t);
+            case "hardware" -> new P(1, 2, 2).add(HATCHET, 3, 1, 1).add(SHOVEL, 3, 1, 1).add(OutbreakBlocks.BEAR_TRAP.asItem(), 2, 1, 2)
+                    .add(OutbreakBlocks.BARBED_WIRE.asItem(), 3, 2, 6).add(OutbreakBlocks.TIN_CAN_ALARM.asItem(), 2, 1, 3).into(t);
+            case "house", "apartment" -> new P(0, 1, 30).add(KATANA, 1, 1, 1).into(t);
+            case "pawn", "shop" -> new P(0, 1, 12).add(KATANA, 1, 1, 1).into(t);
+            default -> { }
+        }
+    }
+
     private static void city(String kind, LootTable.Builder t) {
+        extras(kind, t);
         kind = switch (kind) {                       // Vehicle Forge's newer places stock like the older ones
             case "diner" -> "kitchen";
             case "motel", "trailer" -> "house";

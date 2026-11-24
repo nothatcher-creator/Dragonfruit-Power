@@ -53,6 +53,7 @@ public final class Skills {
     static class State extends PersistentState {
         final Map<UUID, int[]> xp = new HashMap<>();
         final Map<UUID, BlockBox> safehouses = new HashMap<>();
+        final Map<UUID, java.util.Set<String>> read = new HashMap<>();
 
         static State read(NbtCompound nbt) {
             State s = new State();
@@ -67,6 +68,12 @@ public final class Skills {
                 int[] b = h.getIntArray(k);
                 if (b.length == 6) s.safehouses.put(UUID.fromString(k), new BlockBox(b[0], b[1], b[2], b[3], b[4], b[5]));
             }
+            NbtCompound rd = nbt.getCompound("Read");
+            for (String k : rd.getKeys()) {
+                java.util.Set<String> set = new java.util.HashSet<>(java.util.Arrays.asList(rd.getString(k).split(",")));
+                set.remove("");
+                s.read.put(UUID.fromString(k), set);
+            }
             return s;
         }
 
@@ -78,6 +85,9 @@ public final class Skills {
             NbtCompound h = new NbtCompound();
             safehouses.forEach((k, b) -> h.putIntArray(k.toString(), new int[]{b.getMinX(), b.getMinY(), b.getMinZ(), b.getMaxX(), b.getMaxY(), b.getMaxZ()}));
             nbt.put("Safehouses", h);
+            NbtCompound rd = new NbtCompound();
+            read.forEach((k, v) -> rd.putString(k.toString(), String.join(",", v)));
+            nbt.put("Read", rd);
             return nbt;
         }
     }
@@ -115,6 +125,29 @@ public final class Skills {
             apply(p);
         }
         sync(p);
+    }
+
+    /** reading a skill book: a level's worth of xp if it's pitched at your level, once per book */
+    static void read(ServerPlayerEntity p, SkillBookItem book) {
+        int lvl = level(p, book.skill);
+        String id = book.skill.id() + book.volume;
+        java.util.Set<String> done = state(p.getServer()).read.computeIfAbsent(p.getUuid(), u -> new java.util.HashSet<>());
+        if (done.contains(id)) {
+            p.sendMessage(Text.translatable("msg.outbreak.book_read"), true);
+            return;
+        }
+        if (lvl < book.minLevel()) {
+            p.sendMessage(Text.translatable("msg.outbreak.book_hard"), true);
+            return;
+        }
+        if (lvl > book.maxLevel()) {
+            p.sendMessage(Text.translatable("msg.outbreak.book_easy"), true);
+            return;
+        }
+        done.add(id);
+        state(p.getServer()).markDirty();
+        add(p, book.skill, xpFor(lvl + 1) - xpFor(lvl));
+        p.sendMessage(Text.translatable("msg.outbreak.book_learned", Text.translatable("skill.outbreak." + book.skill.id())).formatted(Formatting.GREEN), true);
     }
 
     /** a new character's head start */

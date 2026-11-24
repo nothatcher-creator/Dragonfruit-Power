@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "NNN",
+  "PPP"
+ ],
+ "key": {
+  "N": {
+   "item": "outbreak:nails"
+  },
+  "P": {
+   "tag": "minecraft:wooden_slabs"
+  }
+ },
+ "result": {
+  "item": "outbreak:spike_strip",
+  "count": 2
+ }
+}

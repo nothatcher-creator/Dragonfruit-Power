@@ -135,6 +135,30 @@ public final class OutbreakBlocks {
     public static final Block RAIN_BARREL = reg("rain_barrel", new RainBarrelBlock(AbstractBlock.Settings.create()
             .mapColor(MapColor.BLUE).strength(1.5f).sounds(BlockSoundGroup.WOOD).nonOpaque()));
 
+    // ---- decorations
+    private static AbstractBlock.Settings dec(MapColor c, BlockSoundGroup g, float hardness) {
+        return AbstractBlock.Settings.create().mapColor(c).strength(hardness).sounds(g).nonOpaque();
+    }
+
+    private static net.minecraft.util.shape.VoxelShape box(double x0, double y0, double z0, double x1, double y1, double z1) {
+        return Block.createCuboidShape(x0, y0, z0, x1, y1, z1);
+    }
+
+    public static final Block SANDBAGS = reg("sandbags", new Traps.Decor(dec(MapColor.PALE_YELLOW, BlockSoundGroup.SAND, 1.2f), box(0, 0, 0, 16, 12, 16), box(0, 0, 0, 16, 12, 16)));
+    public static final Block WOODEN_CRATE = reg("wooden_crate", new Traps.Decor(dec(MapColor.OAK_TAN, BlockSoundGroup.WOOD, 1.5f), box(1, 0, 1, 15, 14, 15), box(1, 0, 1, 15, 14, 15)));
+    public static final Block OIL_DRUM = reg("oil_drum", new Traps.Decor(dec(MapColor.RED, BlockSoundGroup.METAL, 2f), box(2, 0, 2, 14, 15, 14), box(2, 0, 2, 14, 15, 14)));
+    public static final Block RUBBLE_PILE = reg("rubble_pile", new Traps.Decor(dec(MapColor.STONE_GRAY, BlockSoundGroup.GRAVEL, 1f), box(0, 0, 0, 16, 6, 16), box(0, 0, 0, 16, 6, 16)));
+    public static final Block MATTRESS = reg("mattress", new Traps.Decor(dec(MapColor.WHITE_GRAY, BlockSoundGroup.WOOL, 0.4f), box(0, 0, 0, 16, 4, 16), box(0, 0, 0, 16, 4, 16)));
+    public static final Block HELP_SIGN = reg("help_sign", new Traps.Decor(dec(MapColor.OAK_TAN, BlockSoundGroup.WOOD, 0.8f).noCollision(), box(0, 0, 14, 16, 16, 16), box(14, 0, 0, 16, 16, 16)));
+    public static final Block CAUTION_TAPE = reg("caution_tape", new Traps.Decor(dec(MapColor.YELLOW, BlockSoundGroup.WOOL, 0.1f).noCollision(), box(0, 9, 7, 16, 11, 9), box(7, 9, 0, 9, 11, 16)));
+    public static final Block BODY_BAG = reg("body_bag", new Traps.Decor(dec(MapColor.BLACK, BlockSoundGroup.WOOL, 0.5f), box(2, 0, 0, 14, 4, 16), box(0, 0, 2, 16, 4, 14)));
+
+    // ---- booby traps
+    public static final Block BEAR_TRAP = reg("bear_trap", new Traps.BearTrap(dec(MapColor.IRON_GRAY, BlockSoundGroup.METAL, 1.5f).noCollision()));
+    public static final Block SPIKE_STRIP = reg("spike_strip", new Traps.SpikeStrip(dec(MapColor.OAK_TAN, BlockSoundGroup.WOOD, 1f).noCollision()));
+    public static final Block BARBED_WIRE = reg("barbed_wire", new Traps.BarbedWire(dec(MapColor.IRON_GRAY, BlockSoundGroup.CHAIN, 1f).noCollision()));
+    public static final Block TIN_CAN_ALARM = reg("tin_can_alarm", new Traps.TinCanAlarm(dec(MapColor.IRON_GRAY, BlockSoundGroup.CHAIN, 0.3f).noCollision()));
+
     private static Block reg(String name, Block b) {
         Registry.register(Registries.BLOCK, Outbreak.id(name), b);
         Registry.register(Registries.ITEM, Outbreak.id(name), new BlockItem(b, new Item.Settings()));

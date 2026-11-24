@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "P",
+  "D"
+ ],
+ "key": {
+  "P": {
+   "tag": "minecraft:planks"
+  },
+  "D": {
+   "item": "minecraft:red_dye"
+  }
+ },
+ "result": {
+  "item": "outbreak:help_sign",
+  "count": 1
+ }
+}

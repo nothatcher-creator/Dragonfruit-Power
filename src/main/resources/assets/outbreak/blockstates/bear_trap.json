@@ -1,0 +1,10 @@
+{
+ "variants": {
+  "armed=true": {
+   "model": "outbreak:block/bear_trap"
+  },
+  "armed=false": {
+   "model": "outbreak:block/bear_trap_sprung"
+  }
+ }
+}

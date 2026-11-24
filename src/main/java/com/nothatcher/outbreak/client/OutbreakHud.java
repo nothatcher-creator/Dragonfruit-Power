@@ -231,7 +231,7 @@ public final class OutbreakHud {
             if (row >= N) row = 0;
         }
 
-        private static int color(ClientWorld w, int x, int z) {
+        static int color(ClientWorld w, int x, int z) {
             if (!w.getChunkManager().isChunkLoaded(x >> 4, z >> 4)) return 0x1E2022;
             int top = w.getTopY(Heightmap.Type.WORLD_SURFACE, x, z) - 1;
             int solid = w.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;

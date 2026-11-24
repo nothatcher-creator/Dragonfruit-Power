@@ -1,0 +1,16 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "SSS",
+  "SSS"
+ ],
+ "key": {
+  "S": {
+   "tag": "minecraft:sand"
+  }
+ },
+ "result": {
+  "item": "outbreak:sandbags",
+  "count": 2
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "T",
+  "S"
+ ],
+ "key": {
+  "T": {
+   "item": "outbreak:duct_tape"
+  },
+  "S": {
+   "item": "minecraft:iron_shovel"
+  }
+ },
+ "result": {
+  "item": "outbreak:shovel_weapon",
+  "count": 1
+ }
+}

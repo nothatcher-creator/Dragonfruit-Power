@@ -149,6 +149,23 @@ public final class OutbreakItems {
             net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder.<CorpseEntity>create(net.minecraft.entity.SpawnGroup.MISC, CorpseEntity::new)
                     .dimensions(net.minecraft.entity.EntityDimensions.fixed(1.3f, 0.45f)).trackRangeBlocks(64).trackedUpdateRate(20).build());
 
+    // ---- more melee
+    public static final Item KATANA = reg("katana", new SwordItem(ToolMaterials.IRON, 5, -2.2f, new Item.Settings().maxDamage(420)));
+    public static final Item HATCHET = reg("hatchet", new SwordItem(ToolMaterials.IRON, 4, -2.6f, new Item.Settings().maxDamage(300)));
+    public static final Item MEAT_CLEAVER = reg("meat_cleaver", new SwordItem(ToolMaterials.IRON, 3, -2.2f, new Item.Settings().maxDamage(220)));
+    public static final Item TIRE_IRON = reg("tire_iron", new SwordItem(ToolMaterials.IRON, 2, -2.3f, new Item.Settings().maxDamage(600)));
+    public static final Item PICKAXE_HANDLE = reg("pickaxe_handle", new SwordItem(ToolMaterials.WOOD, 3, -2.6f, new Item.Settings().maxDamage(180)));
+    public static final Item BARBED_BAT = reg("barbed_bat", new SwordItem(ToolMaterials.WOOD, 7, -2.9f, new Item.Settings().maxDamage(240)));
+    public static final Item ROLLING_PIN = reg("rolling_pin", new SwordItem(ToolMaterials.WOOD, 2, -2.4f, new Item.Settings().maxDamage(140)));
+    public static final Item SHOVEL = reg("shovel_weapon", new SwordItem(ToolMaterials.IRON, 3, -2.8f, new Item.Settings().maxDamage(350)));
+
+    // ---- skill books: three volumes per skill
+    public static final java.util.List<Item> BOOKS = new java.util.ArrayList<>();
+    static {
+        for (Skills.Skill s : Skills.Skill.values())
+            for (int v = 1; v <= 3; v++) BOOKS.add(reg("book_" + s.id() + "_" + v, new SkillBookItem(s, v, new Item.Settings().maxCount(1))));
+    }
+
     private OutbreakItems() {}
 
     private static Item clothes(String name, ArmorItem.Type type, int durability, int protection, float toughness, boolean leather) {

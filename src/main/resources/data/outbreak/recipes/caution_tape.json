@@ -1,0 +1,18 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "YBY"
+ ],
+ "key": {
+  "Y": {
+   "item": "minecraft:yellow_dye"
+  },
+  "B": {
+   "item": "minecraft:string"
+  }
+ },
+ "result": {
+  "item": "outbreak:caution_tape",
+  "count": 6
+ }
+}

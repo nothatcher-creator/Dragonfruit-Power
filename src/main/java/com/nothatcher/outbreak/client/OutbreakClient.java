@@ -62,6 +62,18 @@ public class OutbreakClient implements ClientModInitializer {
         FOG = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.outbreak.fog", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category.outbreak"));
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(net.minecraft.entity.EntityType.ZOMBIE, CivilianZombieRenderer::new);
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.nothatcher.outbreak.OutbreakItems.CORPSE, CorpseRenderer::new);
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.nothatcher.outbreak.Animals.FERAL_DOG, ctx -> new net.minecraft.client.render.entity.WolfEntityRenderer(ctx) {
+            @Override
+            public net.minecraft.util.Identifier getTexture(net.minecraft.entity.passive.WolfEntity e) {
+                return new net.minecraft.util.Identifier("outbreak", "textures/entity/feral_dog.png");
+            }
+        });
+        net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.nothatcher.outbreak.Animals.INFECTED_RAT, ctx -> new net.minecraft.client.render.entity.SilverfishEntityRenderer(ctx) {
+            @Override
+            public net.minecraft.util.Identifier getTexture(net.minecraft.entity.mob.SilverfishEntity e) {
+                return new net.minecraft.util.Identifier("outbreak", "textures/entity/infected_rat.png");
+            }
+        });
         net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry.register(com.nothatcher.outbreak.OutbreakItems.THROWN,
                 net.minecraft.client.render.entity.FlyingItemEntityRenderer::new);
         for (Block b : OutbreakBlocks.ALL) BlockRenderLayerMap.INSTANCE.putBlock(b, RenderLayer.getCutout());
@@ -111,6 +123,13 @@ public class OutbreakClient implements ClientModInitializer {
         });
         CharacterClient.register();
         SkillsClient.register();
+        WorldMap.register();
+        net.minecraft.client.option.KeyBinding mapKey = net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(
+                new net.minecraft.client.option.KeyBinding("key.outbreak.map", org.lwjgl.glfw.GLFW.GLFW_KEY_J, "category.outbreak"));
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            WorldMap.tick(mc);
+            while (mapKey.wasPressed()) if (mc.currentScreen == null) mc.setScreen(new WorldMapScreen());
+        });
         ClientTickEvents.END_CLIENT_TICK.register(CharacterClient::tick);
         HudRenderCallback.EVENT.register(OutbreakClient::hud);
         HudRenderCallback.EVENT.register(OutbreakHud::render);

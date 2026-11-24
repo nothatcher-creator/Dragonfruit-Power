@@ -141,6 +141,7 @@ public class ActionMenuScreen extends Screen {
             else out.add(new Entry(tr(SkillsClient.safehouse == null ? "claim_safehouse" : "move_safehouse"), Actions.Type.CLAIM_SAFEHOUSE, BlockPos.ORIGIN, -1, -1));
         }
         out.add(new Entry(tr("character_sheet"), null, BlockPos.ORIGIN, -1, -1));
+        out.add(new Entry(tr("world_map"), null, BlockPos.ORIGIN, -1, -2));
         // water to fill a bottle from
         HitResult water = p.raycast(4.5, 1f, true);
         if (water instanceof BlockHitResult wh && water.getType() == HitResult.Type.BLOCK
@@ -213,8 +214,8 @@ public class ActionMenuScreen extends Screen {
     }
 
     private void pick(Entry e) {
-        if (e.type() == null) {                                    // client-side: the character sheet
-            if (client != null) client.setScreen(new SkillsScreen());
+        if (e.type() == null) {                                    // client-side: the character sheet or the map
+            if (client != null) client.setScreen(e.slot() == -2 ? new WorldMapScreen() : new SkillsScreen());
             return;
         }
         PacketByteBuf buf = PacketByteBufs.create();

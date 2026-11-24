@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "I I",
+  "SIS"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "S": {
+   "item": "outbreak:scrap_metal"
+  }
+ },
+ "result": {
+  "item": "outbreak:bear_trap",
+  "count": 1
+ }
+}

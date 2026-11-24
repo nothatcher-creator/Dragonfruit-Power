@@ -1,0 +1,17 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "  I",
+  " I ",
+  "I  "
+ ],
+ "key": {
+  "I": {
+   "item": "outbreak:scrap_metal"
+  }
+ },
+ "result": {
+  "item": "outbreak:tire_iron",
+  "count": 1
+ }
+}

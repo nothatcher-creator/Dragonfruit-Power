@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "W",
+  "B"
+ ],
+ "key": {
+  "W": {
+   "item": "outbreak:barbed_wire"
+  },
+  "B": {
+   "item": "outbreak:baseball_bat"
+  }
+ },
+ "result": {
+  "item": "outbreak:barbed_bat",
+  "count": 1
+ }
+}

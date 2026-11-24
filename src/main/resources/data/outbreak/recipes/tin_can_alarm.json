@@ -1,0 +1,19 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "pattern": [
+  "SSS",
+  "N N"
+ ],
+ "key": {
+  "S": {
+   "item": "minecraft:string"
+  },
+  "N": {
+   "item": "minecraft:iron_nugget"
+  }
+ },
+ "result": {
+  "item": "outbreak:tin_can_alarm",
+  "count": 2
+ }
+}

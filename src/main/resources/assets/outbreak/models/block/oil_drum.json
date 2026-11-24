@@ -1,0 +1,43 @@
+{
+ "parent": "block/block",
+ "ambientocclusion": true,
+ "textures": {
+  "t": "outbreak:block/oil_drum",
+  "top": "outbreak:block/oil_drum_top",
+  "particle": "outbreak:block/oil_drum"
+ },
+ "elements": [
+  {
+   "from": [
+    2,
+    0,
+    2
+   ],
+   "to": [
+    14,
+    15,
+    14
+   ],
+   "faces": {
+    "north": {
+     "texture": "#t"
+    },
+    "south": {
+     "texture": "#t"
+    },
+    "east": {
+     "texture": "#t"
+    },
+    "west": {
+     "texture": "#t"
+    },
+    "up": {
+     "texture": "#top"
+    },
+    "down": {
+     "texture": "#top"
+    }
+   }
+  }
+ ]
+}
