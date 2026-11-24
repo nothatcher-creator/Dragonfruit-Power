@@ -1,20 +1,20 @@
 {
  "parent": "block/block",
  "textures": {
-  "d": "vehicleforge:block/garage_door",
-  "particle": "vehicleforge:block/garage_door"
+  "d": "vehicleforge:block/roller_door",
+  "particle": "vehicleforge:block/roller_door"
  },
  "elements": [
   {
    "from": [
     0,
-    0,
+    13,
     0
    ],
    "to": [
     16,
     16,
-    3
+    16
    ],
    "faces": {
     "north": {

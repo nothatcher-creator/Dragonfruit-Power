@@ -72,6 +72,7 @@
     "vehicleforge:slope_shingle",
     "vehicleforge:slope_red_tile",
     "vehicleforge:slope_stone",
-    "vehicleforge:slope_metal"
+    "vehicleforge:slope_metal",
+    "vehicleforge:roller_door"
   ]
 }

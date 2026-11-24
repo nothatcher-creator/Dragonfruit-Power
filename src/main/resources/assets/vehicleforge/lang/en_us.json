@@ -447,5 +447,6 @@
   "block.vehicleforge.slope_spruce": "Spruce Slope",
   "block.vehicleforge.slope_stone": "Stone Slope",
   "block.vehicleforge.slope_metal": "Metal Roof Slope",
-  "tooltip.vehicleforge.elevator": "Stand on it: jump to go up a floor, sneak to go down"
+  "tooltip.vehicleforge.elevator": "Stand on it: jump to go up a floor, sneak to go down",
+  "block.vehicleforge.roller_door": "Roller Door"
 }

@@ -40,7 +40,7 @@ tex('crossing', lambda x, y: (250, 250, 250, 255) if abs(x - y) <= 1 or abs(x - 
 tex('crossing_light', lambda x, y: (230, 30, 20, 255) if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 30 else (25, 25, 25, 255))
 tex('crossing_dark', lambda x, y: (70, 20, 18, 255) if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 30 else (25, 25, 25, 255))
 tex('barrier_arm', lambda x, y: (220, 40, 36, 255) if (x // 4) % 2 else (240, 240, 236, 255))
-tex('garage_door', lambda x, y: j((200, 200, 196), 4) if y % 4 else j((150, 150, 148), 4))
+tex('roller_door', lambda x, y: j((200, 200, 196), 4) if y % 4 else j((150, 150, 148), 4))
 tex('road_metal', lambda x, y: j((120, 122, 128), 8))
 
 T = lambda **k: {**k}
@@ -62,15 +62,15 @@ for ph in range(3):
           {'m': 'vehicleforge:block/road_metal', 'x': 'vehicleforge:block/crossing', 'l': l, 'r': r, 'a': 'vehicleforge:block/barrier_arm'})
 model('parking_barrier_closed', [el([4, 0, 4], [12, 12, 12], '#m'), el([10, 9, 7], [32, 11, 9], '#a')], {'m': 'vehicleforge:block/road_metal', 'a': 'vehicleforge:block/barrier_arm'})
 model('parking_barrier_open', [el([4, 0, 4], [12, 12, 12], '#m'), el([7, 11, 7], [9, 32, 9], '#a')], {'m': 'vehicleforge:block/road_metal', 'a': 'vehicleforge:block/barrier_arm'})
-model('garage_door_closed', [el([0, 0, 0], [16, 16, 3], '#d')], {'d': 'vehicleforge:block/garage_door'})
-model('garage_door_open', [el([0, 13, 0], [16, 16, 16], '#d')], {'d': 'vehicleforge:block/garage_door'})
+model('roller_door_closed', [el([0, 0, 0], [16, 16, 3], '#d')], {'d': 'vehicleforge:block/roller_door'})
+model('roller_door_open', [el([0, 13, 0], [16, 16, 16], '#d')], {'d': 'vehicleforge:block/roller_door'})
 ROT = {'north': 0, 'east': 90, 'south': 180, 'west': 270}
 def rv(m, y): return {'model': f'vehicleforge:block/{m}', **({'y': y} if y else {})}
 json.dump({'variants': {f'facing={f}': rv('fuel_pump', y) for f, y in ROT.items()}}, open(f'{A}/blockstates/fuel_pump.json', 'w'), indent=1)
 json.dump({'variants': {f'facing={f},phase={p}': rv(f'railroad_crossing_{p}', y) for f, y in ROT.items() for p in range(3)}}, open(f'{A}/blockstates/railroad_crossing.json', 'w'), indent=1)
 json.dump({'variants': {f'facing={f},open={o}': rv('parking_barrier_' + ('open' if o == 'true' else 'closed'), y) for f, y in ROT.items() for o in ('true', 'false')}}, open(f'{A}/blockstates/parking_barrier.json', 'w'), indent=1)
-json.dump({'variants': {f'facing={f},open={o}': rv('garage_door_' + ('open' if o == 'true' else 'closed'), y) for f, y in ROT.items() for o in ('true', 'false')}}, open(f'{A}/blockstates/garage_door.json', 'w'), indent=1)
-for n, m in (('fuel_pump', 'fuel_pump'), ('railroad_crossing', 'railroad_crossing_1'), ('parking_barrier', 'parking_barrier_closed'), ('garage_door', 'garage_door_closed')):
+json.dump({'variants': {f'facing={f},open={o}': rv('roller_door_' + ('open' if o == 'true' else 'closed'), y) for f, y in ROT.items() for o in ('true', 'false')}}, open(f'{A}/blockstates/roller_door.json', 'w'), indent=1)
+for n, m in (('fuel_pump', 'fuel_pump'), ('railroad_crossing', 'railroad_crossing_1'), ('parking_barrier', 'parking_barrier_closed'), ('roller_door', 'roller_door_closed')):
     json.dump({'parent': f'vehicleforge:block/{m}'}, open(f'{A}/models/item/{n}.json', 'w'))
     json.dump({'type': 'minecraft:block', 'pools': [{'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': f'vehicleforge:{n}'}]}]}, open(f'{D}/loot_tables/blocks/{n}.json', 'w'))
 def sh(name, pattern, key, n=1):
@@ -87,7 +87,7 @@ sh('boat_trailer', ['BBB', 'IXI'], {'B': '#minecraft:boats', 'I': 'minecraft:iro
 sh('fuel_pump', ['IGI', 'RBR', 'III'], {'I': 'minecraft:iron_ingot', 'G': 'minecraft:glass_pane', 'R': 'minecraft:red_concrete', 'B': 'minecraft:bucket'})
 sh('railroad_crossing', ['RIR', ' I ', ' I '], {'R': 'minecraft:redstone_lamp', 'I': 'minecraft:iron_ingot'})
 sh('parking_barrier', ['WRW', ' I ', ' I '], {'W': 'minecraft:white_concrete', 'R': 'minecraft:red_concrete', 'I': 'minecraft:iron_ingot'})
-sh('garage_door', ['II', 'II', 'II'], {'I': 'minecraft:iron_ingot'}, 3)
+sh('roller_door', ['II', 'II', 'II'], {'I': 'minecraft:iron_ingot'}, 3)
 LP = f'{A}/lang/en_us.json'; lang = json.load(open(LP))
 lang.update({
  'item.vehicleforge.armor_plating': 'Armor Plating', 'item.vehicleforge.armor_plating.tip': 'Right-click a vehicle to fit. It takes 40% less damage.',
@@ -99,7 +99,7 @@ lang.update({
  'item.vehicleforge.camper_trailer': 'Camper Trailer', 'item.vehicleforge.camper_trailer.tip': 'Right-click a road vehicle to hitch. Sneak + right-click the vehicle to go inside.',
  'item.vehicleforge.boat_trailer': 'Boat Trailer', 'item.vehicleforge.boat_trailer.tip': 'Right-click a road vehicle to hitch. Takes a boat anywhere.',
  'block.vehicleforge.fuel_pump': 'Fuel Pump', 'block.vehicleforge.railroad_crossing': 'Railroad Crossing',
- 'block.vehicleforge.parking_barrier': 'Parking Barrier', 'block.vehicleforge.garage_door': 'Garage Door',
+ 'block.vehicleforge.parking_barrier': 'Parking Barrier', 'block.vehicleforge.roller_door': 'Roller Door',
  'msg.vehicleforge.pump_dry': 'This pump has run dry.', 'msg.vehicleforge.pump_left': 'Filled a fuel can. %s litres left in this pump.',
 })
 json.dump(lang, open(LP, 'w'), indent=2, ensure_ascii=False)

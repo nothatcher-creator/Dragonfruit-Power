@@ -1,1 +1,3 @@
-{"parent": "vehicleforge:block/garage_door_closed"}
+{
+  "parent": "vehicleforge:block/garage_door_handle"
+}

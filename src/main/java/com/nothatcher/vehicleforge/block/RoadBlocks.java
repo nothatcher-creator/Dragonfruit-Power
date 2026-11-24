@@ -61,7 +61,7 @@ public final class RoadBlocks {
         CROSSING = reg("railroad_crossing", new Crossing(AbstractBlock.Settings.create().mapColor(MapColor.BLACK).strength(2f).sounds(BlockSoundGroup.METAL).nonOpaque()
                 .luminance(s -> s.get(Crossing.PHASE) > 0 ? 9 : 0)));
         BARRIER = reg("parking_barrier", new Barrier(AbstractBlock.Settings.create().mapColor(MapColor.YELLOW).strength(2f).sounds(BlockSoundGroup.METAL).nonOpaque()));
-        GARAGE_DOOR = reg("garage_door", new GarageDoor(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).strength(3f).sounds(BlockSoundGroup.METAL).nonOpaque()));
+        GARAGE_DOOR = reg("roller_door", new GarageDoor(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).strength(3f).sounds(BlockSoundGroup.METAL).nonOpaque()));
     }
 
     private static Block reg(String id, Block b) {
