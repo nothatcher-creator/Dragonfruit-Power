@@ -228,7 +228,7 @@
   "guide.outbreak.7.title": "The airport",
   "guide.outbreak.7.body": "The airport fell early and is packed with the dead: a fixed horde, and nothing new ever spawns there. Kill them all and it's yours for good.\nListen tells you how many are left. The hangars are worth the trip.",
   "guide.outbreak.8.title": "Power",
-  "guide.outbreak.8.body": "The city grid is down. Lights, TVs, vending machines, ATMs and stoves need your own power.\nGenerators run on fuel; solar panels work by day; wind turbines never stop. Batteries store the surplus, and power poles carry it, each within 16 blocks of the next.\nA redstone signal works in a pinch.\nNights are truly dark now. Flashlights (houses, garages, police) light whatever you point them at; recharge them with a car battery.",
+  "guide.outbreak.8.body": "For the first week or so the city still runs: street lights, neon, traffic signals, elevators, taps and pumps. Listen to the morning Emergency Broadcast: it warns you before the water is shut off (day 5-12) and before the power grid fails for good (day 7-14).\nFill bottles and buckets at the sinks while you can. After the blackout, lights, TVs, vending machines, ATMs, stoves, elevators and fuel pumps need your own power.\nGenerators run on fuel; solar panels work by day; wind turbines never stop. Batteries store the surplus, and power poles carry it, each within 16 blocks of the next.\nA redstone signal works in a pinch.\nNights are truly dark then. Flashlights (houses, garages, police) light whatever you point them at; recharge them with a car battery.",
   "pack.outbreak.zomboid_look": "Outbreak: Zomboid Look",
   "item.outbreak.car_key": "Car Key",
   "item.outbreak.car_key.named": "Car Key (%s)",
