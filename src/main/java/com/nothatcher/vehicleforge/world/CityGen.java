@@ -131,8 +131,13 @@ public final class CityGen {
     private static final BlockState PLAZA = Blocks.POLISHED_ANDESITE.getDefaultState();
     private static final BlockState POLE = CityBlocks.LAMP_POST.getDefaultState();
     private static final BlockState LIGHT = Blocks.SEA_LANTERN.getDefaultState();
-    private static final BlockState CEILING_LIGHT = CityBlocks.ELECTRIC_LIGHT.getDefaultState()
-            .with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN);
+    private static final BlockState CEILING_LIT = CityBlocks.ELECTRIC_LIGHT.getDefaultState().with(net.minecraft.state.property.Properties.LIT, true),
+            CEILING_DARK = CityBlocks.ELECTRIC_LIGHT.getDefaultState().with(net.minecraft.state.property.Properties.LIT, false);
+
+    /** lights are generated as the mains are now: on until the grid fails (they're switched as chunks load after) */
+    private static BlockState ceilingLight() {
+        return com.nothatcher.vehicleforge.power.Mains.POWER ? CEILING_LIT : CEILING_DARK;
+    }
     private static final BlockState LADDER = Blocks.LADDER.getDefaultState().with(LadderBlock.FACING, Direction.EAST);
     private static final BlockState ELEVATOR = CityBlocks.ELEVATOR.getDefaultState();
     private static final BlockState PATH = Blocks.DIRT_PATH.getDefaultState();
@@ -531,7 +536,8 @@ public final class CityGen {
 
     /** a neon sign saying text in colour rgb; with Outbreak most of them flicker on a failing supply */
     private void neon(int x, int y, int z, Direction facing, String text, int rgb, int size) {
-        set(x, y, z, CityBlocks.NEON_SIGN.getDefaultState().with(com.nothatcher.vehicleforge.block.NeonSignBlock.FACING, facing));
+        set(x, y, z, CityBlocks.NEON_SIGN.getDefaultState().with(com.nothatcher.vehicleforge.block.NeonSignBlock.FACING, facing)
+                .with(net.minecraft.state.property.Properties.LIT, com.nothatcher.vehicleforge.power.Mains.POWER));
         pos.set(x, y, z);
         if (w.getBlockEntity(pos) instanceof com.nothatcher.vehicleforge.block.NeonSignBlockEntity be) {
             be.text = text;
@@ -677,7 +683,7 @@ public final class CityGen {
 
     private void lamp(int x, int z, Direction arm) {
         for (int y = BASE; y <= BASE + 5; y++) set(x, y, z, POLE);
-        set(x, BASE + 6, z, CityBlocks.facing(CityBlocks.STREET_LAMP, arm));
+        set(x, BASE + 6, z, CityBlocks.facing(CityBlocks.STREET_LAMP, arm).with(net.minecraft.state.property.Properties.LIT, com.nothatcher.vehicleforge.power.Mains.POWER));
     }
 
     private void trafficLight(int x, int z, Direction a, Direction b) {
@@ -688,7 +694,8 @@ public final class CityGen {
         }
         for (int y = BASE; y <= BASE + 3; y++) set(x, y, z, POLE);
         for (int i = 0; i < 2; i++) {
-            set(x, BASE + 4 + i, z, CityBlocks.facing(CityBlocks.TRAFFIC_LIGHT, i == 0 ? a : b));
+            set(x, BASE + 4 + i, z, CityBlocks.facing(CityBlocks.TRAFFIC_LIGHT, i == 0 ? a : b)
+                    .with(com.nothatcher.vehicleforge.block.TrafficLightBlock.POWERED, com.nothatcher.vehicleforge.power.Mains.POWER));
             pos.set(x, BASE + 4 + i, z);
             w.scheduleBlockTick(pos.toImmutable(), CityBlocks.TRAFFIC_LIGHT, 1 + i);
         }
@@ -822,12 +829,12 @@ public final class CityGen {
             } else if (shaftCol) {
                 s = st.frame;
             } else if (floorRow) {
-                s = Math.floorMod(x + z * 3, 7) == 0 ? CEILING_LIGHT : INNER_FLOOR;
+                s = Math.floorMod(x + z * 3, 7) == 0 ? ceilingLight() : INNER_FLOOR;
             } else {
                 BlockState f = furnish(x, y, z, rel, bx0, bx1, bz0, bz1, mx, mz, st, front, mid);
                 if (f != null) {
                     if (f != AIR) {
-                        if (f.getBlock() == CityBlocks.COMPUTER && !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN && rnd(x, y * 13 + z, 174) < 0.4f)
+                        if (f.getBlock() == CityBlocks.COMPUTER && com.nothatcher.vehicleforge.power.Mains.POWER && rnd(x, y * 13 + z, 174) < 0.4f)
                             f = f.with(net.minecraft.state.property.Properties.LIT, true);
                         set(x, y, z, f);
                         if (f.getBlock() instanceof com.nothatcher.vehicleforge.block.StorageProp) lootAt(x, y, z, propLoot(f.getBlock()));
@@ -1352,10 +1359,10 @@ public final class CityGen {
                 set(x, y, z, b);
             }
             if (lz == 28 && s >= 22 && s <= 26) set(x, BASE + 4, z, CityBlocks.facing(CityBlocks.TV, Direction.NORTH).with(net.minecraft.state.property.Properties.LIT,
-                    !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));   // departure board
+                    com.nothatcher.vehicleforge.power.Mains.POWER));   // departure board
             return;
         }
-        set(x, top, z, (s % 5 == 2 && lz % 5 == 2) ? CEILING_LIGHT : Blocks.WHITE_CONCRETE.getDefaultState());
+        set(x, top, z, (s % 5 == 2 && lz % 5 == 2) ? ceilingLight() : Blocks.WHITE_CONCRETE.getDefaultState());
         if (lz == 25 && s >= 11 && s <= 19 && s % 2 == 1) { set(x, BASE, z, f(CityBlocks.CHECKOUT_COUNTER, Direction.NORTH)); lootAt(x, BASE, z, "shop"); }
         else if (lz >= 11 && lz <= 21 && lz % 3 == 2 && ((s >= 11 && s <= 15) || (s >= 25 && s <= 37))) set(x, BASE, z, f(CityBlocks.PEW, Direction.NORTH));
         else if (lz == 9 && s == 10) set(x, BASE, z, f(CityBlocks.VENDING_MACHINE, Direction.EAST));
@@ -1755,7 +1762,7 @@ public final class CityGen {
             set(x, top + 1, z, Blocks.SMOOTH_QUARTZ_SLAB.getDefaultState());
             return;
         }
-        set(x, top, z, tz % 8 == 4 ? CLEAR : (tx % 5 == 2 && tz % 5 == 2) ? CEILING_LIGHT : Blocks.WHITE_CONCRETE.getDefaultState());
+        set(x, top, z, tz % 8 == 4 ? CLEAR : (tx % 5 == 2 && tz % 5 == 2) ? ceilingLight() : Blocks.WHITE_CONCRETE.getDefaultState());
         if (tx % 20 == 10 && tz % 12 == 6) {                                 // columns
             for (int y = BASE; y < top; y++) set(x, y, z, Blocks.WHITE_CONCRETE.getDefaultState());
             return;
@@ -1763,7 +1770,7 @@ public final class CityGen {
         if ((tx % 20 == 9 || tx % 20 == 11) && tz % 12 == 6) { set(x, BASE, z, f(CityBlocks.POTTED_PLANT, Direction.NORTH)); return; }
         // departure boards over the hall
         if (tz == 1 && tx >= 50 && tx <= 70) {
-            set(x, BASE + 5, z, CityBlocks.facing(CityBlocks.TV, Direction.SOUTH).with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));
+            set(x, BASE + 5, z, CityBlocks.facing(CityBlocks.TV, Direction.SOUTH).with(net.minecraft.state.property.Properties.LIT, com.nothatcher.vehicleforge.power.Mains.POWER));
         }
         // check-in counters (west half)
         if (tz == 9 && tx >= 4 && tx <= 56 && tx % 4 != 0) { set(x, BASE, z, f(CityBlocks.CHECKOUT_COUNTER, Direction.NORTH)); lootAt(x, BASE, z, "shop"); return; }
@@ -1824,7 +1831,7 @@ public final class CityGen {
             if (a == 4 && (ox + oz) % 2 == 0 && oz != 0) {
                 set(x, cabFloor + 1, z, f(CityBlocks.DESK, Direction.fromHorizontal(Math.abs(ox) > Math.abs(oz) ? (ox > 0 ? 3 : 1) : (oz > 0 ? 0 : 2)).getOpposite()));
                 set(x, cabFloor + 2, z, f(CityBlocks.COMPUTER, Direction.fromHorizontal(Math.abs(ox) > Math.abs(oz) ? (ox > 0 ? 3 : 1) : (oz > 0 ? 0 : 2)).getOpposite())
-                        .with(net.minecraft.state.property.Properties.LIT, !com.nothatcher.vehicleforge.power.PowerGrid.MAINS_DOWN));
+                        .with(net.minecraft.state.property.Properties.LIT, com.nothatcher.vehicleforge.power.Mains.POWER));
             }
         }
         if (ox == 0 && oz == 0) {
@@ -1884,7 +1891,7 @@ public final class CityGen {
             for (int y = floor + 1; y < ceil; y++) set(x, y, z, Blocks.POLISHED_DEEPSLATE.getDefaultState());
             return;
         }
-        if ((ax + az) % 4 == 0) set(x, ceil, z, CEILING_LIGHT.with(net.minecraft.state.property.Properties.LIT, true));
+        if ((ax + az) % 4 == 0) set(x, ceil, z, ceilingLight().with(net.minecraft.state.property.Properties.LIT, true));
         int y = floor + 1;
         if (az == 6 && ax % 2 == 0 && ax <= 256) container(x, y, z, "armory", true);
         else if (az == 14 && ax >= 246 && ax <= 250) { set(x, y, z, f(CityBlocks.STORE_SHELF, Direction.NORTH)); lootAt(x, y, z, "armory"); }
@@ -1993,7 +2000,7 @@ public final class CityGen {
             for (int y = floor + 1; y < ceil; y++) set(x, y, z, Blocks.POLISHED_DEEPSLATE.getDefaultState());
             return;
         }
-        if ((px + pz) % 4 == 0) set(x, ceil, z, CEILING_LIGHT.with(net.minecraft.state.property.Properties.LIT, true));
+        if ((px + pz) % 4 == 0) set(x, ceil, z, ceilingLight().with(net.minecraft.state.property.Properties.LIT, true));
         int y = floor + 1;
         if (pz == 7) {                                                       // the bookshelf wall, with one secret shelf
             for (int k = y; k < ceil; k++) {
@@ -2159,7 +2166,7 @@ public final class CityGen {
                 if (ix == w - 1 && iz == 1) return Blocks.RED_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.HEAD);
                 if (ix == w - 1 && iz == 2) return Blocks.RED_BED.getDefaultState().with(BedBlock.FACING, Direction.NORTH).with(BedBlock.PART, BedPart.FOOT);
                 if (ix == 1 && iz == 1) return f(CityBlocks.STOVE, Direction.EAST);
-                if (ix == 1 && iz == 2) return f(CityBlocks.KITCHEN_COUNTER, Direction.EAST);
+                if (ix == 1 && iz == 2) return f(CityBlocks.SINK, Direction.EAST);
                 if (ix == 1 && iz == d - 1) return f(CityBlocks.FRIDGE, Direction.EAST);
                 if (ix == 3 && iz == d - 1) return f(CityBlocks.SOFA, Direction.NORTH);
                 if (ix == 3 && iz == 1) return f(CityBlocks.TV, Direction.SOUTH);
@@ -2169,6 +2176,7 @@ public final class CityGen {
                 if (r != 1) return null;
                 if (iz == d - 3 && ix >= 3 && ix <= w - 3) return f(CityBlocks.KITCHEN_COUNTER, Direction.NORTH);    // the counter
                 if (iz == d - 4 && ix >= 3 && ix <= w - 3 && ix % 2 == 1) return f(CityBlocks.OFFICE_CHAIR, Direction.SOUTH);  // stools
+                if (iz == d - 1 && ix == 4) return f(CityBlocks.SINK, Direction.NORTH);
                 if (iz == d - 1 && ix >= 2 && ix <= w - 2) return ix % 3 == 0 ? f(CityBlocks.STOVE, Direction.NORTH)
                         : ix % 3 == 1 ? f(CityBlocks.FRIDGE, Direction.NORTH) : f(CityBlocks.KITCHEN_COUNTER, Direction.NORTH);
                 if (iz >= 2 && iz <= d - 7 && (ix == 1 || ix == w - 1)) {                                     // window booths
@@ -2311,6 +2319,7 @@ public final class CityGen {
                     if (r == 2) return null;
                     if (rx == 3) return f(CityBlocks.STOVE, Direction.SOUTH);
                     if (rx == 6) return f(CityBlocks.FRIDGE, Direction.SOUTH);
+                    if (rx == 4 && r == 1) return f(CityBlocks.SINK, Direction.SOUTH);
                     return f(CityBlocks.KITCHEN_COUNTER, Direction.SOUTH);
                 }
                 if (r == 1 && rx >= 3 && rx <= 4 && rz == 5) return f(CityBlocks.DESK, Direction.NORTH);
@@ -3020,6 +3029,7 @@ public final class CityGen {
         } else {
             set(x, BASE + 4, z, a == (a0 + a1) / 2 && c == (c0 + c1) / 2 ? Blocks.GLOWSTONE.getDefaultState() : hs.floor);
             if (a == a0 + 1 && c == c1 - 1) set(x, BASE + 1, z, Blocks.CRAFTING_TABLE.getDefaultState());
+            if (a == a0 + 2 && c == c1 - 1) set(x, BASE + 1, z, CityBlocks.facing(CityBlocks.SINK, l.alongX ? Direction.NORTH : Direction.WEST));   // kitchen sink
             if (a == a0 + 1 && c == c0 + 1) container(x, BASE + 1, z, "house", false);
             if (a == a0 + 2 && c == c1 - 1) container(x, BASE + 1, z, "house", false);
             if (garage) {

@@ -26,9 +26,52 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
     public static final Identifier TEXTURE = VehicleForge.id("textures/entity/vehicle_palette.png");
     private static final int FULL_BRIGHT = 0xF000F0;
 
+    /** the traffic driver: a seated person at the wheel of city traffic */
+    private final net.minecraft.client.render.entity.model.PlayerEntityModel<net.minecraft.entity.LivingEntity> driver;
+
     public VehicleRenderer(EntityRendererFactory.Context ctx) {
         super(ctx);
         this.shadowRadius = 1.2f;
+        this.driver = new net.minecraft.client.render.entity.model.PlayerEntityModel<>(
+                ctx.getPart(net.minecraft.client.render.entity.model.EntityModelLayers.PLAYER), false);
+    }
+
+    private void drawDriver(VehicleEntity e, MatrixStack ms, VertexConsumerProvider vcp, int light) {
+        if (e.type.seats.isEmpty() || !e.getPassengerList().isEmpty()) return;
+        Vec3d s = e.type.seats.get(0);
+        var m = driver;
+        m.child = false;
+        m.sneaking = false;
+        m.riding = true;
+        m.head.pitch = 0;
+        m.head.yaw = (float) Math.sin((e.age + e.getId() * 37) * 0.02) * 0.35f;     // glancing about
+        m.body.pitch = 0;
+        m.rightLeg.pitch = -1.4137167f;
+        m.rightLeg.yaw = 0.31415927f;
+        m.rightLeg.roll = 0.07853982f;
+        m.leftLeg.pitch = -1.4137167f;
+        m.leftLeg.yaw = -0.31415927f;
+        m.leftLeg.roll = -0.07853982f;
+        m.rightArm.pitch = -1.05f;                                            // hands on the wheel
+        m.rightArm.yaw = -0.25f;
+        m.rightArm.roll = 0;
+        m.leftArm.pitch = -1.05f;
+        m.leftArm.yaw = 0.25f;
+        m.leftArm.roll = 0;
+        m.hat.copyTransform(m.head);
+        m.rightSleeve.copyTransform(m.rightArm);
+        m.leftSleeve.copyTransform(m.leftArm);
+        m.rightPants.copyTransform(m.rightLeg);
+        m.leftPants.copyTransform(m.leftLeg);
+        m.jacket.copyTransform(m.body);
+        ms.push();
+        ms.translate(s.x, s.y - 0.35, s.z);
+        ms.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180));
+        ms.scale(-1, -1, 1);
+        ms.translate(0, -1.501, 0);
+        Identifier skin = net.minecraft.client.util.DefaultSkinHelper.getTexture(e.getUuid());   // one of the default skins
+        m.render(ms, vcp.getBuffer(m.getLayer(skin)), light, OverlayTexture.DEFAULT_UV, 1f, 1f, 1f, 1f);
+        ms.pop();
     }
 
     @Override
@@ -74,6 +117,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> {
                 ms.pop();
             }
         }
+        if (e.aiDriven()) drawDriver(e, ms, vcp, light);
         if (e.lightsOn && !model.lights.isEmpty()) beams(model, ms, vcp);
         if (model.hasPlate) plate(model, e, ms, vcp, light);
         ms.pop();

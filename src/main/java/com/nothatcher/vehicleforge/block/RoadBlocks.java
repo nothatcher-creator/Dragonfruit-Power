@@ -131,6 +131,10 @@ public final class RoadBlocks {
         @Override
         public ActionResult onUse(BlockState st, World w, BlockPos pos, PlayerEntity p, Hand hand, BlockHitResult hit) {
             if (w.isClient) return ActionResult.SUCCESS;
+            if (!com.nothatcher.vehicleforge.power.PowerGrid.cityPowered(w, pos)) {             // pumps need power: bring a generator
+                p.sendMessage(Text.translatable("msg.vehicleforge.pump_no_power").formatted(Formatting.RED), true);
+                return ActionResult.SUCCESS;
+            }
             PumpState ps = ((ServerWorld) w).getPersistentStateManager().getOrCreate(PumpState::read, PumpState::new, "vehicleforge_pumps");
             int left = ps.left.computeIfAbsent(pos.asLong(), k -> 100 + (int) Math.floorMod(k * 0x9E3779B97F4A7C15L >>> 20, 900));
             if (left < 20) {

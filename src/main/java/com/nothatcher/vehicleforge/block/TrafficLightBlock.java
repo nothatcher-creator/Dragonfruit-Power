@@ -17,17 +17,19 @@ import net.minecraft.world.World;
  */
 public class TrafficLightBlock extends FacingShapeBlock {
     public static final IntProperty PHASE = IntProperty.of("phase", 0, 2);   // 0 green, 1 yellow, 2 red
+    /** off when the city's grid is down (and nothing local powers it): treat the junction as a four-way stop */
+    public static final net.minecraft.state.property.BooleanProperty POWERED = net.minecraft.state.property.Properties.POWERED;
     private static final int CYCLE = 400;
 
     public TrafficLightBlock(Settings settings, VoxelShape shape) {
         super(settings, shape, false);
-        setDefaultState(getDefaultState().with(PHASE, 2));
+        setDefaultState(getDefaultState().with(PHASE, 2).with(POWERED, true));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         super.appendProperties(builder);
-        builder.add(PHASE);
+        builder.add(PHASE, POWERED);
     }
 
     /** phase and ticks until it changes, for lights facing along the given axis */
@@ -62,8 +64,14 @@ public class TrafficLightBlock extends FacingShapeBlock {
 
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+        if (!com.nothatcher.vehicleforge.power.PowerGrid.cityPowered(world, pos)) {
+            if (state.get(POWERED)) world.setBlockState(pos, state.with(POWERED, false), Block.NOTIFY_LISTENERS);
+            world.scheduleBlockTick(pos, this, 100);
+            return;
+        }
+        if (!state.get(POWERED)) state = state.with(POWERED, true);
         int[] p = phaseAt(world.getTime(), state.get(FACING).getAxis());
-        if (state.get(PHASE) != p[0]) world.setBlockState(pos, state.with(PHASE, p[0]), Block.NOTIFY_LISTENERS);
+        if (state.get(PHASE) != p[0] || world.getBlockState(pos) != state) world.setBlockState(pos, state.with(PHASE, p[0]), Block.NOTIFY_LISTENERS);
         world.scheduleBlockTick(pos, this, Math.max(1, p[1]));
     }
 }

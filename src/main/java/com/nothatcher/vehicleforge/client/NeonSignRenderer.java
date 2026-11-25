@@ -27,7 +27,12 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
             int phase = (int) (t % 120);
             if ((phase > 100 && phase < 104) || phase == 108 || (phase > 60 && phase < 62 && (t / 120) % 3 == 0)) c = dim(c, 0.25f);
         }
+        boolean lit = be.getCachedState().get(net.minecraft.state.property.Properties.LIT);
         int core = mix(c, 0xFFFFFF, 0.55f), halo = dim(c, 0.85f);
+        if (!lit) {                                                          // power's out: cold glass tubes
+            core = mix(dim(c, 0.35f), 0x303034, 0.5f);
+            halo = 0x101012;
+        }
         Direction f = be.getCachedState().get(NeonSignBlock.FACING);
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         String[] lines = be.text.split("\\|");
@@ -42,8 +47,9 @@ public class NeonSignRenderer implements BlockEntityRenderer<NeonSignBlockEntity
         for (int i = 0; i < lines.length; i++) {
             OrderedText t = Text.literal(lines[i]).asOrderedText();
             float w = tr.getWidth(t);
-            tr.drawWithOutline(t, -w / 2f, y0 + i * lineH, 0xFF000000 | core, 0xFF000000 | halo, ms.peek().getPositionMatrix(), vcp,
+            if (lit) tr.drawWithOutline(t, -w / 2f, y0 + i * lineH, 0xFF000000 | core, 0xFF000000 | halo, ms.peek().getPositionMatrix(), vcp,
                     LightmapTextureManager.MAX_LIGHT_COORDINATE);
+            else tr.draw(t, -w / 2f, y0 + i * lineH, 0xFF000000 | core, false, ms.peek().getPositionMatrix(), vcp, TextRenderer.TextLayerType.NORMAL, 0, light);
         }
         ms.pop();
     }

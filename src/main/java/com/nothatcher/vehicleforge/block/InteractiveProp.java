@@ -37,7 +37,7 @@ import net.minecraft.world.World;
  * bottles, the stove cooks whatever raw food you're holding, and the parking meter has opinions.
  */
 public class InteractiveProp extends FacingShapeBlock {
-    public enum Kind { VENDING, ATM, WATER, STOVE, METER }
+    public enum Kind { VENDING, ATM, WATER, STOVE, METER, SINK }
 
     public static final IntProperty STOCK = IntProperty.of("stock", 0, 4);
     private final Kind kind;
@@ -116,6 +116,26 @@ public class InteractiveProp extends FacingShapeBlock {
                 sw.spawnParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, 8, 0.25, 0.05, 0.25, 0.01);
             }
             case METER -> tell(player, world.random.nextInt(4) == 0 ? "msg.vehicleforge.meter_paid" : "msg.vehicleforge.meter_expired");
+            case SINK -> {                                              // running water, until the mains are shut off
+                if (!com.nothatcher.vehicleforge.power.Mains.WATER) {
+                    tell(player, "msg.vehicleforge.taps_dry");
+                    world.playSound(null, pos, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.3f, 1.8f);
+                    return ActionResult.CONSUME;
+                }
+                if (held.isOf(Items.GLASS_BOTTLE)) {
+                    held.decrement(1);
+                    player.getInventory().offerOrDrop(PotionUtil.setPotion(new ItemStack(Items.POTION), Potions.WATER));
+                    world.playSound(null, pos, SoundEvents.ITEM_BOTTLE_FILL, SoundCategory.BLOCKS, 1f, 1f);
+                } else if (held.isOf(Items.BUCKET)) {
+                    held.decrement(1);
+                    player.getInventory().offerOrDrop(new ItemStack(Items.WATER_BUCKET));
+                    world.playSound(null, pos, SoundEvents.ITEM_BUCKET_FILL, SoundCategory.BLOCKS, 1f, 1f);
+                } else {
+                    player.getHungerManager().add(1, 0.2f);
+                    world.playSound(null, pos, SoundEvents.ENTITY_GENERIC_DRINK, SoundCategory.PLAYERS, 0.8f, 1.1f);
+                }
+                sw.spawnParticles(ParticleTypes.FALLING_WATER, pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.4, 6, 0.08, 0.05, 0.08, 0);
+            }
         }
         return ActionResult.CONSUME;
     }

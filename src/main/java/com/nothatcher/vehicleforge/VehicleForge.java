@@ -16,6 +16,7 @@ public class VehicleForge implements ModInitializer {
     public static final Logger LOG = LoggerFactory.getLogger("Vehicle Forge");
     /** /gamerule vehicleFuel false turns fuel off */
     public static GameRules.Key<GameRules.BooleanRule> FUEL_RULE;
+    public static GameRules.Key<GameRules.BooleanRule> TRAFFIC_RULE;
 
     public static Identifier id(String path) {
         return new Identifier(MOD_ID, path);
@@ -24,6 +25,7 @@ public class VehicleForge implements ModInitializer {
     @Override
     public void onInitialize() {
         FUEL_RULE = GameRuleRegistry.register("vehicleFuel", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));
+        TRAFFIC_RULE = GameRuleRegistry.register("cityTraffic", GameRules.Category.SPAWNING, GameRuleFactory.createBooleanRule(true));
         ModEffects.register();
         ModRegistry.register();
         com.nothatcher.vehicleforge.block.CityBlocks.register();
@@ -32,7 +34,11 @@ public class VehicleForge implements ModInitializer {
         Net.registerServer();
         InteriorManager.register();
         ServerTickEvents.END_SERVER_TICK.register(server -> Scheduler.tick());
+        ServerTickEvents.END_SERVER_TICK.register(com.nothatcher.vehicleforge.traffic.TrafficManager::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.nothatcher.vehicleforge.power.Mains::tick);
+        com.nothatcher.vehicleforge.power.Mains.register();
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> Scheduler.clear());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> com.nothatcher.vehicleforge.traffic.TrafficManager.clear());
         LOG.info("Vehicle Forge loaded: {} vehicles", VehicleTypes.ALL.size());
     }
 }

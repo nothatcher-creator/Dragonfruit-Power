@@ -39,18 +39,31 @@ public class NeonSignBlock extends HorizontalFacingBlock implements BlockEntityP
 
     public NeonSignBlock(Settings s) {
         super(s);
-        setDefaultState(getDefaultState().with(FACING, Direction.NORTH));
+        setDefaultState(getDefaultState().with(FACING, Direction.NORTH).with(net.minecraft.state.property.Properties.LIT, true));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> b) {
-        b.add(FACING);
+        b.add(FACING, net.minecraft.state.property.Properties.LIT);
     }
 
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         Direction side = ctx.getSide();
-        return getDefaultState().with(FACING, side.getAxis().isHorizontal() ? side : ctx.getHorizontalPlayerFacing().getOpposite());
+        return getDefaultState().with(FACING, side.getAxis().isHorizontal() ? side : ctx.getHorizontalPlayerFacing().getOpposite())
+                .with(net.minecraft.state.property.Properties.LIT, com.nothatcher.vehicleforge.power.PowerGrid.cityPowered(ctx.getWorld(), ctx.getBlockPos()));
+    }
+
+    /** goes dark with the city grid unless something local powers it */
+    @Override
+    public boolean hasRandomTicks(BlockState st) {
+        return true;
+    }
+
+    @Override
+    public void randomTick(BlockState st, net.minecraft.server.world.ServerWorld w, BlockPos pos, net.minecraft.util.math.random.Random r) {
+        boolean on = com.nothatcher.vehicleforge.power.PowerGrid.cityPowered(w, pos);
+        if (on != st.get(net.minecraft.state.property.Properties.LIT)) w.setBlockState(pos, st.with(net.minecraft.state.property.Properties.LIT, on), Block.NOTIFY_LISTENERS);
     }
 
     @Override

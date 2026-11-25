@@ -1,48 +1,93 @@
 {
   "variants": {
-    "facing=north,phase=0": {
+    "facing=north,phase=0,powered=true": {
       "model": "vehicleforge:block/traffic_light_0"
     },
-    "facing=north,phase=1": {
+    "facing=north,phase=0,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off"
+    },
+    "facing=north,phase=1,powered=true": {
       "model": "vehicleforge:block/traffic_light_1"
     },
-    "facing=north,phase=2": {
+    "facing=north,phase=1,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off"
+    },
+    "facing=north,phase=2,powered=true": {
       "model": "vehicleforge:block/traffic_light_2"
     },
-    "facing=east,phase=0": {
+    "facing=north,phase=2,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off"
+    },
+    "facing=east,phase=0,powered=true": {
       "model": "vehicleforge:block/traffic_light_0",
       "y": 90
     },
-    "facing=east,phase=1": {
+    "facing=east,phase=0,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 90
+    },
+    "facing=east,phase=1,powered=true": {
       "model": "vehicleforge:block/traffic_light_1",
       "y": 90
     },
-    "facing=east,phase=2": {
+    "facing=east,phase=1,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 90
+    },
+    "facing=east,phase=2,powered=true": {
       "model": "vehicleforge:block/traffic_light_2",
       "y": 90
     },
-    "facing=south,phase=0": {
+    "facing=east,phase=2,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 90
+    },
+    "facing=south,phase=0,powered=true": {
       "model": "vehicleforge:block/traffic_light_0",
       "y": 180
     },
-    "facing=south,phase=1": {
+    "facing=south,phase=0,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 180
+    },
+    "facing=south,phase=1,powered=true": {
       "model": "vehicleforge:block/traffic_light_1",
       "y": 180
     },
-    "facing=south,phase=2": {
+    "facing=south,phase=1,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 180
+    },
+    "facing=south,phase=2,powered=true": {
       "model": "vehicleforge:block/traffic_light_2",
       "y": 180
     },
-    "facing=west,phase=0": {
+    "facing=south,phase=2,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 180
+    },
+    "facing=west,phase=0,powered=true": {
       "model": "vehicleforge:block/traffic_light_0",
       "y": 270
     },
-    "facing=west,phase=1": {
+    "facing=west,phase=0,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 270
+    },
+    "facing=west,phase=1,powered=true": {
       "model": "vehicleforge:block/traffic_light_1",
       "y": 270
     },
-    "facing=west,phase=2": {
+    "facing=west,phase=1,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
+      "y": 270
+    },
+    "facing=west,phase=2,powered=true": {
       "model": "vehicleforge:block/traffic_light_2",
+      "y": 270
+    },
+    "facing=west,phase=2,powered=false": {
+      "model": "vehicleforge:block/traffic_light_off",
       "y": 270
     }
   }

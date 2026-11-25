@@ -78,6 +78,10 @@ public class VehicleEntity extends Entity {
     /** fitted upgrades (Upgrades.ARMOR etc, a bit mask) and the hitched trailer (0 none, 1 cargo, 2 camper, 3 boat) */
     private static final TrackedData<Integer> UPGRADES = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> TRAILER = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    /** driven by city traffic (no player at the wheel) */
+    private static final TrackedData<Boolean> AI = DataTracker.registerData(VehicleEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    /** the traffic driver's state (server only) */
+    public com.nothatcher.vehicleforge.traffic.TrafficAI.Brain brain;
 
     /** Client hook (engine sounds etc.), set by the client mod. */
     public static Consumer<VehicleEntity> clientTickHook = e -> { };
@@ -156,6 +160,33 @@ public class VehicleEntity extends Entity {
         dataTracker.startTracking(BUILT, new NbtCompound());
         dataTracker.startTracking(UPGRADES, 0);
         dataTracker.startTracking(TRAILER, 0);
+        dataTracker.startTracking(AI, false);
+    }
+
+    public boolean aiDriven() {
+        return dataTracker.get(AI);
+    }
+
+    public void setAi(boolean on) {
+        dataTracker.set(AI, on);
+        if (!on) brain = null;
+    }
+
+    /** traffic isn't saved: it's spawned around players and simply drives off when the chunk unloads */
+    @Override
+    public boolean shouldSave() {
+        return !aiDriven() && super.shouldSave();
+    }
+
+    public void honk() {
+        String id = switch (type.horn) {
+            case TRUCK -> "horn_truck";
+            case BIKE_BELL -> "bike_bell";
+            case TRAIN -> "horn_train";
+            case BOAT -> "horn_boat";
+            default -> "horn_car";
+        };
+        getWorld().playSound(null, getX(), getY(), getZ(), ModRegistry.sound(id), SoundCategory.NEUTRAL, 1.6f, 0.95f + random.nextFloat() * 0.1f);
     }
 
     @Override
@@ -217,7 +248,7 @@ public class VehicleEntity extends Entity {
 
     /** someone is in the driver's seat and the tank isn't dry */
     public boolean engineRunning() {
-        return getControllingPassenger() != null && hasFuel() && !isWreck();
+        return (getControllingPassenger() != null || aiDriven()) && hasFuel() && !isWreck();
     }
 
     public int getPaint() {
@@ -875,6 +906,7 @@ public class VehicleEntity extends Entity {
     public boolean damage(DamageSource source, float amount) {
         if (isInvulnerableTo(source) || isRemoved()) return false;
         if (getWorld().isClient) return true;
+        if (aiDriven()) com.nothatcher.vehicleforge.traffic.TrafficAI.onHit(this, source);
         if (type.buildable && source.getAttacker() instanceof PlayerEntity bp && source.getSource() == bp && buildBreak(bp)) return true;
         boolean creative = source.getAttacker() instanceof PlayerEntity p && p.getAbilities().creativeMode;
         dataTracker.set(WOBBLE, 10);
@@ -1023,7 +1055,7 @@ public class VehicleEntity extends Entity {
                     && Math.abs(pitchVel) + Math.abs(rollVel) < 0.01f && (age + getId()) % 20 != 0;
             if (!settled) updateBody();
             long t = getWorld().getTimeOfDay() % 24000L;
-            lightsOn = getControllingPassenger() != null && (t > 12600 && t < 23400 || getWorld().isRaining()
+            lightsOn = (getControllingPassenger() != null || aiDriven()) && (t > 12600 && t < 23400 || getWorld().isRaining()
                     || getWorld().getLightLevel(LightType.SKY, getBlockPos().up()) < 8 || isSubmergedInWater());
             clientTickHook.accept(this);
         } else {
@@ -1103,7 +1135,7 @@ public class VehicleEntity extends Entity {
 
     /** at night (or in rain, darkness, underwater) a driven vehicle's headlights light up the road ahead */
     private void headlights() {
-        if (getControllingPassenger() == null || (age + getId()) % 2 != 0 || !(getWorld() instanceof ServerWorld w)) return;
+        if ((getControllingPassenger() == null && !aiDriven()) || (age + getId()) % 2 != 0 || !(getWorld() instanceof ServerWorld w)) return;
         switch (type.category) {
             case ANIMAL, BALL, BALLOON -> { return; }
             default -> { }
@@ -1122,6 +1154,7 @@ public class VehicleEntity extends Entity {
     }
 
     private void serverTick() {
+        if (aiDriven() && (getControllingPassenger() != null || isWreck())) setAi(false);   // carjacked, or crashed out
         headlights();
         if ((type.interiorRoom || trailer() == 2) && age % 20 == 0) InteriorManager.track(this);
         if (sprayOn()) Weapons.sprayTick(this);
@@ -1241,13 +1274,20 @@ public class VehicleEntity extends Entity {
             setVelocity(Vec3d.ZERO);
             return;
         }
-        boolean driven = getControllingPassenger() != null && getWorld().isClient;
-        boolean fwd = driven && InputState.forward, back = driven && InputState.back;
-        boolean left = driven && InputState.left, right = driven && InputState.right;
-        boolean up = driven && InputState.up, down = driven && InputState.down;
-        boolean engine = driven && hasFuel();
+        boolean ai = aiDriven() && !getWorld().isClient && getControllingPassenger() == null && brain != null;
+        boolean driven = (getControllingPassenger() != null && getWorld().isClient) || ai;
+        boolean fwd = driven && !ai && InputState.forward, back = driven && !ai && InputState.back;
+        boolean left = driven && !ai && InputState.left, right = driven && !ai && InputState.right;
+        boolean up = driven && !ai && InputState.up, down = driven && !ai && InputState.down;
+        boolean engine = driven && (ai || hasFuel());
         float steer = left ? 1 : right ? -1 : 0;
         float pedal = fwd ? 1 : back ? -1 : 0;
+        if (ai) {
+            float[] in = com.nothatcher.vehicleforge.traffic.TrafficAI.drive(this);
+            pedal = in[0];
+            steer = in[1];
+            up = in[2] > 0;                                              // the handbrake, for holding at a stop
+        }
         // dead engine: you can still brake, but not accelerate
         if (!engine && (pedal > 0 || speed <= 0.05f)) pedal = 0;
         if (!driven) {
@@ -1273,7 +1313,7 @@ public class VehicleEntity extends Entity {
      * gives it a shove (an explosion, another car) sets its velocity and wakes it up.
      */
     private boolean asleep() {
-        if (getWorld().isClient || !getPassengerList().isEmpty() || !isOnGround()) return false;
+        if (getWorld().isClient || !getPassengerList().isEmpty() || !isOnGround() || aiDriven()) return false;
         switch (type.category) {
             case HELICOPTER, PLANE, ROCKET, BOAT, SUBMARINE, BALLOON, TRAIN -> { return false; }
             default -> { }

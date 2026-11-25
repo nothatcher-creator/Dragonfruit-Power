@@ -29,7 +29,7 @@ public class ElectricLightBlock extends Block {
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
         update(state, world, pos);
-        if (PowerGrid.MAINS_DOWN) world.scheduleBlockTick(pos, this, 30);   // with the mains on it just stays lit
+        if (PowerGrid.mainsDown()) world.scheduleBlockTick(pos, this, 30);   // with the mains on it just stays lit
     }
 
     /**
@@ -38,7 +38,7 @@ public class ElectricLightBlock extends Block {
      */
     @Override
     public boolean hasRandomTicks(BlockState state) {
-        return PowerGrid.MAINS_DOWN;
+        return true;
     }
 
     @Override

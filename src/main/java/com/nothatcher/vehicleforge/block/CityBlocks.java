@@ -60,9 +60,9 @@ public final class CityBlocks {
     public static final Block SIDEWALK_SLAB = reg("sidewalk_slab", new SlabBlock(walk()));
     public static final Block CURB = reg("curb", new SlabBlock(walk()));
     public static final Block LAMP_POST = reg("lamp_post", new PoleBlock(metal()));
-    public static final Block STREET_LAMP = reg("street_lamp", new FacingShapeBlock(metal().luminance(s -> 15),
-            VoxelShapes.union(box(6, 0, 6, 10, 16, 10), box(7, 11, 0, 9, 14, 8)), true));
-    public static final Block TRAFFIC_LIGHT = reg("traffic_light", new TrafficLightBlock(metal().luminance(s -> 8),
+    public static final Block STREET_LAMP = reg("street_lamp", new GridLampBlock(metal(),
+            VoxelShapes.union(box(6, 0, 6, 10, 16, 10), box(7, 11, 0, 9, 14, 8)), true, 15));
+    public static final Block TRAFFIC_LIGHT = reg("traffic_light", new TrafficLightBlock(metal().luminance(s -> s.get(TrafficLightBlock.POWERED) ? 8 : 0),
             box(4, 0, 5, 12, 16, 12)));
     public static final Block TRAFFIC_CONE = reg("traffic_cone", new FacingShapeBlock(prop(),
             VoxelShapes.union(box(2, 0, 2, 14, 2, 14), box(5, 2, 5, 11, 13, 11)), false));
@@ -193,7 +193,8 @@ public final class CityBlocks {
     public static final Block FLIES = reg("flies", new FliesBlock(AbstractBlock.Settings.create().replaceable().noCollision().nonOpaque()
             .strength(0.1f).sounds(BlockSoundGroup.WOOL).noBlockBreakParticles()));
     public static final Block NEON_SIGN = reg("neon_sign", new NeonSignBlock(AbstractBlock.Settings.create().mapColor(MapColor.PINK).noCollision()
-            .nonOpaque().strength(0.5f).sounds(BlockSoundGroup.GLASS).luminance(s -> 12)));
+            .nonOpaque().strength(0.5f).sounds(BlockSoundGroup.GLASS).luminance(s -> s.get(Properties.LIT) ? 12 : 0)));
+    public static final Block SINK = reg("sink", new InteractiveProp(furniture(MapColor.WHITE, BlockSoundGroup.METAL), box(0, 0, 1, 16, 15, 16), InteractiveProp.Kind.SINK));
 
     public static final Block[] STORAGE = {SUITCASE, DESK, FILING_CABINET, KITCHEN_COUNTER, FRIDGE, STORE_SHELF, CHECKOUT_COUNTER, MAILBOX, NEWSPAPER_BOX};
     public static final Block[] POWER = {GENERATOR, SOLAR_PANEL, WIND_TURBINE, BATTERY, POWER_POLE};

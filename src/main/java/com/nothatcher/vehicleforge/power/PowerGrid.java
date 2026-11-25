@@ -20,7 +20,13 @@ import java.util.Set;
 public final class PowerGrid {
     public static final int RANGE = 16;
     /** without Outbreak the city's mains are on: city props just work. With Outbreak the power is out. */
-    public static final boolean MAINS_DOWN = net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("outbreak");
+    @Deprecated
+    public static final boolean MAINS_DOWN = false;
+
+    /** is the city's grid down? (with Outbreak it fails a week or two in: see {@link Mains}) */
+    public static boolean mainsDown() {
+        return !Mains.POWER;
+    }
 
     /** source: feeds the grid. producer: makes power (generator, solar, wind) rather than storing it (battery) */
     private record Node(BlockPos pos, boolean source, boolean producer, long seen) {}
@@ -115,7 +121,7 @@ public final class PowerGrid {
 
     /** city appliances: work off the mains, or off your own generator once the mains are down */
     public static boolean cityPowered(World w, BlockPos pos) {
-        return !MAINS_DOWN || isPowered(w, pos) || w.isReceivingRedstonePower(pos);
+        return Mains.POWER || isPowered(w, pos) || w.isReceivingRedstonePower(pos);
     }
 
     public static void clear() {

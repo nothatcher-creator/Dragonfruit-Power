@@ -30,6 +30,11 @@ public class ElevatorBlock extends Block {
             under = p.getBlockPos();                                         // standing on its top face
             if (!(w.getBlockState(under).getBlock() instanceof ElevatorBlock)) return;
         }
+        if (!com.nothatcher.vehicleforge.power.PowerGrid.cityPowered(w, under)) {
+            p.sendMessage(net.minecraft.text.Text.translatable("msg.vehicleforge.elevator_dead").formatted(net.minecraft.util.Formatting.GRAY), true);
+            w.playSound(null, under, SoundEvents.BLOCK_STONE_BUTTON_CLICK_ON, SoundCategory.BLOCKS, 0.5f, 0.7f);
+            return;
+        }
         for (int i = 1; i <= 48; i++) {
             BlockPos pad = under.up(up ? i : -i);
             if (pad.getY() < w.getBottomY() || pad.getY() > w.getTopY()) return;

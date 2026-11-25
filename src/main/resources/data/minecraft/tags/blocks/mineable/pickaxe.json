@@ -74,6 +74,7 @@
     "vehicleforge:slope_stone",
     "vehicleforge:slope_metal",
     "vehicleforge:roller_door",
-    "vehicleforge:pothole"
+    "vehicleforge:pothole",
+    "vehicleforge:sink"
   ]
 }
