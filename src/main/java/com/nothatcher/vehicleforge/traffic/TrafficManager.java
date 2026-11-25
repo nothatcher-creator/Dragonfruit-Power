@@ -49,7 +49,7 @@ public final class TrafficManager {
                 v.discard();
                 continue;
             }
-            if (collapse && v.brain.panicTicks == 0 && v.getRandom().nextInt(45) == 0) TrafficAI.panic(v);
+            if (collapse && v.brain.panicTicks == 0 && v.getWorld().getRandom().nextInt(45) == 0) TrafficAI.panic(v);
         }
         if (collapse || !w.getGameRules().getBoolean(VehicleForge.TRAFFIC_RULE)) return;
         Random r = w.getRandom();

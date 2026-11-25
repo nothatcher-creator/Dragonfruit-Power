@@ -149,7 +149,7 @@ public final class TrafficAI {
             b.panicTicks--;
             if (b.panicTicks == 0) {
                 v.setAi(false);
-                if (v.getRandom().nextInt(3) == 0) v.honk();
+                if (v.getWorld().getRandom().nextInt(3) == 0) v.honk();
                 return new float[]{-1, 0, 1};
             }
             return new float[]{1, b.panicSteer, 0};
@@ -237,7 +237,7 @@ public final class TrafficAI {
         if (target == 0 && gap < 6 && Math.abs(speed) < 0.02f) {
             if (++b.blockedTicks > 60 && b.honkCooldown == 0) {
                 v.honk();
-                b.honkCooldown = 80 + v.getRandom().nextInt(80);
+                b.honkCooldown = 80 + v.getWorld().getRandom().nextInt(80);
             }
         } else b.blockedTicks = 0;
 
@@ -286,7 +286,7 @@ public final class TrafficAI {
         int jx = b.dir.getAxis() == Direction.Axis.Z ? o : k * CELL, jz = b.dir.getAxis() == Direction.Axis.Z ? k * CELL : o;
         List<Direction> opts = new ArrayList<>();
         Direction straight = b.dir, right = b.dir.rotateYClockwise(), left = b.dir.rotateYCounterclockwise();
-        int r = v.getRandom().nextInt(100);
+        int r = v.getWorld().getRandom().nextInt(100);
         Direction[] order = r < 60 ? new Direction[]{straight, right, left} : r < 80 ? new Direction[]{right, straight, left} : new Direction[]{left, straight, right};
         for (Direction d : order) {
             double[] e = exit(d, d == right ? 0 : d == left ? 1 : b.lane, jx, jz);
@@ -361,7 +361,7 @@ public final class TrafficAI {
     /** the outbreak reaches the driver: swerve, floor it, and leave the car where it ends up */
     public static void panic(VehicleEntity v) {
         if (v.brain == null) return;
-        v.brain.panicTicks = 20 + v.getRandom().nextInt(30);
-        v.brain.panicSteer = (v.getRandom().nextFloat() - 0.5f) * 1.6f;
+        v.brain.panicTicks = 20 + v.getWorld().getRandom().nextInt(30);
+        v.brain.panicSteer = (v.getWorld().getRandom().nextFloat() - 0.5f) * 1.6f;
     }
 }
